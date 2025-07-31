@@ -38,6 +38,7 @@ services:
     environment:
       - LICENSE_KEY=${LICENSE_KEY}
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - WEBUI_URL=https://app.publicai.company
       
       # Telemetry
       # TODO: Find a way to secure the OTLP
@@ -59,5 +60,23 @@ services:
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - S3_REGION_NAME=fra1
       - S3_KEY_PREFIX=uploads/
+
+      # WebSocket broker:
+      - ENABLE_WEBSOCKET_SUPPORT=true 
+      - WEBSOCKET_MANAGER=redis
+      - WEBSOCKET_REDIS_URL=${REDIS_URL}
+
+      # TODO: Setup the vector database
+      # - VECTOR_DB=pgvector
+      # - PGVECTOR_DB_URL=${DATABASE_URL}
+
+      # TODO: Setup the embedding engine to use OpenAI APIs
+      # - RAG_EMBEDDING_ENGINE=openai
+      # - RAG_EMBEDDING_MODEL=text-embedding-3-small
+
+      # TODO: Setup task models 
+      # - TASK_MODEL
+      # - TASK_MODEL_EXTERNAL 
+
 volumes:
   open-webui: {}
