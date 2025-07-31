@@ -1,0 +1,41 @@
+services:
+  grafana:
+    image: grafana/otel-lgtm:latest
+    container_name: lgtm
+    ports: 
+      - "3030:3000"   # Grafana UI
+      - "4317:4317"   # OTLP/gRPC
+      - "4318:4318"   # OTLP/HTTP
+    restart: unless-stopped
+    environment: 
+    # TODO: Move these credentials to env variables
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=supersecret
+  
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    depends_on:
+      - grafana
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    restart: unless-stopped
+    environment:
+      - LICENSE_KEY=${LICENSE_KEY}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      
+      # Telemetry
+      # TODO: Find a way to secure the OTLP
+      - ENABLE_OTEL=true
+      - ENABLE_OTEL_METRICS=true
+      - OTEL_EXPORTER_OTLP_INSECURE=true # Use insecure connection for OTLP, remove in production
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
+      - OTEL_SERVICE_NAME=open-webui
+
+      # TODO: Spin up managed postgres and redis then migrate here
+      # - DATABASE_URL=${DATABASE_URL}
+      # - REDIS_URL=${REDIS_URL}
+volumes:
+  open-webui: {}
