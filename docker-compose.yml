@@ -7,7 +7,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/ssl/certs
+      - /etc/letsencrypt:/etc/letsencrypt:ro  # Mount Let's Encrypt certs
     restart: unless-stopped
     depends_on:
       - grafana
