@@ -1,6 +1,6 @@
 services:
   envoy: 
-    image: envoyproxy/envoy:latest
+    image: envoyproxy/envoy:v1.35-latest
     container_name: envoy
     ports: 
       - "8080:10000"
