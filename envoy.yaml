@@ -35,6 +35,16 @@ static_resources:
                   body:
                     inline_string: "OK"
           http_filters:
+          - name: envoy.filters.http.lua
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+              inline_code: |
+                function envoy_on_request(request_handle)
+                  local api_key = os.getenv("SEALION_API_KEY")
+                  if api_key ~= nil then
+                    request_handle:headers():add("authorization", "Bearer " .. api_key)
+                  end
+                end
           - name: envoy.filters.http.router
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

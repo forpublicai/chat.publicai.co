@@ -7,6 +7,8 @@ services:
     volumes: 
       - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
     restart: unless-stopped
+    environment:
+    - SEALION_API_KEY=${SEALION_API_KEY}
 
   nginx: 
     image: nginx:alpine
