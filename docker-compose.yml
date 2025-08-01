@@ -1,4 +1,13 @@
 services:
+  envoy: 
+    image: envoyproxy/envoy:v1.35.0-latest
+    container_name: envoy
+    ports: 
+      - "8080:10000"
+    volumes: 
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    restart: unless-stopped
+
   nginx: 
     image: nginx:alpine
     container_name: nginx-proxy

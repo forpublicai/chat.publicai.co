@@ -1,0 +1,68 @@
+static_resources:
+  listeners:
+  - name: main_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 10000
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: backend
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/v1/chat/completions"
+                route:
+                  cluster: sealion_cluster
+              - match:
+                  prefix: "/v1/models"
+                direct_response:
+                  status: 200
+                  body:
+                    inline_string: '{"object":"list","data":[{"id":"aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct","object":"model","created":1677610602,"owned_by":"aisingapore"}]}'
+              - match:
+                  prefix: "/health"
+                direct_response:
+                  status: 200
+                  body:
+                    inline_string: "OK"
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+  - name: sealion_cluster
+    connect_timeout: 30s
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: sealion_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: api.sea-lion.ai
+                port_value: 443
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        sni: api.sea-lion.ai
+
+admin:
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
