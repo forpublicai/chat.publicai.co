@@ -23,6 +23,7 @@ services:
     depends_on:
       - grafana
       - openwebui
+      - envoy
   grafana:
     image: grafana/otel-lgtm:latest
     container_name: lgtm
