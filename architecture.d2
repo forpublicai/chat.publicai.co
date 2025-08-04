@@ -1,0 +1,146 @@
+direction: down
+
+# Users
+users: {
+  label: "Users"
+  shape: person
+  style.fill: "#374151"
+}
+
+# External Marketing
+vercel: {
+  label: "Vercel"
+  style.fill: "#f3f4f6"
+  style.stroke: "#d1d5db"
+
+  marketing: {
+    label: "Marketing Site\npublicai.company"
+    shape: cloud
+    style.fill: "#6b7280"
+  }
+}
+
+# Main Infrastructure
+droplet: {
+  label: "DigitalOcean Droplet"
+  style.fill: "#f3f4f6"
+  style.stroke: "#d1d5db"
+
+  # Load Balancer
+  nginx: {
+    label: "Nginx Reverse Proxy\nSSL Termination"
+    shape: hexagon
+    style.fill: "#9ca3af"
+  }
+
+  # Application Layer
+  app_services: {
+    label: "Application Services"
+    style.fill: "#f9fafb"
+    style.stroke: "#e5e7eb"
+
+    openwebui: {
+      label: "Open WebUI\napp.publicai.company"
+      shape: rectangle
+      style.fill: "#3b82f6"
+    }
+
+    grafana: {
+      label: "Grafana\ngrafana.publicai.company"
+      shape: rectangle
+      style.fill: "#6366f1"
+    }
+
+  }
+
+  # API Gateway
+  api_gateway: {
+    label: "API Gateway Layer"
+    style.fill: "#f9fafb"
+    style.stroke: "#e5e7eb"
+
+    envoy: {
+      label: "Envoy Proxy\napi.publicai.company"
+      shape: rectangle
+      style.fill: "#8b5cf6"
+    }
+
+  }
+
+  # Internal connections
+  nginx -> app_services.openwebui
+  nginx -> app_services.grafana
+  nginx -> api_gateway.envoy
+
+  app_services.openwebui -> app_services.grafana: "Telemetry"
+  app_services.openwebui -> api_gateway.envoy: "AI Model Requests"
+}
+
+# OpenWebUI Dependencies (External Managed Services)
+openwebui_deps: {
+  label: "OpenWebUI Data Layer"
+  style.fill: "#f8fafc"
+  style.stroke: "#e2e8f0"
+
+  postgres: {
+    label: "Managed PostgreSQL"
+    shape: cylinder
+    style.fill: "#0ea5e9"
+  }
+
+  redis: {
+    label: "Managed Redis"
+    shape: cylinder
+    style.fill: "#ef4444"
+  }
+
+  spaces: {
+    label: "DigitalOcean Spaces\nS3 Storage"
+    shape: cloud
+    style.fill: "#06b6d4"
+  }
+}
+
+# AI Providers (External)
+ai_providers: {
+  label: "AI Model Providers"
+  style.fill: "#f8fafc"
+  style.stroke: "#e2e8f0"
+
+  cloud_provider_1: {
+    label: "Cloud Provider 1\nSGLANG/vLLM"
+    shape: cloud
+    style.fill: "#10b981"
+  }
+
+  cloud_provider_2: {
+    label: "Cloud Provider 2\nSGLANG/vLLM"
+    shape: cloud
+    style.fill: "#10b981"
+  }
+
+  swisscom: {
+    label: "SwissCom API"
+    shape: cloud
+    style.fill: "#f59e0b"
+  }
+
+  sealion: {
+    label: "Sea Lion API\nAI Singapore"
+    shape: cloud
+    style.fill: "#84cc16"
+  }
+}
+
+# External connections
+users -> vercel.marketing: "Browse"
+users -> droplet.nginx: "App Access"
+
+droplet.app_services.openwebui -> openwebui_deps.postgres
+droplet.app_services.openwebui -> openwebui_deps.redis
+droplet.app_services.openwebui -> openwebui_deps.spaces
+
+droplet.api_gateway.envoy -> ai_providers.cloud_provider_1
+droplet.api_gateway.envoy -> ai_providers.cloud_provider_2
+droplet.api_gateway.envoy -> ai_providers.swisscom
+droplet.api_gateway.envoy -> ai_providers.sealion
