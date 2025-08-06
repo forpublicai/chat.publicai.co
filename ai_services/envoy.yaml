@@ -98,7 +98,8 @@ static_resources:
         sni: api.sea-lion.ai
   - name: bge_m3_cluster
     connect_timeout: 30s
-    type: STATIC
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
     load_assignment:
       cluster_name: bge_m3_cluster
       endpoints:
@@ -110,7 +111,8 @@ static_resources:
                 port_value: 8000
   - name: bge_reranker_cluster
     connect_timeout: 30s
-    type: STATIC
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
     load_assignment:
       cluster_name: bge_reranker_cluster
       endpoints:

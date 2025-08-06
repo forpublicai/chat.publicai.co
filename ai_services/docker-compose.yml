@@ -34,7 +34,7 @@ services:
     expose:
       - "8001"
     command: >
-      --model BAAI/bge-reranker-v2.5
+      --model BAAI/bge-reranker-v2-m3
       --host 0.0.0.0
       --port 8001
     restart: unless-stopped
