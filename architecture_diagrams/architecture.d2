@@ -53,6 +53,11 @@ gpu_droplet: {
       shape: rectangle
       style.fill: "#8b5cf6"
     }
+    tika: {
+      label: "Apache Tika\nDocument Extraction"
+      shape: rectangle
+      style.fill: "#a855f7"
+    }
   }
   
   local_models: {
@@ -80,6 +85,7 @@ gpu_droplet: {
   ai_gateway.envoy -> local_models.bge_m3
   ai_gateway.envoy -> local_models.bge_reranker
   ai_gateway.envoy -> local_models.task_model
+  ai_gateway.envoy -> ai_gateway.tika
 }
 
 apertus_droplet: {
@@ -163,7 +169,7 @@ droplet.app_services.openwebui -> openwebui_deps.postgres
 droplet.app_services.openwebui -> openwebui_deps.redis
 droplet.app_services.openwebui -> openwebui_deps.spaces
 
-droplet.app_services.openwebui -> gpu_droplet.ai_gateway.envoy: "AI Model Requests"
+droplet.app_services.openwebui -> gpu_droplet.ai_gateway.envoy: "AI Model Requests & Document Processing"
 
 gpu_droplet.ai_gateway.envoy -> external_ai_providers.swisscom: "API Requests"
 gpu_droplet.ai_gateway.envoy -> external_ai_providers.sealion: "API Requests"

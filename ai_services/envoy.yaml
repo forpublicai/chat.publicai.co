@@ -46,6 +46,10 @@ static_resources:
                 route:
                   cluster: bge_reranker_cluster
               - match:
+                  prefix: "/tika"
+                route:
+                  cluster: tika_cluster
+              - match:
                   prefix: "/v1/chat/completions"
                 route:
                   cluster: sealion_cluster
@@ -162,6 +166,19 @@ static_resources:
               socket_address:
                 address: vllm-bge-reranker
                 port_value: 8001
+  - name: tika_cluster
+    connect_timeout: 30s
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: tika_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: tika
+                port_value: 9998
 
 admin:
   address:

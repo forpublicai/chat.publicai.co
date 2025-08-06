@@ -46,3 +46,10 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+  tika:
+    image: apache/tika:latest-full
+    container_name: tika
+    expose:
+      - "9998"
+    restart: unless-stopped
