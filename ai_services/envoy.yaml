@@ -8,7 +8,7 @@ static_resources:
       socket_address:
         protocol: TCP
         address: 0.0.0.0
-        port_value: 10000
+        port_value: 80
     filter_chains:
     - filters:
       - name: envoy.filters.network.http_connection_manager
@@ -67,9 +67,46 @@ static_resources:
               "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
               inline_code: |
                 function envoy_on_request(request_handle)
-                  local api_key = os.getenv("SEALION_API_KEY")
-                  if api_key ~= nil then
-                    request_handle:headers():add("authorization", "Bearer " .. api_key)
+                  local path = request_handle:headers():get(":path")
+                  
+                  -- Skip auth for health check
+                  if path == "/health" then
+                    return
+                  end
+                  
+                  -- Get client API key from Authorization header
+                  local auth_header = request_handle:headers():get("authorization")
+                  if not auth_header then
+                    request_handle:respond({[":status"] = "401"}, "Missing Authorization header")
+                    return
+                  end
+                  
+                  -- Extract API key (format: "Bearer api_key")
+                  local client_api_key = string.match(auth_header, "Bearer%s+(.+)")
+                  if not client_api_key then
+                    request_handle:respond({[":status"] = "401"}, "Invalid Authorization format")
+                    return
+                  end
+                  
+                  -- Validate against allowed API keys (comma-separated env var)
+                  local allowed_keys = os.getenv("ALLOWED_API_KEYS") or ""
+                  local key_found = false
+                  for key in string.gmatch(allowed_keys, "([^,]+)") do
+                    if string.gsub(key, "%s+", "") == client_api_key then
+                      key_found = true
+                      break
+                    end
+                  end
+                  
+                  if not key_found then
+                    request_handle:respond({[":status"] = "403"}, "Invalid API key")
+                    return
+                  end
+                  
+                  -- Add SeaLion API key for upstream requests
+                  local sealion_key = os.getenv("SEALION_API_KEY")
+                  if sealion_key then
+                    request_handle:headers():add("authorization", "Bearer " .. sealion_key)
                   end
                 end
           - name: envoy.filters.http.router

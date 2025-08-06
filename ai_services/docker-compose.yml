@@ -3,12 +3,13 @@ services:
     image: envoyproxy/envoy:v1.35-latest
     container_name: envoy
     ports: 
-      - "10000:10000"
+      - "80:80"
     volumes: 
       - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
     restart: unless-stopped
     environment:
       - SEALION_API_KEY=${SEALION_API_KEY}
+      - ALLOWED_API_KEYS=${ALLOWED_API_KEYS}
 
   vllm-bge-m3:
     image: vllm/vllm-openai:latest
