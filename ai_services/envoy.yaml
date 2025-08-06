@@ -106,7 +106,10 @@ static_resources:
                   -- Add SeaLion API key for upstream requests
                   local sealion_key = os.getenv("SEALION_API_KEY")
                   if sealion_key then
-                    request_handle:headers():add("authorization", "Bearer " .. sealion_key)
+                    -- Replace the authorization header with SEALION API key
+                    request_handle:headers():replace("authorization", "Bearer " .. sealion_key)
+                  else
+                    request_handle:logWarn("SEALION_API_KEY not found in environment")
                   end
                 end
           - name: envoy.filters.http.router
