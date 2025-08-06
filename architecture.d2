@@ -7,6 +7,19 @@ users: {
   style.fill: "#374151"
 }
 
+# CDN Layer
+cloudflare: {
+  label: "Cloudflare CDN"
+  style.fill: "#f97316"
+  style.stroke: "#ea580c"
+
+  cdn: {
+    label: "Edge Locations\nStatic Asset Caching\nDDoS Protection"
+    shape: cloud
+    style.fill: "#fb923c"
+  }
+}
+
 # External Marketing
 vercel: {
   label: "Vercel"
@@ -134,7 +147,8 @@ ai_providers: {
 
 # External connections
 users -> vercel.marketing: "Browse"
-users -> droplet.nginx: "App Access"
+users -> cloudflare.cdn: "App Access"
+cloudflare.cdn -> droplet.nginx: "Cache Miss\nDynamic Content"
 
 droplet.app_services.openwebui -> openwebui_deps.postgres
 droplet.app_services.openwebui -> openwebui_deps.redis
