@@ -1,3 +1,6 @@
+# TODO: Add TLS termination for the API
+# TODO: Add API_KEY authentication
+
 static_resources:
   listeners:
   - name: main_listener

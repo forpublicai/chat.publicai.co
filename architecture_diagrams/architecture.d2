@@ -1,0 +1,172 @@
+direction: down
+
+# Users at top
+users: {
+  label: "Users"
+  shape: person
+  style.fill: "#374151"
+}
+
+# Three main droplets as containers
+droplet: {
+  label: "DO Droplet"
+  style.fill: "#fef3c7"
+  style.stroke: "#f59e0b"
+  
+  nginx: {
+    label: "Nginx Reverse Proxy\nSSL Termination"
+    shape: hexagon
+    style.fill: "#9ca3af"
+  }
+  
+  app_services: {
+    label: "Application Services"
+    style.fill: "#f9fafb"
+    style.stroke: "#e5e7eb"
+    openwebui: {
+      label: "Open WebUI\napp.publicai.company"
+      shape: rectangle
+      style.fill: "#3b82f6"
+    }
+    grafana: {
+      label: "Grafana\ngrafana.publicai.company"
+      shape: rectangle
+      style.fill: "#6366f1"
+    }
+  }
+  
+  nginx -> app_services.openwebui
+  app_services.openwebui -> app_services.grafana: "Telemetry"
+}
+
+gpu_droplet: {
+  label: "DO GPU Droplet\nRTX 6000 Ada - 48GB VRAM"
+  style.fill: "#fef3c7"
+  style.stroke: "#f59e0b"
+  
+  ai_gateway: {
+    label: "AI Gateway Layer"
+    style.fill: "#f9fafb"
+    style.stroke: "#e5e7eb"
+    envoy: {
+      label: "Envoy Proxy\nAI API Gateway"
+      shape: rectangle
+      style.fill: "#8b5cf6"
+    }
+  }
+  
+  local_models: {
+    label: "Local AI Models"
+    style.fill: "#ecfdf5"
+    style.stroke: "#10b981"
+    bge_m3: {
+      label: "BGE-M3\nEmbedding Model\nvLLM"
+      shape: rectangle
+      style.fill: "#34d399"
+    }
+    bge_reranker: {
+      label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
+      shape: rectangle
+      style.fill: "#6ee7b7"
+    }
+    task_model: {
+      label: "Future Task Models\n(Classification, etc.)"
+      shape: rectangle
+      style.fill: "#a7f3d0"
+      style.stroke-dash: 5
+    }
+  }
+  
+  ai_gateway.envoy -> local_models.bge_m3
+  ai_gateway.envoy -> local_models.bge_reranker
+  ai_gateway.envoy -> local_models.task_model
+}
+
+apertus_droplet: {
+  label: "DO GPU Droplet\nApertus Model on vLLM"
+  style.fill: "#fef3c7"
+  style.stroke: "#f59e0b"
+  
+  apertus_model: {
+    label: "Apertus Model\nvLLM"
+    shape: rectangle
+    style.fill: "#f97316"
+  }
+}
+
+# External services
+cloudflare: {
+  label: "Cloudflare CDN"
+  style.fill: "#f97316"
+  style.stroke: "#ea580c"
+  cdn: {
+    label: "Edge Locations\nStatic Asset Caching\nDDoS Protection"
+    shape: cloud
+    style.fill: "#fb923c"
+  }
+}
+
+vercel: {
+  label: "Vercel"
+  style.fill: "#f3f4f6"
+  style.stroke: "#d1d5db"
+  marketing: {
+    label: "Marketing Site\npublicai.company"
+    shape: cloud
+    style.fill: "#6b7280"
+  }
+}
+
+openwebui_deps: {
+  label: "OpenWebUI Data Layer"
+  style.fill: "#f8fafc"
+  style.stroke: "#e2e8f0"
+  postgres: {
+    label: "Managed PostgreSQL"
+    shape: cylinder
+    style.fill: "#0ea5e9"
+  }
+  redis: {
+    label: "Managed Redis"
+    shape: cylinder
+    style.fill: "#ef4444"
+  }
+  spaces: {
+    label: "DigitalOcean Spaces\nS3 Storage"
+    shape: cloud
+    style.fill: "#06b6d4"
+  }
+}
+
+external_ai_providers: {
+  label: "External AI Model Providers"
+  style.fill: "#f8fafc"
+  style.stroke: "#e2e8f0"
+  swisscom: {
+    label: "SwissCom API"
+    shape: cloud
+    style.fill: "#f59e0b"
+  }
+  sealion: {
+    label: "Sea Lion API\nAI Singapore"
+    shape: cloud
+    style.fill: "#84cc16"
+  }
+}
+
+# Connections
+users -> vercel.marketing: "Browse"
+users -> cloudflare.cdn: "App Access"
+cloudflare.cdn -> droplet.nginx: "Cache Miss\nDynamic Content"
+
+droplet.app_services.openwebui -> openwebui_deps.postgres
+droplet.app_services.openwebui -> openwebui_deps.redis
+droplet.app_services.openwebui -> openwebui_deps.spaces
+
+droplet.app_services.openwebui -> gpu_droplet.ai_gateway.envoy: "AI Model Requests"
+
+gpu_droplet.ai_gateway.envoy -> external_ai_providers.swisscom: "API Requests"
+gpu_droplet.ai_gateway.envoy -> external_ai_providers.sealion: "API Requests"
+gpu_droplet.ai_gateway.envoy -> apertus_droplet.apertus_model: "Model Requests"
+
+gpu_droplet.ai_gateway.envoy -> droplet.app_services.grafana: "API Metrics & Telemetry"
