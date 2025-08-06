@@ -22,6 +22,30 @@ static_resources:
               domains: ["*"]
               routes:
               - match:
+                  prefix: "/v1/embeddings"
+                  headers:
+                  - name: "x-model"
+                    string_match:
+                      exact: "bge-m3"
+                route:
+                  cluster: bge_m3_cluster
+              - match:
+                  prefix: "/v1/embeddings"
+                route:
+                  cluster: bge_m3_cluster
+              - match:
+                  prefix: "/v1/rerank"
+                  headers:
+                  - name: "x-model"
+                    string_match:
+                      exact: "bge-reranker-v2.5"
+                route:
+                  cluster: bge_reranker_cluster
+              - match:
+                  prefix: "/v1/rerank"
+                route:
+                  cluster: bge_reranker_cluster
+              - match:
                   prefix: "/v1/chat/completions"
                 route:
                   cluster: sealion_cluster
@@ -30,7 +54,7 @@ static_resources:
                 direct_response:
                   status: 200
                   body:
-                    inline_string: '{"object":"list","data":[{"id":"aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct","object":"model","created":1677610602,"owned_by":"aisingapore"}]}'
+                    inline_string: '{"object":"list","data":[{"id":"aisingapore/llama3-8b-cpt-sea-lionv2.1-instruct","object":"model","created":1677610602,"owned_by":"aisingapore"},{"id":"BAAI/bge-m3","object":"model","created":1677610602,"owned_by":"BAAI"},{"id":"BAAI/bge-reranker-v2.5","object":"model","created":1677610602,"owned_by":"BAAI"}]}'
               - match:
                   prefix: "/health"
                 direct_response:
@@ -72,6 +96,30 @@ static_resources:
       typed_config:
         "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
         sni: api.sea-lion.ai
+  - name: bge_m3_cluster
+    connect_timeout: 30s
+    type: STATIC
+    load_assignment:
+      cluster_name: bge_m3_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: vllm-bge-m3
+                port_value: 8000
+  - name: bge_reranker_cluster
+    connect_timeout: 30s
+    type: STATIC
+    load_assignment:
+      cluster_name: bge_reranker_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: vllm-bge-reranker
+                port_value: 8001
 
 admin:
   address:

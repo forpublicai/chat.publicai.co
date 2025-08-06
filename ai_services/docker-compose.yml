@@ -9,3 +9,39 @@ services:
     restart: unless-stopped
     environment:
       - SEALION_API_KEY=${SEALION_API_KEY}
+
+  vllm-bge-m3:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-bge-m3
+    expose:
+      - "8000"
+    command: >
+      --model BAAI/bge-m3
+      --host 0.0.0.0
+      --port 8000
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  vllm-bge-reranker:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-bge-reranker
+    expose:
+      - "8001"
+    command: >
+      --model BAAI/bge-reranker-v2.5
+      --host 0.0.0.0
+      --port 8001
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
