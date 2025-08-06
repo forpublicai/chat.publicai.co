@@ -13,22 +13,30 @@ droplet: {
   style.fill: "#fef3c7"
   style.stroke: "#f59e0b"
   
+  nginx: {
+    label: "Nginx Reverse Proxy\nSubdomain Routing\nPort 80"
+    shape: hexagon
+    style.fill: "#9ca3af"
+  }
+  
   app_services: {
     label: "Application Services"
     style.fill: "#f9fafb"
     style.stroke: "#e5e7eb"
     openwebui: {
-      label: "Open WebUI\napp.publicai.company\nPort 8080"
+      label: "Open WebUI\napp.publicai.company"
       shape: rectangle
       style.fill: "#3b82f6"
     }
     grafana: {
-      label: "Grafana\ngrafana.publicai.company\nPort 3000"
+      label: "Grafana\ngrafana.publicai.company"
       shape: rectangle
       style.fill: "#6366f1"
     }
   }
   
+  nginx -> app_services.openwebui
+  nginx -> app_services.grafana
   app_services.openwebui -> app_services.grafana: "Telemetry"
 }
 
@@ -156,8 +164,7 @@ external_ai_providers: {
 # Connections
 users -> vercel.marketing: "Browse"
 users -> cloudflare.cdn: "App Access"
-cloudflare.cdn -> droplet.app_services.openwebui: "app.publicai.company\nPort 8080"
-cloudflare.cdn -> droplet.app_services.grafana: "grafana.publicai.company\nPort 3000"
+cloudflare.cdn -> droplet.nginx: "HTTP Traffic\nSubdomain Routing"
 
 droplet.app_services.openwebui -> openwebui_deps.postgres
 droplet.app_services.openwebui -> openwebui_deps.redis
