@@ -13,29 +13,22 @@ droplet: {
   style.fill: "#fef3c7"
   style.stroke: "#f59e0b"
   
-  nginx: {
-    label: "Nginx Reverse Proxy\nSSL Termination"
-    shape: hexagon
-    style.fill: "#9ca3af"
-  }
-  
   app_services: {
     label: "Application Services"
     style.fill: "#f9fafb"
     style.stroke: "#e5e7eb"
     openwebui: {
-      label: "Open WebUI\napp.publicai.company"
+      label: "Open WebUI\napp.publicai.company\nPort 8080"
       shape: rectangle
       style.fill: "#3b82f6"
     }
     grafana: {
-      label: "Grafana\ngrafana.publicai.company"
+      label: "Grafana\ngrafana.publicai.company\nPort 3000"
       shape: rectangle
       style.fill: "#6366f1"
     }
   }
   
-  nginx -> app_services.openwebui
   app_services.openwebui -> app_services.grafana: "Telemetry"
 }
 
@@ -106,7 +99,7 @@ cloudflare: {
   style.fill: "#f97316"
   style.stroke: "#ea580c"
   cdn: {
-    label: "Edge Locations\nStatic Asset Caching\nDDoS Protection"
+    label: "Edge Locations\nSSL Termination\nDDoS Protection\nSubdomain Routing"
     shape: cloud
     style.fill: "#fb923c"
   }
@@ -163,7 +156,8 @@ external_ai_providers: {
 # Connections
 users -> vercel.marketing: "Browse"
 users -> cloudflare.cdn: "App Access"
-cloudflare.cdn -> droplet.nginx: "Cache Miss\nDynamic Content"
+cloudflare.cdn -> droplet.app_services.openwebui: "app.publicai.company\nPort 8080"
+cloudflare.cdn -> droplet.app_services.grafana: "grafana.publicai.company\nPort 3000"
 
 droplet.app_services.openwebui -> openwebui_deps.postgres
 droplet.app_services.openwebui -> openwebui_deps.redis

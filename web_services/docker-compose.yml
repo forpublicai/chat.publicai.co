@@ -1,24 +1,11 @@
 services:
-  nginx: 
-    image: nginx:alpine
-    container_name: nginx-proxy
-    ports: 
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro  # Mount Let's Encrypt certs
-    restart: unless-stopped
-    depends_on:
-      - grafana
-      - openwebui
   grafana:
     image: grafana/otel-lgtm:latest
     container_name: lgtm
-    expose: 
-      - "3000" # Grafana UI 
-      - "4317"    # OTLP/gRPC (internal Docker network only)
-      - "4318"    # OTLP/HTTP (internal Docker network only)
+    ports: 
+      - "3000:3000" # Grafana UI 
+      - "4317:4317"    # OTLP/gRPC
+      - "4318:4318"    # OTLP/HTTP
     restart: unless-stopped
     environment: 
     # TODO: Move these credentials to env variables
@@ -30,8 +17,8 @@ services:
     container_name: openwebui
     depends_on:
       - grafana
-    expose: 
-      - "8080"
+    ports: 
+      - "8080:8080"
     volumes:
       - open-webui:/app/backend/data
     restart: unless-stopped
