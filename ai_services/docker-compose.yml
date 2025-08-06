@@ -2,8 +2,8 @@ services:
   envoy: 
     image: envoyproxy/envoy:v1.35-latest
     container_name: envoy
-    expose: 
-      - "10000"
+    ports: 
+      - "10000:10000"
     volumes: 
       - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
     restart: unless-stopped
