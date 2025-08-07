@@ -78,7 +78,7 @@ services:
       # - TASK_MODEL_EXTERNAL 
 
       # OAUTH
-      - ENABLE_LOGIN_FORM=false
+      - ENABLE_LOGIN_FORM=true
       - ENABLE_OAUTH_SIGNUP=true
       - OAUTH_UPDATE_PICTURE_ON_LOGIN=true
       - ENABLE_OAUTH_ROLE_MANAGEMENT=true
