@@ -77,5 +77,16 @@ services:
       # - TASK_MODEL
       # - TASK_MODEL_EXTERNAL 
 
+      # OAUTH
+      - ENABLE_LOGIN_FORM=false
+      - ENABLE_OAUTH_SIGNUP=true
+      - OAUTH_UPDATE_PICTURE_ON_LOGIN=true
+      - ENABLE_OAUTH_ROLE_MANAGEMENT=true
+      - ENABLE_OAUTH_GROUP_MANAGEMENT=true
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - OPENID_PROVIDER_URL=https://accounts.google.com/.well-known/openid-configuration
+
+
 volumes:
   open-webui: {}
