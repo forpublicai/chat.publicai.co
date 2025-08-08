@@ -7,37 +7,70 @@ users: {
   style.fill: "#374151"
 }
 
-# Three main droplets as containers
-droplet: {
-  label: "DO Droplet / AWS EC2"
-  style.fill: "#fef3c7"
-  style.stroke: "#f59e0b"
+# DigitalOcean Managed Kubernetes Cluster
+do_kubernetes: {
+  label: "DigitalOcean Managed Kubernetes Cluster\nAutoscaling: 1-10 nodes"
+  style.fill: "#0080ff"
+  style.stroke: "#0066cc"
   
-  nginx: {
-    label: "Nginx Reverse Proxy\nSubdomain Routing\nPort 80"
-    shape: hexagon
-    style.fill: "#9ca3af"
+  # Load Balancer
+  load_balancer: {
+    label: "DO Load Balancer\n129.212.192.117\nPorts 80/443"
+    shape: diamond
+    style.fill: "#ff6b35"
+    style.stroke: "#e55100"
   }
   
-  app_services: {
-    label: "Application Services"
-    style.fill: "#f9fafb"
-    style.stroke: "#e5e7eb"
-    openwebui: {
-      label: "Open WebUI\napp.publicai.company"
+  # Ingress Controller
+  ingress_nginx: {
+    label: "Ingress Nginx Controllers\n(2 pods)\nhost: app.publicai.company"
+    shape: hexagon
+    style.fill: "#4caf50"
+    style.stroke: "#2e7d32"
+  }
+  
+  # Web Services Namespace
+  web_services: {
+    label: "web-services namespace"
+    style.fill: "#f3e5f5"
+    style.stroke: "#9c27b0"
+    
+    openwebui_service: {
+      label: "openwebui-service\nClusterIP: 10.108.54.188\nPort 8080"
+      shape: oval
+      style.fill: "#e1bee7"
+    }
+    
+    openwebui_pods: {
+      label: "OpenWebUI Pods\n(2 replicas)\napp.publicai.company"
       shape: rectangle
       style.fill: "#3b82f6"
+      style.stroke: "#1976d2"
     }
-    grafana: {
-      label: "Grafana\ngrafana.publicai.company"
+    
+    grafana_pods: {
+      label: "Grafana Pods\ngrafana.publicai.company"
       shape: rectangle
       style.fill: "#6366f1"
+      style.stroke: "#3949ab"
     }
   }
   
-  nginx -> app_services.openwebui
-  nginx -> app_services.grafana
-  app_services.openwebui -> app_services.grafana: "Telemetry"
+  # Worker Nodes
+  worker_nodes: {
+    label: "Worker Nodes\n(1-10 autoscaling)\npool-hgpgo86kh"
+    shape: rectangle
+    style.fill: "#ffecb3"
+    style.stroke: "#ff8f00"
+    style.stroke-dash: 3
+  }
+  
+  # Connections within cluster
+  load_balancer -> ingress_nginx
+  ingress_nginx -> web_services.openwebui_service
+  ingress_nginx -> web_services.grafana_pods
+  web_services.openwebui_service -> web_services.openwebui_pods
+  web_services.openwebui_pods -> web_services.grafana_pods: "Telemetry"
 }
 
 gpu_droplet: {
@@ -164,16 +197,16 @@ external_ai_providers: {
 # Connections
 users -> vercel.marketing: "Browse"
 users -> cloudflare.cdn: "App Access"
-cloudflare.cdn -> droplet.nginx: "HTTP Traffic\nSubdomain Routing"
+cloudflare.cdn -> do_kubernetes.load_balancer: "HTTP/HTTPS Traffic\napp.publicai.company"
 
-droplet.app_services.openwebui -> openwebui_deps.postgres
-droplet.app_services.openwebui -> openwebui_deps.redis
-droplet.app_services.openwebui -> openwebui_deps.spaces
+do_kubernetes.web_services.openwebui_pods -> openwebui_deps.postgres
+do_kubernetes.web_services.openwebui_pods -> openwebui_deps.redis
+do_kubernetes.web_services.openwebui_pods -> openwebui_deps.spaces
 
-droplet.app_services.openwebui -> gpu_droplet.ai_gateway.envoy: "AI Model Requests & Document Processing"
+do_kubernetes.web_services.openwebui_pods -> gpu_droplet.ai_gateway.envoy: "AI Model Requests & Document Processing"
 
 gpu_droplet.ai_gateway.envoy -> external_ai_providers.swisscom: "API Requests"
 gpu_droplet.ai_gateway.envoy -> external_ai_providers.sealion: "API Requests"
 gpu_droplet.ai_gateway.envoy -> apertus_droplet.apertus_model: "Model Requests"
 
-gpu_droplet.ai_gateway.envoy -> droplet.app_services.grafana: "API Metrics & Telemetry"
+gpu_droplet.ai_gateway.envoy -> do_kubernetes.web_services.grafana_pods: "API Metrics & Telemetry"

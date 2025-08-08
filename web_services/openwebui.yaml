@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openwebui
+  namespace: web-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openwebui
+  template:
+    metadata:
+      labels:
+        app: openwebui
+    spec:
+      affinity:
+        podAntiAffinity:
+          # Hard anti-affinity: Ensures exactly 1 pod per node (good for small 4GB nodes)
+          # Switch to preferredDuringSchedulingIgnoredDuringExecution for larger nodes
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: openwebui
+            topologyKey: kubernetes.io/hostname
+          # Soft anti-affinity option for future use with larger nodes:
+          # preferredDuringSchedulingIgnoredDuringExecution:
+          # - weight: 100
+          #   podAffinityTerm:
+          #     labelSelector:
+          #       matchLabels:
+          #         app: openwebui
+          #     topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: openwebui
+      containers:
+      - name: openwebui
+        image: ghcr.io/open-webui/open-webui:main
+        ports:
+        - containerPort: 8080
+        env:
+        - name: LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: LICENSE_KEY
+        - name: WEBUI_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: WEBUI_SECRET_KEY
+        - name: WEBUI_URL
+          value: "https://app.publicai.company"
+        # TODO: Re-enable telemetry once external Grafana/monitoring is set up
+        # - name: ENABLE_OTEL
+        #   value: "true"
+        # - name: ENABLE_OTEL_METRICS
+        #   value: "true"
+        # - name: OTEL_EXPORTER_OTLP_INSECURE
+        #   value: "true"
+        # - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        #   value: "http://grafana-service:4317"
+        # - name: OTEL_SERVICE_NAME
+        #   value: "open-webui"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: REDIS_URL
+        - name: STORAGE_PROVIDER
+          value: "s3"
+        - name: S3_BUCKET_NAME
+          value: "publicai"
+        - name: S3_ENDPOINT_URL
+          value: "https://publicai.fra1.digitaloceanspaces.com"
+        - name: S3_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: S3_ACCESS_KEY_ID
+        - name: S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: S3_SECRET_ACCESS_KEY
+        - name: S3_REGION_NAME
+          value: "fra1"
+        - name: S3_KEY_PREFIX
+          value: "uploads/"
+        - name: ENABLE_WEBSOCKET_SUPPORT
+          value: "true"
+        - name: WEBSOCKET_MANAGER
+          value: "redis"
+        - name: WEBSOCKET_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: REDIS_URL
+        - name: ENABLE_LOGIN_FORM
+          value: "true"
+        - name: ENABLE_SIGNUP_PASSWORD_CONFIRMATION
+          value: "true"
+        - name: ENABLE_OAUTH_SIGNUP
+          value: "true"
+        - name: OAUTH_UPDATE_PICTURE_ON_LOGIN
+          value: "true"
+        - name: ENABLE_OAUTH_ROLE_MANAGEMENT
+          value: "true"
+        - name: ENABLE_OAUTH_GROUP_MANAGEMENT
+          value: "true"
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: GOOGLE_CLIENT_ID
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: GOOGLE_CLIENT_SECRET
+        - name: OPENID_PROVIDER_URL
+          value: "https://accounts.google.com/.well-known/openid-configuration"
+        resources:
+          requests:
+            memory: "2Gi"      # 2Gi per node fits well on 4GB nodes with nginx
+            cpu: "1200m"       # 1200m per node with room for nginx and system processes
+          limits:
+            memory: "3Gi"      # Max 3Gi per pod (room for AI processing/traffic spikes)
+            cpu: "1500m"       # Max 1.5 CPU per pod (can burst for AI processing)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openwebui-service
+  namespace: web-services
+spec:
+  selector:
+    app: openwebui
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openwebui-hpa
+  namespace: web-services
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: openwebui
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 85
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 90
