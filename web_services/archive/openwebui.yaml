@@ -39,10 +39,11 @@ spec:
             app: openwebui
       containers:
       - name: openwebui
-        image: ghcr.io/open-webui/open-webui:main
+        image: ghcr.io/open-webui/open-webui:v0.6.20-cuda126
         ports:
         - containerPort: 8080
         env:
+        # Basic Configuration
         - name: LICENSE_KEY
           valueFrom:
             secretKeyRef:
@@ -55,6 +56,8 @@ spec:
               key: WEBUI_SECRET_KEY
         - name: WEBUI_URL
           value: "https://app.publicai.company"
+
+        # Telemetry 
         # TODO: Re-enable telemetry once external Grafana/monitoring is set up
         # - name: ENABLE_OTEL
         #   value: "true"
@@ -66,6 +69,8 @@ spec:
         #   value: "http://grafana-service:4317"
         # - name: OTEL_SERVICE_NAME
         #   value: "open-webui"
+
+        # Managed Database
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
@@ -76,6 +81,17 @@ spec:
             secretKeyRef:
               name: web-services-secrets
               key: REDIS_URL
+
+        # Vector DB
+        - name: VECTOR_DB
+          value: "pgvector"
+        - name: PGVECTOR_DB_URL
+          valueFrom:
+            secretKeyRef: 
+              name: web-services-secrets
+              key: DATABASE_URL
+
+        # Storage Config
         - name: STORAGE_PROVIDER
           value: "s3"
         - name: S3_BUCKET_NAME
@@ -96,6 +112,8 @@ spec:
           value: "fra1"
         - name: S3_KEY_PREFIX
           value: "uploads/"
+        
+        # Websocket Broker
         - name: ENABLE_WEBSOCKET_SUPPORT
           value: "true"
         - name: WEBSOCKET_MANAGER
@@ -105,6 +123,8 @@ spec:
             secretKeyRef:
               name: web-services-secrets
               key: REDIS_URL
+
+        # Auth
         - name: ENABLE_LOGIN_FORM
           value: "true"
         - name: ENABLE_SIGNUP_PASSWORD_CONFIRMATION
@@ -129,10 +149,11 @@ spec:
               key: GOOGLE_CLIENT_SECRET
         - name: OPENID_PROVIDER_URL
           value: "https://accounts.google.com/.well-known/openid-configuration"
+        
         resources:
           requests:
             memory: "2Gi"      # 2Gi per node fits well on 4GB nodes with nginx
-            cpu: "1200m"       # 1200m per node with room for nginx and system processes
+            cpu: "900m"        # 900m allows fitting on 2 nodes with system processes
           limits:
             memory: "3Gi"      # Max 3Gi per pod (room for AI processing/traffic spikes)
             cpu: "1500m"       # Max 1.5 CPU per pod (can burst for AI processing)

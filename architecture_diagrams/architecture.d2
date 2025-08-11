@@ -35,17 +35,25 @@ do_kubernetes: {
     style.fill: "#f3e5f5"
     style.stroke: "#9c27b0"
     
-    openwebui_service: {
-      label: "openwebui-service\nClusterIP: 10.108.54.188\nPort 8080"
-      shape: oval
-      style.fill: "#e1bee7"
-    }
-    
-    openwebui_pods: {
-      label: "OpenWebUI Pods\n(2 replicas)\napp.publicai.company"
-      shape: rectangle
-      style.fill: "#3b82f6"
-      style.stroke: "#1976d2"
+    openwebui_deployment: {
+      label: "OpenWebUI Deployment\nHPA: 2-5 replicas\nCPU/Memory autoscaling"
+      style.fill: "#f3e5f5"
+      style.stroke: "#7b1fa2"
+      
+      openwebui_service: {
+        label: "openwebui-service\nClusterIP Load Balancer\nPort 8080"
+        shape: oval
+        style.fill: "#e1bee7"
+      }
+      
+      openwebui_pods: {
+        label: "OpenWebUI Pods\n(2-5 replicas)\nContainer Port 8080"
+        shape: rectangle
+        style.fill: "#3b82f6"
+        style.stroke: "#1976d2"
+      }
+      
+      openwebui_service -> openwebui_pods: "Routes traffic to pods"
     }
     
     grafana_pods: {
@@ -67,10 +75,9 @@ do_kubernetes: {
   
   # Connections within cluster
   load_balancer -> ingress_nginx
-  ingress_nginx -> web_services.openwebui_service
+  ingress_nginx -> web_services.openwebui_deployment.openwebui_service
   ingress_nginx -> web_services.grafana_pods
-  web_services.openwebui_service -> web_services.openwebui_pods
-  web_services.openwebui_pods -> web_services.grafana_pods: "Telemetry"
+  web_services.openwebui_deployment.openwebui_pods -> web_services.grafana_pods: "Telemetry"
 }
 
 gpu_droplet: {
@@ -199,11 +206,11 @@ users -> vercel.marketing: "Browse"
 users -> cloudflare.cdn: "App Access"
 cloudflare.cdn -> do_kubernetes.load_balancer: "HTTP/HTTPS Traffic\napp.publicai.company"
 
-do_kubernetes.web_services.openwebui_pods -> openwebui_deps.postgres
-do_kubernetes.web_services.openwebui_pods -> openwebui_deps.redis
-do_kubernetes.web_services.openwebui_pods -> openwebui_deps.spaces
+do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> openwebui_deps.postgres
+do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> openwebui_deps.redis
+do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> openwebui_deps.spaces
 
-do_kubernetes.web_services.openwebui_pods -> gpu_droplet.ai_gateway.envoy: "AI Model Requests & Document Processing"
+do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> gpu_droplet.ai_gateway.envoy: "AI Model Requests & Document Processing"
 
 gpu_droplet.ai_gateway.envoy -> external_ai_providers.swisscom: "API Requests"
 gpu_droplet.ai_gateway.envoy -> external_ai_providers.sealion: "API Requests"

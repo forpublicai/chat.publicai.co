@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      {{- if .Values.app.affinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          {{- if .Values.app.affinity.hard }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: {{ .Values.app.name }}
+            topologyKey: kubernetes.io/hostname
+          {{- else }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: {{ .Values.app.name }}
+              topologyKey: kubernetes.io/hostname
+          {{- end }}
+      {{- end }}
+      {{- if .Values.app.topologySpreadConstraints.enabled }}
+      topologySpreadConstraints:
+      - maxSkew: {{ .Values.app.topologySpreadConstraints.maxSkew }}
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: {{ .Values.app.topologySpreadConstraints.whenUnsatisfiable }}
+        labelSelector:
+          matchLabels:
+            app: {{ .Values.app.name }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.app.name }}
+        image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+        ports:
+        - containerPort: {{ .Values.app.port }}
+        env:
+        # Basic Configuration
+        - name: LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: LICENSE_KEY
+        - name: WEBUI_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: WEBUI_SECRET_KEY
+        - name: WEBUI_URL
+          value: "{{ .Values.app.webuiUrl }}"
+
+        # Managed Database
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: REDIS_URL
+
+        # Vector DB
+        - name: VECTOR_DB
+          value: "{{ .Values.app.vectorDb }}"
+        - name: PGVECTOR_DB_URL
+          valueFrom:
+            secretKeyRef: 
+              name: {{ .Values.secrets.name }}
+              key: DATABASE_URL
+
+        # Storage Config
+        - name: STORAGE_PROVIDER
+          value: "{{ .Values.app.storage.provider }}"
+        - name: S3_BUCKET_NAME
+          value: "{{ .Values.app.storage.s3.bucketName }}"
+        - name: S3_ENDPOINT_URL
+          value: "{{ .Values.app.storage.s3.endpointUrl }}"
+        - name: S3_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: S3_ACCESS_KEY_ID
+        - name: S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: S3_SECRET_ACCESS_KEY
+        - name: S3_REGION_NAME
+          value: "{{ .Values.app.storage.s3.region }}"
+        - name: S3_KEY_PREFIX
+          value: "{{ .Values.app.storage.s3.keyPrefix }}"
+        
+        # Websocket Broker
+        - name: ENABLE_WEBSOCKET_SUPPORT
+          value: "{{ .Values.app.websocket.enabled }}"
+        - name: WEBSOCKET_MANAGER
+          value: "{{ .Values.app.websocket.manager }}"
+        - name: WEBSOCKET_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: REDIS_URL
+
+        # Auth
+        - name: ENABLE_LOGIN_FORM
+          value: "{{ .Values.app.auth.enableLoginForm }}"
+        - name: ENABLE_SIGNUP_PASSWORD_CONFIRMATION
+          value: "{{ .Values.app.auth.enableSignupPasswordConfirmation }}"
+        - name: ENABLE_OAUTH_SIGNUP
+          value: "{{ .Values.app.auth.enableOauthSignup }}"
+        - name: OAUTH_UPDATE_PICTURE_ON_LOGIN
+          value: "{{ .Values.app.auth.oauthUpdatePictureOnLogin }}"
+        - name: ENABLE_OAUTH_ROLE_MANAGEMENT
+          value: "{{ .Values.app.auth.enableOauthRoleManagement }}"
+        - name: ENABLE_OAUTH_GROUP_MANAGEMENT
+          value: "{{ .Values.app.auth.enableOauthGroupManagement }}"
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: GOOGLE_CLIENT_ID
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: GOOGLE_CLIENT_SECRET
+        - name: OPENID_PROVIDER_URL
+          value: "{{ .Values.app.auth.openidProviderUrl }}"
+        
+        resources:
+          requests:
+            memory: "{{ .Values.app.resources.requests.memory }}"
+            cpu: "{{ .Values.app.resources.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.app.resources.limits.memory }}"
+            cpu: "{{ .Values.app.resources.limits.cpu }}"

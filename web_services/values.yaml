@@ -1,0 +1,100 @@
+# Default values for openwebui
+# This is the base configuration - override in values-prod.yaml
+
+namespace: web-services
+
+app:
+  name: openwebui
+  replicas: 2
+  image:
+    repository: ghcr.io/open-webui/open-webui
+    tag: latest
+  port: 8080
+  webuiUrl: "https://app.publicai.company"
+  vectorDb: pgvector
+  
+  # Affinity settings for production
+  affinity:
+    enabled: true
+    hard: false  # Use soft anti-affinity for better scaling
+  
+  # Topology spread constraints
+  topologySpreadConstraints:
+    enabled: true
+    maxSkew: 1
+    whenUnsatisfiable: DoNotSchedule
+  
+  # Storage configuration
+  storage:
+    provider: s3
+    s3:
+      bucketName: publicai
+      endpointUrl: https://publicai.fra1.digitaloceanspaces.com
+      region: fra1
+      keyPrefix: uploads/
+  
+  # Websocket configuration
+  websocket:
+    enabled: "true"
+    manager: redis
+  
+  # Authentication configuration
+  auth:
+    enableLoginForm: "true"
+    enableSignupPasswordConfirmation: "true"
+    enableOauthSignup: "true"
+    oauthUpdatePictureOnLogin: "true"
+    enableOauthRoleManagement: "true"
+    enableOauthGroupManagement: "true"
+    openidProviderUrl: https://accounts.google.com/.well-known/openid-configuration
+  
+  # Resource configuration (optimized for 4GB nodes)
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "900m"
+    limits:
+      memory: "3Gi"
+      cpu: "1500m"
+
+service:
+  name: openwebui-service
+  port: 8080
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  name: web-services-ingress
+  host: app.publicai.company
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "openwebui-service"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    enabled: true
+    secretName: app-publicai-company-tls
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+secrets:
+  name: web-services-secrets
+  # These will be loaded from .env file using external script
+  licenseKey: ""
+  webuiSecretKey: ""
+  databaseUrl: ""
+  redisUrl: ""
+  s3AccessKeyId: ""
+  s3SecretAccessKey: ""
+  googleClientId: ""
+  googleClientSecret: ""
+
