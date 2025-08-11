@@ -47,6 +47,7 @@ spec:
         ports:
         - containerPort: {{ .Values.app.port }}
         env:
+
         # Basic Configuration
         - name: LICENSE_KEY
           valueFrom:
@@ -140,6 +141,24 @@ spec:
               key: GOOGLE_CLIENT_SECRET
         - name: OPENID_PROVIDER_URL
           value: "{{ .Values.app.auth.openidProviderUrl }}"
+
+        # Telemetry
+        # TODO: Translate to helm chart format
+        # TODO: Find a way to secure the OTLP
+        # - ENABLE_OTEL=true
+        # - ENABLE_OTEL_METRICS=true
+        # - OTEL_EXPORTER_OTLP_INSECURE=true # Use insecure connection for OTLP, remove in production
+        # - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
+        # - OTEL_SERVICE_NAME=open-webui
+
+        # Embedding Engine & Task Models
+        # TODO: Translate to helm chart format
+        # TODO: Setup the embedding engine 
+        # - RAG_EMBEDDING_ENGINE=openai
+        # - RAG_EMBEDDING_MODEL=text-embedding-3-small
+        # TODO: Setup task models 
+        # - TASK_MODEL
+        # - TASK_MODEL_EXTERNAL 
         
         resources:
           requests:
