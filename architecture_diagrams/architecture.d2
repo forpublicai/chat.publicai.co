@@ -7,26 +7,32 @@ users: {
   style.fill: "#374151"
 }
 
-# DigitalOcean Managed Kubernetes Cluster
+# Load Balancer (outside cluster)
+load_balancer: {
+  label: "DO Load Balancer"
+  shape: diamond
+  style.fill: "#ff6b35"
+  style.stroke: "#e55100"
+}
+
+# Managed Kubernetes Cluster: Platform Services
 do_kubernetes: {
-  label: "DigitalOcean Managed Kubernetes Cluster\nAutoscaling: 1-10 nodes"
-  style.fill: "#0080ff"
-  style.stroke: "#0066cc"
+  label: "Managed Kubernetes Cluster: Platform Services"
+  style.fill: "#dbeafe"
+  style.stroke: "#3b82f6"
   
-  # Load Balancer
-  load_balancer: {
-    label: "DO Load Balancer\n129.212.192.117\nPorts 80/443"
-    shape: diamond
-    style.fill: "#ff6b35"
-    style.stroke: "#e55100"
-  }
-  
-  # Ingress Controller
-  ingress_nginx: {
-    label: "Ingress Nginx Controllers\n(2 pods)\nhost: app.publicai.company"
-    shape: hexagon
-    style.fill: "#4caf50"
-    style.stroke: "#2e7d32"
+  # Ingress Nginx Namespace
+  ingress_nginx_namespace: {
+    label: "ingress-nginx namespace"
+    style.fill: "#e8f5e8"
+    style.stroke: "#4caf50"
+    
+    ingress_nginx: {
+      label: "Ingress Nginx Controllers\nhost: app.publicai.company"
+      shape: hexagon
+      style.fill: "#4caf50"
+      style.stroke: "#2e7d32"
+    }
   }
   
   # Web Services Namespace
@@ -35,122 +41,223 @@ do_kubernetes: {
     style.fill: "#f3e5f5"
     style.stroke: "#9c27b0"
     
-    openwebui_deployment: {
-      label: "OpenWebUI Deployment\nHPA: 2-5 replicas\nCPU/Memory autoscaling"
-      style.fill: "#f3e5f5"
-      style.stroke: "#7b1fa2"
-      
-      openwebui_service: {
-        label: "openwebui-service\nClusterIP Load Balancer\nPort 8080"
-        shape: oval
-        style.fill: "#e1bee7"
-      }
-      
-      openwebui_pods: {
-        label: "OpenWebUI Pods\n(2-5 replicas)\nContainer Port 8080"
-        shape: rectangle
-        style.fill: "#3b82f6"
-        style.stroke: "#1976d2"
-      }
-      
-      openwebui_service -> openwebui_pods: "Routes traffic to pods"
+    openwebui_service: {
+      label: "openwebui-service"
+      shape: oval
+      style.fill: "#e1bee7"
     }
     
-    grafana_pods: {
-      label: "Grafana Pods\ngrafana.publicai.company"
+    openwebui_pod_1: {
+      label: "OpenWebUI Pod"
       shape: rectangle
-      style.fill: "#6366f1"
-      style.stroke: "#3949ab"
+      style.fill: "#3b82f6"
+      style.stroke: "#1976d2"
     }
-  }
-  
-  # Worker Nodes
-  worker_nodes: {
-    label: "Worker Nodes\n(1-10 autoscaling)\npool-hgpgo86kh"
-    shape: rectangle
-    style.fill: "#ffecb3"
-    style.stroke: "#ff8f00"
-    style.stroke-dash: 3
-  }
-  
-  # Connections within cluster
-  load_balancer -> ingress_nginx
-  ingress_nginx -> web_services.openwebui_deployment.openwebui_service
-  ingress_nginx -> web_services.grafana_pods
-  web_services.openwebui_deployment.openwebui_pods -> web_services.grafana_pods: "Telemetry"
-}
-
-gpu_droplet: {
-  label: "DO GPU Droplet / AWS EC2\nRTX 6000 Ada - 48GB VRAM"
-  style.fill: "#fef3c7"
-  style.stroke: "#f59e0b"
-  
-  ai_gateway: {
-    label: "AI Gateway Layer"
-    style.fill: "#f9fafb"
-    style.stroke: "#e5e7eb"
-    envoy: {
-      label: "Envoy Proxy\nAI API Gateway"
+    
+    openwebui_pod_2: {
+      label: "OpenWebUI Pod"
+      shape: rectangle
+      style.fill: "#3b82f6"
+      style.stroke: "#1976d2"
+    }
+    
+    openwebui_pod_more: {
+      label: "OpenWebUI Pod\n(more instances...)"
+      shape: rectangle
+      style.fill: "#3b82f6"
+      style.stroke: "#1976d2"
+      style.stroke-dash: 5
+    }
+    
+    zuplo_service: {
+      label: "zuplo-service"
+      shape: oval
+      style.fill: "#c084fc"
+    }
+    
+    zuplo_pod_1: {
+      label: "Zuplo Gateway"
       shape: rectangle
       style.fill: "#8b5cf6"
     }
-    tika: {
+    
+    zuplo_pod_2: {
+      label: "Zuplo Gateway"
+      shape: rectangle
+      style.fill: "#8b5cf6"
+    }
+    
+    zuplo_pod_more: {
+      label: "Zuplo Pod\n(more instances...)"
+      shape: rectangle
+      style.fill: "#8b5cf6"
+      style.stroke-dash: 5
+    }
+    
+    searxng_service: {
+      label: "searxng-service"
+      shape: oval
+      style.fill: "#6ee7b7"
+    }
+    
+    searxng_pod_1: {
+      label: "SearXNG\nMetadata Search Engine"
+      shape: rectangle
+      style.fill: "#10b981"
+    }
+    
+    searxng_pod_2: {
+      label: "SearXNG\nMetadata Search Engine"
+      shape: rectangle
+      style.fill: "#10b981"
+    }
+    
+    searxng_pod_more: {
+      label: "SearXNG Pod\n(more instances...)"
+      shape: rectangle
+      style.fill: "#10b981"
+      style.stroke-dash: 5
+    }
+    
+    tika_service: {
+      label: "tika-service"
+      shape: oval
+      style.fill: "#c4b5fd"
+    }
+    
+    tika_pod_1: {
       label: "Apache Tika\nDocument Extraction"
       shape: rectangle
       style.fill: "#a855f7"
     }
-  }
-  
-  local_models: {
-    label: "Local AI Models"
-    style.fill: "#ecfdf5"
-    style.stroke: "#10b981"
-    bge_m3: {
-      label: "BGE-M3\nEmbedding Model\nvLLM"
+    
+    tika_pod_2: {
+      label: "Apache Tika\nDocument Extraction"
       shape: rectangle
-      style.fill: "#34d399"
+      style.fill: "#a855f7"
     }
-    bge_reranker: {
-      label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
+    
+    tika_pod_more: {
+      label: "Apache Tika Pod\n(more instances...)"
       shape: rectangle
-      style.fill: "#6ee7b7"
-    }
-    task_model: {
-      label: "Future Task Models\n(Classification, etc.)"
-      shape: rectangle
-      style.fill: "#a7f3d0"
+      style.fill: "#a855f7"
       style.stroke-dash: 5
     }
+    
+    openwebui_service -> openwebui_pod_1: "Routes traffic to pods"
+    openwebui_service -> openwebui_pod_2: "Routes traffic to pods"
+    openwebui_service -> openwebui_pod_more: "Routes traffic to pods"
+    zuplo_service -> zuplo_pod_1: "Routes traffic to pods"
+    zuplo_service -> zuplo_pod_2: "Routes traffic to pods"
+    zuplo_service -> zuplo_pod_more: "Routes traffic to pods"
+    searxng_service -> searxng_pod_1: "Routes traffic to pods"
+    searxng_service -> searxng_pod_2: "Routes traffic to pods"
+    searxng_service -> searxng_pod_more: "Routes traffic to pods"
+    tika_service -> tika_pod_1: "Routes traffic to pods"
+    tika_service -> tika_pod_2: "Routes traffic to pods"
+    tika_service -> tika_pod_more: "Routes traffic to pods"
   }
   
-  ai_gateway.envoy -> local_models.bge_m3
-  ai_gateway.envoy -> local_models.bge_reranker
-  ai_gateway.envoy -> local_models.task_model
-  ai_gateway.envoy -> ai_gateway.tika
+  # Connections within cluster
+  ingress_nginx_namespace.ingress_nginx -> web_services.openwebui_service
 }
 
-apertus_droplet: {
-  label: "DO GPU Droplet / AWS EC2\nApertus Model on vLLM"
-  style.fill: "#fef3c7"
-  style.stroke: "#f59e0b"
+ai_services_cluster: {
+  label: "Managed Kubernetes Cluster: AI Services"
+  style.fill: "#f3e8ff"
+  style.stroke: "#8b5cf6"
   
-  apertus_model: {
+  bge_m3_service: {
+    label: "bge-m3-service"
+    shape: oval
+    style.fill: "#86efac"
+  }
+  
+  bge_m3_pod_1: {
+    label: "BGE-M3\nEmbedding Model\nvLLM"
+    shape: rectangle
+    style.fill: "#34d399"
+  }
+  
+  bge_m3_pod_2: {
+    label: "BGE-M3\nEmbedding Model\nvLLM"
+    shape: rectangle
+    style.fill: "#34d399"
+  }
+  
+  bge_m3_pod_more: {
+    label: "BGE-M3 Pod\nvLLM\n(more instances...)"
+    shape: rectangle
+    style.fill: "#34d399"
+    style.stroke-dash: 5
+  }
+  
+  bge_reranker_service: {
+    label: "bge-reranker-service"
+    shape: oval
+    style.fill: "#86efac"
+  }
+  
+  bge_reranker_pod_1: {
+    label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
+    shape: rectangle
+    style.fill: "#6ee7b7"
+  }
+  
+  bge_reranker_pod_2: {
+    label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
+    shape: rectangle
+    style.fill: "#6ee7b7"
+  }
+  
+  bge_reranker_pod_more: {
+    label: "BGE-reranker Pod\nvLLM\n(more instances...)"
+    shape: rectangle
+    style.fill: "#6ee7b7"
+    style.stroke-dash: 5
+  }
+  
+  apertus_service: {
+    label: "apertus-service"
+    shape: oval
+    style.fill: "#fb923c"
+  }
+  
+  apertus_model_1: {
     label: "Apertus Model\nvLLM"
     shape: rectangle
     style.fill: "#f97316"
   }
+  
+  apertus_model_2: {
+    label: "Apertus Model\nvLLM"
+    shape: rectangle
+    style.fill: "#f97316"
+  }
+  
+  apertus_model_more: {
+    label: "Apertus Model\nvLLM\n(more instances...)"
+    shape: rectangle
+    style.fill: "#f97316"
+    style.stroke-dash: 5
+  }
+  
+  bge_m3_service -> bge_m3_pod_1: "Routes traffic to pods"
+  bge_m3_service -> bge_m3_pod_2: "Routes traffic to pods"
+  bge_m3_service -> bge_m3_pod_more: "Routes traffic to pods"
+  bge_reranker_service -> bge_reranker_pod_1: "Routes traffic to pods"
+  bge_reranker_service -> bge_reranker_pod_2: "Routes traffic to pods"
+  bge_reranker_service -> bge_reranker_pod_more: "Routes traffic to pods"
+  apertus_service -> apertus_model_1: "Routes traffic to pods"
+  apertus_service -> apertus_model_2: "Routes traffic to pods"
+  apertus_service -> apertus_model_more: "Routes traffic to pods"
 }
 
 # External services
-cloudflare: {
+cloudflare_cdn: {
   label: "Cloudflare CDN"
+  shape: cloud
   style.fill: "#f97316"
-  style.stroke: "#ea580c"
-  cdn: {
-    label: "Edge Locations\nSSL Termination\nDDoS Protection\nSubdomain Routing"
-    shape: cloud
-    style.fill: "#fb923c"
-  }
 }
 
 vercel: {
@@ -190,30 +297,46 @@ external_ai_providers: {
   style.fill: "#f8fafc"
   style.stroke: "#e2e8f0"
   swisscom: {
-    label: "SwissCom API"
+    label: "SwissCom API\n(Apertus models)"
     shape: cloud
     style.fill: "#f59e0b"
   }
-  sealion: {
-    label: "Sea Lion API\nAI Singapore"
+  ai_singapore: {
+    label: "AI Singapore API\n(Apertus models)"
     shape: cloud
     style.fill: "#84cc16"
+  }
+  sealion_api: {
+    label: "SEA-LION API\n(SEA-LION models)"
+    shape: cloud
+    style.fill: "#06b6d4"
+  }
+  bsc_api: {
+    label: "BSC API\n(Salamandra models)"
+    shape: cloud
+    style.fill: "#8b5cf6"
   }
 }
 
 # Connections
 users -> vercel.marketing: "Browse"
-users -> cloudflare.cdn: "App Access"
-cloudflare.cdn -> do_kubernetes.load_balancer: "HTTP/HTTPS Traffic\napp.publicai.company"
+users -> cloudflare_cdn: "App Access"
+cloudflare_cdn -> load_balancer: "HTTP/HTTPS Traffic\napp.publicai.company"
+load_balancer -> do_kubernetes.ingress_nginx_namespace.ingress_nginx
 
-do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> openwebui_deps.postgres
-do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> openwebui_deps.redis
-do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> openwebui_deps.spaces
+do_kubernetes.web_services.openwebui_service -> openwebui_deps.postgres
+do_kubernetes.web_services.openwebui_service -> openwebui_deps.redis
+do_kubernetes.web_services.openwebui_service -> openwebui_deps.spaces
 
-do_kubernetes.web_services.openwebui_deployment.openwebui_pods -> gpu_droplet.ai_gateway.envoy: "AI Model Requests & Document Processing"
+do_kubernetes.web_services.openwebui_service -> do_kubernetes.web_services.zuplo_service: "AI Model Requests"
+do_kubernetes.web_services.openwebui_service -> do_kubernetes.web_services.searxng_service: "Search Requests"
+do_kubernetes.web_services.openwebui_service -> do_kubernetes.web_services.tika_service: "Document Processing"
 
-gpu_droplet.ai_gateway.envoy -> external_ai_providers.swisscom: "API Requests"
-gpu_droplet.ai_gateway.envoy -> external_ai_providers.sealion: "API Requests"
-gpu_droplet.ai_gateway.envoy -> apertus_droplet.apertus_model: "Model Requests"
+do_kubernetes.web_services.zuplo_service -> ai_services_cluster.bge_m3_service: "/v1/embeddings\n(model: bge-m3)"
+do_kubernetes.web_services.zuplo_service -> ai_services_cluster.bge_reranker_service: "/v1/rerank\n(model: bge-reranker-v2.5)"
+do_kubernetes.web_services.zuplo_service -> external_ai_providers.swisscom: "/v1/chat/completions\n(model: apertus-7b)"
+do_kubernetes.web_services.zuplo_service -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: apertus-7b)"
+do_kubernetes.web_services.zuplo_service -> external_ai_providers.sealion_api: "/v1/chat/completions\n(model: sea-lion-7b)"
+do_kubernetes.web_services.zuplo_service -> external_ai_providers.bsc_api: "/v1/chat/completions\n(model: salamandra-7b)"
+do_kubernetes.web_services.zuplo_service -> ai_services_cluster.apertus_service: "/v1/chat/completions\n(model: apertus-7b)"
 
-gpu_droplet.ai_gateway.envoy -> do_kubernetes.web_services.grafana_pods: "API Metrics & Telemetry"
