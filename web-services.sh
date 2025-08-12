@@ -9,13 +9,13 @@ show_usage() {
     echo ""
     echo "Commands:"
     echo "  --deploy   Deploy web services to Kubernetes"
-    echo "  --cleanup  Remove web services deployment"
+    echo "  --cleanup  Remove web services deployment (preserves ingress + load balancer)"
     echo "  --monitor  Monitor deployment status"
     echo ""
     echo "Examples:"
-    echo "  $0 --deploy   # Deploy OpenWebUI and related services"
+    echo "  $0 --deploy   # Deploy OpenWebUI (with ingress) and SearXNG"
     echo "  $0 --monitor  # Check deployment status"
-    echo "  $0 --cleanup  # Remove all web services"
+    echo "  $0 --cleanup  # Remove applications but preserve ingress-nginx controller"
     exit 1
 }
 
@@ -25,11 +25,12 @@ cleanup() {
     
     # Remove only the application components, preserve ingress-nginx
     helm uninstall openwebui --ignore-not-found || true
+    helm uninstall searxng --ignore-not-found || true
     
     # Remove only the web-services namespace (preserves ingress-nginx namespace)
     kubectl delete namespace web-services --ignore-not-found
     
-    echo "ℹ️  LoadBalancer preserved in ingress-nginx namespace"
+    echo "ℹ️  LoadBalancer and ingress preserved (maintains domain IP address)"
     echo "🔍 Checking ingress-nginx status..."
     kubectl get svc -n ingress-nginx 2>/dev/null || echo "⚠️  ingress-nginx namespace not found"
     echo "✅ Cleanup complete!"
@@ -58,10 +59,11 @@ monitor() {
     
     echo ""
     echo "🔍 Helm release status:"
-    helm status openwebui || echo "❌ Helm release not found"
+    helm status openwebui || echo "❌ OpenWebUI Helm release not found"
+    helm status searxng || echo "❌ SearXNG Helm release not found"
     
     echo ""
-    echo "🔍 Application pods:"
+    echo "🔍 Application pods (OpenWebUI + SearXNG):"
     kubectl get pods -n web-services -o wide || echo "❌ web-services namespace not found"
     
     echo ""
@@ -136,8 +138,9 @@ deploy() {
         --set controller.service.type=LoadBalancer
     
     
-    # Deploy everything with Helm
-    helm upgrade --install openwebui web_services/ \
+    # Deploy Open WebUI with Helm (includes ingress)
+    echo "📦 Deploying Open WebUI..."
+    helm upgrade --install openwebui web_services/open-webui/ \
         --create-namespace \
         --set secrets.licenseKey="$LICENSE_KEY" \
         --set secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
@@ -146,7 +149,12 @@ deploy() {
         --set secrets.s3AccessKeyId="$S3_ACCESS_KEY_ID" \
         --set secrets.s3SecretAccessKey="$S3_SECRET_ACCESS_KEY" \
         --set secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+        --set secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET"
+    
+    # Deploy SearXNG (optional)
+    echo "🔍 Deploying SearXNG..."
+    helm upgrade --install searxng web_services/searxng/ \
+        --create-namespace
     
     echo "✅ Deployment complete!"
     exit 0

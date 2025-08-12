@@ -1,8 +1,0 @@
-apiVersion: v2
-name: openwebui
-description: Open WebUI deployment with ingress, autoscaling, and external services
-type: application
-version: 0.1.0
-appVersion: "v0.6.20-cuda126"
-
-# Dependencies removed - ingress-nginx installed separately for production

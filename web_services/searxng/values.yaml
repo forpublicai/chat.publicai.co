@@ -1,0 +1,32 @@
+# Default values for searxng
+# This is the base configuration for SearXNG metasearch engine
+
+namespace: web-services
+
+searxng:
+  name: searxng
+  replicas: 1
+  image:
+    repository: docker.io/searxng/searxng
+    tag: latest
+  port: 8080
+  forceOwnership: "true"
+  # TODO: Placeholder key. Will be moved to proper secrets management in the future. 
+  secretKey: "openwebui-searxng-secret-key-2024"
+  
+  service:
+    name: searxng-service
+    port: 8080
+    type: ClusterIP
+  
+  storage:
+    size: 1Gi
+    storageClassName: ""  # Use default storage class
+  
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"

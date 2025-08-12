@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.searxng.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.searxng.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.searxng.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.searxng.name }}
+    spec:
+      containers:
+      - name: {{ .Values.searxng.name }}
+        image: {{ .Values.searxng.image.repository }}:{{ .Values.searxng.image.tag }}
+        ports:
+        - containerPort: {{ .Values.searxng.port }}
+        env:
+        - name: FORCE_OWNERSHIP
+          value: "{{ .Values.searxng.forceOwnership }}"
+        volumeMounts:
+        - name: searxng-config
+          mountPath: /etc/searxng
+          readOnly: true
+        - name: searxng-cache
+          mountPath: /var/cache/searxng
+        resources:
+          requests:
+            memory: "{{ .Values.searxng.resources.requests.memory }}"
+            cpu: "{{ .Values.searxng.resources.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.searxng.resources.limits.memory }}"
+            cpu: "{{ .Values.searxng.resources.limits.cpu }}"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.searxng.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.searxng.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: searxng-config
+        configMap:
+          name: {{ .Values.searxng.name }}-config
+      - name: searxng-cache
+        persistentVolumeClaim:
+          claimName: {{ .Values.searxng.name }}-cache

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.searxng.name }}-config
+  namespace: {{ .Values.namespace }}
+data:
+  settings.yml: |
+    # Minimal SearXNG configuration for OpenWebUI
+    use_default_settings: true
+    
+    general:
+      instance_name: "SearXNG"
+      
+    server:
+      secret_key: "{{ .Values.searxng.secretKey | default "change-this-secret-key-in-production" }}"
+      port: 8080
+      bind_address: "0.0.0.0"
+      limiter: false
+      image_proxy: false
+      
+    search:
+      safe_search: 0
+      formats:
+        - html
+        - json  # Required for OpenWebUI integration

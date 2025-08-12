@@ -1,0 +1,17 @@
+apiVersion: v2
+name: open-webui
+description: Open WebUI deployment with ingress, autoscaling, and external services
+type: application
+version: 0.1.0
+appVersion: "v0.6.20-cuda126"
+keywords:
+  - ai
+  - chatbot
+  - llm
+  - webui
+home: https://github.com/open-webui/open-webui
+sources:
+  - https://github.com/open-webui/open-webui
+maintainers:
+  - name: open-webui
+    url: https://github.com/open-webui/open-webui

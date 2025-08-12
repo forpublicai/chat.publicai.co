@@ -1,4 +1,4 @@
-# Default values for openwebui
+# Default values for open-webui
 # This is the base configuration - override in values-prod.yaml
 
 namespace: web-services
@@ -48,6 +48,12 @@ app:
     enableOauthGroupManagement: "true"
     openidProviderUrl: https://accounts.google.com/.well-known/openid-configuration
   
+  # Web Search configuration
+  webSearch:
+    enabled: "true"
+    engine: "searxng"
+    searxngQueryUrl: "http://searxng-service:8080/search?q=<query>"
+  
   # Resource configuration (optimized for 4GB nodes)
   resources:
     requests:
@@ -67,7 +73,6 @@ ingress:
   name: web-services-ingress
   host: app.publicai.company
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
@@ -97,4 +102,3 @@ secrets:
   s3SecretAccessKey: ""
   googleClientId: ""
   googleClientSecret: ""
-

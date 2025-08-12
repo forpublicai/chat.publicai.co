@@ -1,0 +1,17 @@
+apiVersion: v2
+name: searxng
+description: SearXNG metasearch engine deployment for Kubernetes
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - search
+  - metasearch
+  - privacy
+  - searxng
+home: https://docs.searxng.org/
+sources:
+  - https://github.com/searxng/searxng
+maintainers:
+  - name: searxng
+    url: https://github.com/searxng/searxng

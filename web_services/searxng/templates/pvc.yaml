@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.searxng.name }}-cache
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.searxng.storage.size }}
+  {{- if .Values.searxng.storage.storageClassName }}
+  storageClassName: {{ .Values.searxng.storage.storageClassName }}
+  {{- end }}
