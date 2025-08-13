@@ -1,0 +1,17 @@
+apiVersion: v2
+name: tika
+description: Apache Tika server deployment for document processing
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - document-processing
+  - apache-tika
+  - text-extraction
+  - file-parsing
+home: https://tika.apache.org/
+sources:
+  - https://github.com/apache/tika
+maintainers:
+  - name: apache-tika
+    url: https://tika.apache.org/

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.tika.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.tika.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.tika.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.tika.name }}
+    spec:
+      containers:
+      - name: {{ .Values.tika.name }}
+        image: {{ .Values.tika.image.repository }}:{{ .Values.tika.image.tag }}
+        ports:
+        - containerPort: {{ .Values.tika.port }}
+        env:
+        - name: JAVA_OPTS
+          value: "{{ .Values.tika.javaOpts }}"
+        resources:
+          requests:
+            memory: "{{ .Values.tika.resources.requests.memory }}"
+            cpu: "{{ .Values.tika.resources.requests.cpu }}"
+          limits:
+            memory: "{{ .Values.tika.resources.limits.memory }}"
+            cpu: "{{ .Values.tika.resources.limits.cpu }}"
+        livenessProbe:
+          httpGet:
+            path: /tika
+            port: {{ .Values.tika.port }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /tika
+            port: {{ .Values.tika.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10

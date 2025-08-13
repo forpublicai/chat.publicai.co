@@ -13,7 +13,7 @@ show_usage() {
     echo "  --monitor  Monitor deployment status"
     echo ""
     echo "Examples:"
-    echo "  $0 --deploy   # Deploy OpenWebUI (with ingress) and SearXNG"
+    echo "  $0 --deploy   # Deploy OpenWebUI (with ingress), SearXNG, and Tika"
     echo "  $0 --monitor  # Check deployment status"
     echo "  $0 --cleanup  # Remove applications but preserve ingress-nginx controller"
     exit 1
@@ -26,6 +26,7 @@ cleanup() {
     # Remove only the application components, preserve ingress-nginx
     helm uninstall openwebui --ignore-not-found || true
     helm uninstall searxng --ignore-not-found || true
+    helm uninstall tika --ignore-not-found || true
     
     # Remove only the web-services namespace (preserves ingress-nginx namespace)
     kubectl delete namespace web-services --ignore-not-found
@@ -61,9 +62,10 @@ monitor() {
     echo "🔍 Helm release status:"
     helm status openwebui || echo "❌ OpenWebUI Helm release not found"
     helm status searxng || echo "❌ SearXNG Helm release not found"
+    helm status tika || echo "❌ Tika Helm release not found"
     
     echo ""
-    echo "🔍 Application pods (OpenWebUI + SearXNG):"
+    echo "🔍 Application pods (OpenWebUI + SearXNG + Tika):"
     kubectl get pods -n web-services -o wide || echo "❌ web-services namespace not found"
     
     echo ""
@@ -154,6 +156,11 @@ deploy() {
     # Deploy SearXNG (optional)
     echo "🔍 Deploying SearXNG..."
     helm upgrade --install searxng web_services/searxng/ \
+        --create-namespace
+    
+    # Deploy Tika (optional)
+    echo "📄 Deploying Tika..."
+    helm upgrade --install tika web_services/tika/ \
         --create-namespace
     
     echo "✅ Deployment complete!"

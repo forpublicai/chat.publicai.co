@@ -1,4 +1,4 @@
-direction: down
+direction: right
 
 # Users at top
 users: {
@@ -17,7 +17,7 @@ load_balancer: {
 
 # Managed Kubernetes Cluster: Platform Services
 do_kubernetes: {
-  label: "Managed Kubernetes Cluster: Platform Services"
+  label: "Managed Kubernetes Cluster"
   style.fill: "#dbeafe"
   style.stroke: "#3b82f6"
   
@@ -41,10 +41,34 @@ do_kubernetes: {
     style.fill: "#f3e5f5"
     style.stroke: "#9c27b0"
     
-    openwebui_service: {
-      label: "openwebui-service"
-      shape: oval
-      style.fill: "#e1bee7"
+    web_services_container: {
+      label: "Web Services"
+      style.fill: "#faf5ff"
+      style.stroke: "#7c3aed"
+      
+      openwebui_service: {
+        label: "openwebui-service"
+        shape: oval
+        style.fill: "#e1bee7"
+      }
+      
+      zuplo_service: {
+        label: "zuplo-service"
+        shape: oval
+        style.fill: "#c084fc"
+      }
+      
+      searxng_service: {
+        label: "searxng-service"
+        shape: oval
+        style.fill: "#6ee7b7"
+      }
+      
+      tika_service: {
+        label: "tika-service"
+        shape: oval
+        style.fill: "#c4b5fd"
+      }
     }
     
     openwebui_pod_1: {
@@ -69,12 +93,6 @@ do_kubernetes: {
       style.stroke-dash: 5
     }
     
-    zuplo_service: {
-      label: "zuplo-service"
-      shape: oval
-      style.fill: "#c084fc"
-    }
-    
     zuplo_pod_1: {
       label: "Zuplo Gateway"
       shape: rectangle
@@ -92,12 +110,6 @@ do_kubernetes: {
       shape: rectangle
       style.fill: "#8b5cf6"
       style.stroke-dash: 5
-    }
-    
-    searxng_service: {
-      label: "searxng-service"
-      shape: oval
-      style.fill: "#6ee7b7"
     }
     
     searxng_pod_1: {
@@ -119,12 +131,6 @@ do_kubernetes: {
       style.stroke-dash: 5
     }
     
-    tika_service: {
-      label: "tika-service"
-      shape: oval
-      style.fill: "#c4b5fd"
-    }
-    
     tika_pod_1: {
       label: "Apache Tika\nDocument Extraction"
       shape: rectangle
@@ -144,33 +150,51 @@ do_kubernetes: {
       style.stroke-dash: 5
     }
     
-    openwebui_service -> openwebui_pod_1: "Routes traffic to pods"
-    openwebui_service -> openwebui_pod_2: "Routes traffic to pods"
-    openwebui_service -> openwebui_pod_more: "Routes traffic to pods"
-    zuplo_service -> zuplo_pod_1: "Routes traffic to pods"
-    zuplo_service -> zuplo_pod_2: "Routes traffic to pods"
-    zuplo_service -> zuplo_pod_more: "Routes traffic to pods"
-    searxng_service -> searxng_pod_1: "Routes traffic to pods"
-    searxng_service -> searxng_pod_2: "Routes traffic to pods"
-    searxng_service -> searxng_pod_more: "Routes traffic to pods"
-    tika_service -> tika_pod_1: "Routes traffic to pods"
-    tika_service -> tika_pod_2: "Routes traffic to pods"
-    tika_service -> tika_pod_more: "Routes traffic to pods"
+    web_services_container.openwebui_service -> openwebui_pod_1: "Routes traffic to pods"
+    web_services_container.openwebui_service -> openwebui_pod_2: "Routes traffic to pods"
+    web_services_container.openwebui_service -> openwebui_pod_more: "Routes traffic to pods"
+    web_services_container.zuplo_service -> zuplo_pod_1: "Routes traffic to pods"
+    web_services_container.zuplo_service -> zuplo_pod_2: "Routes traffic to pods"
+    web_services_container.zuplo_service -> zuplo_pod_more: "Routes traffic to pods"
+    web_services_container.searxng_service -> searxng_pod_1: "Routes traffic to pods"
+    web_services_container.searxng_service -> searxng_pod_2: "Routes traffic to pods"
+    web_services_container.searxng_service -> searxng_pod_more: "Routes traffic to pods"
+    web_services_container.tika_service -> tika_pod_1: "Routes traffic to pods"
+    web_services_container.tika_service -> tika_pod_2: "Routes traffic to pods"
+    web_services_container.tika_service -> tika_pod_more: "Routes traffic to pods"
   }
   
   # Connections within cluster
-  ingress_nginx_namespace.ingress_nginx -> web_services.openwebui_service
+  ingress_nginx_namespace.ingress_nginx -> web_services.web_services_container.openwebui_service
 }
 
 ai_services_cluster: {
-  label: "Managed Kubernetes Cluster: AI Services"
+  label: "Managed Kubernetes Cluster"
   style.fill: "#f3e8ff"
   style.stroke: "#8b5cf6"
   
-  bge_m3_service: {
-    label: "bge-m3-service"
-    shape: oval
-    style.fill: "#86efac"
+  ai_services_container: {
+    label: "AI Services"
+    style.fill: "#f8faff"
+    style.stroke: "#6366f1"
+    
+    bge_m3_service: {
+      label: "bge-m3-service"
+      shape: oval
+      style.fill: "#86efac"
+    }
+    
+    bge_reranker_service: {
+      label: "bge-reranker-service"
+      shape: oval
+      style.fill: "#86efac"
+    }
+    
+    apertus_service: {
+      label: "apertus-service"
+      shape: oval
+      style.fill: "#fb923c"
+    }
   }
   
   bge_m3_pod_1: {
@@ -192,12 +216,6 @@ ai_services_cluster: {
     style.stroke-dash: 5
   }
   
-  bge_reranker_service: {
-    label: "bge-reranker-service"
-    shape: oval
-    style.fill: "#86efac"
-  }
-  
   bge_reranker_pod_1: {
     label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
     shape: rectangle
@@ -215,12 +233,6 @@ ai_services_cluster: {
     shape: rectangle
     style.fill: "#6ee7b7"
     style.stroke-dash: 5
-  }
-  
-  apertus_service: {
-    label: "apertus-service"
-    shape: oval
-    style.fill: "#fb923c"
   }
   
   apertus_model_1: {
@@ -242,15 +254,15 @@ ai_services_cluster: {
     style.stroke-dash: 5
   }
   
-  bge_m3_service -> bge_m3_pod_1: "Routes traffic to pods"
-  bge_m3_service -> bge_m3_pod_2: "Routes traffic to pods"
-  bge_m3_service -> bge_m3_pod_more: "Routes traffic to pods"
-  bge_reranker_service -> bge_reranker_pod_1: "Routes traffic to pods"
-  bge_reranker_service -> bge_reranker_pod_2: "Routes traffic to pods"
-  bge_reranker_service -> bge_reranker_pod_more: "Routes traffic to pods"
-  apertus_service -> apertus_model_1: "Routes traffic to pods"
-  apertus_service -> apertus_model_2: "Routes traffic to pods"
-  apertus_service -> apertus_model_more: "Routes traffic to pods"
+  ai_services_container.bge_m3_service -> bge_m3_pod_1: "Routes traffic to pods"
+  ai_services_container.bge_m3_service -> bge_m3_pod_2: "Routes traffic to pods"
+  ai_services_container.bge_m3_service -> bge_m3_pod_more: "Routes traffic to pods"
+  ai_services_container.bge_reranker_service -> bge_reranker_pod_1: "Routes traffic to pods"
+  ai_services_container.bge_reranker_service -> bge_reranker_pod_2: "Routes traffic to pods"
+  ai_services_container.bge_reranker_service -> bge_reranker_pod_more: "Routes traffic to pods"
+  ai_services_container.apertus_service -> apertus_model_1: "Routes traffic to pods"
+  ai_services_container.apertus_service -> apertus_model_2: "Routes traffic to pods"
+  ai_services_container.apertus_service -> apertus_model_more: "Routes traffic to pods"
 }
 
 # External services
@@ -324,19 +336,19 @@ users -> cloudflare_cdn: "App Access"
 cloudflare_cdn -> load_balancer: "HTTP/HTTPS Traffic\napp.publicai.company"
 load_balancer -> do_kubernetes.ingress_nginx_namespace.ingress_nginx
 
-do_kubernetes.web_services.openwebui_service -> openwebui_deps.postgres
-do_kubernetes.web_services.openwebui_service -> openwebui_deps.redis
-do_kubernetes.web_services.openwebui_service -> openwebui_deps.spaces
+do_kubernetes.web_services.web_services_container.openwebui_service -> openwebui_deps.postgres
+do_kubernetes.web_services.web_services_container.openwebui_service -> openwebui_deps.redis
+do_kubernetes.web_services.web_services_container.openwebui_service -> openwebui_deps.spaces
 
-do_kubernetes.web_services.openwebui_service -> do_kubernetes.web_services.zuplo_service: "AI Model Requests"
-do_kubernetes.web_services.openwebui_service -> do_kubernetes.web_services.searxng_service: "Search Requests"
-do_kubernetes.web_services.openwebui_service -> do_kubernetes.web_services.tika_service: "Document Processing"
+do_kubernetes.web_services.web_services_container.openwebui_service -> do_kubernetes.web_services.web_services_container.zuplo_service: "AI Model Requests"
+do_kubernetes.web_services.web_services_container.openwebui_service -> do_kubernetes.web_services.web_services_container.searxng_service: "Search Requests"
+do_kubernetes.web_services.web_services_container.openwebui_service -> do_kubernetes.web_services.web_services_container.tika_service: "Document Processing"
 
-do_kubernetes.web_services.zuplo_service -> ai_services_cluster.bge_m3_service: "/v1/embeddings\n(model: bge-m3)"
-do_kubernetes.web_services.zuplo_service -> ai_services_cluster.bge_reranker_service: "/v1/rerank\n(model: bge-reranker-v2.5)"
-do_kubernetes.web_services.zuplo_service -> external_ai_providers.swisscom: "/v1/chat/completions\n(model: apertus-7b)"
-do_kubernetes.web_services.zuplo_service -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: apertus-7b)"
-do_kubernetes.web_services.zuplo_service -> external_ai_providers.sealion_api: "/v1/chat/completions\n(model: sea-lion-7b)"
-do_kubernetes.web_services.zuplo_service -> external_ai_providers.bsc_api: "/v1/chat/completions\n(model: salamandra-7b)"
-do_kubernetes.web_services.zuplo_service -> ai_services_cluster.apertus_service: "/v1/chat/completions\n(model: apertus-7b)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> ai_services_cluster.ai_services_container.bge_m3_service: "/v1/embeddings\n(model: bge-m3)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> ai_services_cluster.ai_services_container.bge_reranker_service: "/v1/rerank\n(model: bge-reranker-v2.5)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.swisscom: "/v1/chat/completions\n(model: apertus-7b)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: apertus-7b)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.sealion_api: "/v1/chat/completions\n(model: sea-lion-7b)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.bsc_api: "/v1/chat/completions\n(model: salamandra-7b)"
+do_kubernetes.web_services.web_services_container.zuplo_service -> ai_services_cluster.ai_services_container.apertus_service: "/v1/chat/completions\n(model: apertus-7b)"
 

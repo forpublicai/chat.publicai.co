@@ -1,0 +1,28 @@
+# Default values for tika
+# This is the base configuration for Apache Tika server
+
+namespace: web-services
+
+tika:
+  name: tika
+  replicas: 1
+  image:
+    repository: apache/tika
+    tag: latest-full
+  port: 9998
+  
+  service:
+    name: tika-service
+    port: 9998
+    type: ClusterIP
+  
+  # Java heap size configuration
+  javaOpts: "-Xms512m -Xmx1g"
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"

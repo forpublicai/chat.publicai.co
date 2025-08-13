@@ -54,6 +54,11 @@ app:
     engine: "searxng"
     searxngQueryUrl: "http://searxng-service:8080/search?q=<query>"
   
+  # Content Extraction configuration (Tika)
+  contentExtraction:
+    engine: "tika"
+    tikaServerUrl: "http://tika-service:9998"
+  
   # Resource configuration (optimized for 4GB nodes)
   resources:
     requests:

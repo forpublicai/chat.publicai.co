@@ -150,6 +150,12 @@ spec:
         - name: SEARXNG_QUERY_URL
           value: "{{ .Values.app.webSearch.searxngQueryUrl }}"
 
+        # RAG Content Extraction Engine
+        - name: CONTENT_EXTRACTION_ENGINE
+          value: "{{ .Values.app.contentExtraction.engine }}"
+        - name: TIKA_SERVER_URL
+          value: "{{ .Values.app.contentExtraction.tikaServerUrl }}"
+
         # Telemetry
         # TODO: Translate to helm chart format
         # TODO: Find a way to secure the OTLP
