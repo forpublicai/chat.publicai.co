@@ -1,0 +1,10 @@
+.zuplo/
+.cache/
+dist/
+node_modules/
+.env
+.env.zuplo
+
+# OS Stuff
+
+.DS_Store

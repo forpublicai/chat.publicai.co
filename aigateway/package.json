@@ -1,0 +1,27 @@
+{
+  "name": "aigateway",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "zuplo dev",
+    "test": "zuplo test",
+    "docs": "npm run dev --workspace docs",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "zuplo": "^6"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@typescript-eslint/eslint-plugin": "^8",
+    "@typescript-eslint/parser": "^8",
+    "eslint": "^8",
+    "eslint-config-prettier": "^9",
+    "prettier": "^3",
+    "typescript": "^5"
+  },
+  "workspaces": [
+    "docs"
+  ]
+}
