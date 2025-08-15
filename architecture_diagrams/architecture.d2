@@ -1,4 +1,4 @@
-direction: right
+direction: up
 
 # Users at top
 users: {
@@ -52,11 +52,6 @@ do_kubernetes: {
         style.fill: "#e1bee7"
       }
       
-      zuplo_service: {
-        label: "zuplo-service"
-        shape: oval
-        style.fill: "#c084fc"
-      }
       
       searxng_service: {
         label: "searxng-service"
@@ -93,24 +88,6 @@ do_kubernetes: {
       style.stroke-dash: 5
     }
     
-    zuplo_pod_1: {
-      label: "Zuplo Gateway"
-      shape: rectangle
-      style.fill: "#8b5cf6"
-    }
-    
-    zuplo_pod_2: {
-      label: "Zuplo Gateway"
-      shape: rectangle
-      style.fill: "#8b5cf6"
-    }
-    
-    zuplo_pod_more: {
-      label: "Zuplo Pod\n(more instances...)"
-      shape: rectangle
-      style.fill: "#8b5cf6"
-      style.stroke-dash: 5
-    }
     
     searxng_pod_1: {
       label: "SearXNG\nMetadata Search Engine"
@@ -153,9 +130,6 @@ do_kubernetes: {
     web_services_container.openwebui_service -> openwebui_pod_1: "Routes traffic to pods"
     web_services_container.openwebui_service -> openwebui_pod_2: "Routes traffic to pods"
     web_services_container.openwebui_service -> openwebui_pod_more: "Routes traffic to pods"
-    web_services_container.zuplo_service -> zuplo_pod_1: "Routes traffic to pods"
-    web_services_container.zuplo_service -> zuplo_pod_2: "Routes traffic to pods"
-    web_services_container.zuplo_service -> zuplo_pod_more: "Routes traffic to pods"
     web_services_container.searxng_service -> searxng_pod_1: "Routes traffic to pods"
     web_services_container.searxng_service -> searxng_pod_2: "Routes traffic to pods"
     web_services_container.searxng_service -> searxng_pod_more: "Routes traffic to pods"
@@ -168,108 +142,77 @@ do_kubernetes: {
   ingress_nginx_namespace.ingress_nginx -> web_services.web_services_container.openwebui_service
 }
 
-ai_services_cluster: {
-  label: "Managed Kubernetes Cluster"
-  style.fill: "#f3e8ff"
-  style.stroke: "#8b5cf6"
-  
-  ai_services_container: {
-    label: "AI Services"
-    style.fill: "#f8faff"
-    style.stroke: "#6366f1"
-    
-    bge_m3_service: {
-      label: "bge-m3-service"
-      shape: oval
-      style.fill: "#86efac"
-    }
-    
-    bge_reranker_service: {
-      label: "bge-reranker-service"
-      shape: oval
-      style.fill: "#86efac"
-    }
-    
-    apertus_service: {
-      label: "apertus-service"
-      shape: oval
-      style.fill: "#fb923c"
-    }
-  }
-  
-  bge_m3_pod_1: {
-    label: "BGE-M3\nEmbedding Model\nvLLM"
-    shape: rectangle
-    style.fill: "#34d399"
-  }
-  
-  bge_m3_pod_2: {
-    label: "BGE-M3\nEmbedding Model\nvLLM"
-    shape: rectangle
-    style.fill: "#34d399"
-  }
-  
-  bge_m3_pod_more: {
-    label: "BGE-M3 Pod\nvLLM\n(more instances...)"
-    shape: rectangle
-    style.fill: "#34d399"
-    style.stroke-dash: 5
-  }
-  
-  bge_reranker_pod_1: {
-    label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
-    shape: rectangle
-    style.fill: "#6ee7b7"
-  }
-  
-  bge_reranker_pod_2: {
-    label: "BGE-reranker-v2.5\nReranking Model\nvLLM"
-    shape: rectangle
-    style.fill: "#6ee7b7"
-  }
-  
-  bge_reranker_pod_more: {
-    label: "BGE-reranker Pod\nvLLM\n(more instances...)"
-    shape: rectangle
-    style.fill: "#6ee7b7"
-    style.stroke-dash: 5
-  }
-  
-  apertus_model_1: {
-    label: "Apertus Model\nvLLM"
-    shape: rectangle
-    style.fill: "#f97316"
-  }
-  
-  apertus_model_2: {
-    label: "Apertus Model\nvLLM"
-    shape: rectangle
-    style.fill: "#f97316"
-  }
-  
-  apertus_model_more: {
-    label: "Apertus Model\nvLLM\n(more instances...)"
-    shape: rectangle
-    style.fill: "#f97316"
-    style.stroke-dash: 5
-  }
-  
-  ai_services_container.bge_m3_service -> bge_m3_pod_1: "Routes traffic to pods"
-  ai_services_container.bge_m3_service -> bge_m3_pod_2: "Routes traffic to pods"
-  ai_services_container.bge_m3_service -> bge_m3_pod_more: "Routes traffic to pods"
-  ai_services_container.bge_reranker_service -> bge_reranker_pod_1: "Routes traffic to pods"
-  ai_services_container.bge_reranker_service -> bge_reranker_pod_2: "Routes traffic to pods"
-  ai_services_container.bge_reranker_service -> bge_reranker_pod_more: "Routes traffic to pods"
-  ai_services_container.apertus_service -> apertus_model_1: "Routes traffic to pods"
-  ai_services_container.apertus_service -> apertus_model_2: "Routes traffic to pods"
-  ai_services_container.apertus_service -> apertus_model_more: "Routes traffic to pods"
-}
 
 # External services
 cloudflare_cdn: {
   label: "Cloudflare CDN"
   shape: cloud
   style.fill: "#f97316"
+}
+
+zuplo_gateway: {
+  label: "Zuplo Gateway - api.publicai.company"
+  shape: cloud
+  style.fill: "#e0e7ff"
+  style.stroke: "#6366f1"
+  style.font-color: "#1e1b4b"
+  width: 1600
+  height: 400
+  
+  authentication_policy: {
+    label: "Authentication Policy\nAPI Key Validation"
+    shape: hexagon
+    style.fill: "#ef4444"
+    style.stroke: "#dc2626"
+    style.font-color: "#ffffff"
+  }
+  
+  user_rate_limit_policy: {
+    label: "User Rate Limiting Policy\n10 requests per minute"
+    shape: diamond
+    style.fill: "#fbbf24"
+    style.stroke: "#f59e0b"
+    style.font-color: "#92400e"
+  }
+  
+  load_balancing_policies: {
+    label: "Load Balancing Policies"
+    style.fill: "#f8faff"
+    style.stroke: "#6366f1"
+    width: 500
+    height: 200
+    
+    apertus_8b_lb_policy: {
+      label: "apertus-8b Load Balancing"
+      shape: oval
+      style.fill: "#c084fc"
+      style.stroke: "#9333ea"
+      style.font-color: "#581c87"
+    }
+    
+    apertus_70b_lb_policy: {
+      label: "apertus-70b Load Balancing"
+      shape: oval
+      style.fill: "#a855f7"
+      style.stroke: "#7c3aed"
+      style.font-color: "#581c87"
+    }
+    
+    other_models_policy: {
+      label: "Other Models\n(Direct Routing)"
+      shape: oval
+      style.fill: "#94a3b8"
+      style.stroke: "#64748b"
+      style.font-color: "#1e293b"
+    }
+  }
+}
+
+developer_portal: {
+  label: "Developer Portal\ndocs.publicai.company\nSelf-issue API Keys"
+  shape: cloud
+  style.fill: "#10b981"
+  style.stroke: "#059669"
 }
 
 vercel: {
@@ -309,24 +252,89 @@ external_ai_providers: {
   style.fill: "#f8fafc"
   style.stroke: "#e2e8f0"
   swisscom: {
-    label: "SwissCom API\n(Apertus models)"
+    label: "SwissCom API\n(apertus-8b, apertus-70b)"
     shape: cloud
     style.fill: "#f59e0b"
   }
   ai_singapore: {
-    label: "AI Singapore API\n(Apertus models)"
+    label: "AI Singapore API\n(SEA-LION models, apertus-8b, apertus-70b)"
     shape: cloud
     style.fill: "#84cc16"
-  }
-  sealion_api: {
-    label: "SEA-LION API\n(SEA-LION models)"
-    shape: cloud
-    style.fill: "#06b6d4"
   }
   bsc_api: {
     label: "BSC API\n(Salamandra models)"
     shape: cloud
     style.fill: "#8b5cf6"
+  }
+}
+
+embedding_service: {
+  label: "Embedding Service\n(AWS Bedrock / OpenAI / Cohere / Other)"
+  shape: cloud
+  style.fill: "#34d399"
+  style.stroke: "#10b981"
+}
+
+reranking_service: {
+  label: "Reranking Service\n(AWS Bedrock / OpenAI / Cohere / Other)"
+  shape: cloud
+  style.fill: "#6ee7b7"
+  style.stroke: "#059669"
+}
+
+p4d_instances: {
+  label: "Amazon P4D Instances\n6x instances\n8x NVIDIA A100 each\n96 vCPU each"
+  style.fill: "#fee2e2"
+  style.stroke: "#dc2626"
+  
+  apertus8b_service: {
+    label: "apertus8b-service\n(Load Balancer)"
+    shape: cloud
+    style.fill: "#f97316"
+    style.stroke: "#ea580c"
+  }
+  
+  apertus70b_service: {
+    label: "apertus70b-service\n(Load Balancer)"
+    shape: cloud
+    style.fill: "#dc2626"
+    style.stroke: "#991b1b"
+  }
+  
+  apertus_8b_instance_1: {
+    label: "P4D Instance 1\nApertus 8B Model\nvLLM"
+    shape: rectangle
+    style.fill: "#f97316"
+  }
+  
+  apertus_8b_instance_2: {
+    label: "P4D Instance 2\nApertus 8B Model\nvLLM"
+    shape: rectangle
+    style.fill: "#f97316"
+  }
+  
+  apertus_8b_instance_3: {
+    label: "P4D Instance 3\nApertus 8B Model\nvLLM"
+    shape: rectangle
+    style.fill: "#f97316"
+  }
+  
+  apertus_70b_instance_1: {
+    label: "P4D Instance 4\nApertus 70B Model\nvLLM"
+    shape: rectangle
+    style.fill: "#dc2626"
+  }
+  
+  apertus_70b_instance_2: {
+    label: "P4D Instance 5\nApertus 70B Model\nvLLM"
+    shape: rectangle
+    style.fill: "#dc2626"
+  }
+  
+  apertus_70b_instance_3: {
+    label: "P4D Instance 6\nApertus 70B Model\nvLLM"
+    shape: rectangle
+    style.fill: "#dc2626"
   }
 }
 
@@ -340,15 +348,30 @@ do_kubernetes.web_services.web_services_container.openwebui_service -> openwebui
 do_kubernetes.web_services.web_services_container.openwebui_service -> openwebui_deps.redis
 do_kubernetes.web_services.web_services_container.openwebui_service -> openwebui_deps.spaces
 
-do_kubernetes.web_services.web_services_container.openwebui_service -> do_kubernetes.web_services.web_services_container.zuplo_service: "AI Model Requests"
+do_kubernetes.web_services.web_services_container.openwebui_service -> zuplo_gateway.authentication_policy: "AI Model Requests"
+developer_portal -> zuplo_gateway.authentication_policy: "API Key Requests"
+
+zuplo_gateway.authentication_policy -> zuplo_gateway.user_rate_limit_policy: "Authenticated Requests"
+zuplo_gateway.user_rate_limit_policy -> zuplo_gateway.load_balancing_policies: "Rate Limited Requests"
 do_kubernetes.web_services.web_services_container.openwebui_service -> do_kubernetes.web_services.web_services_container.searxng_service: "Search Requests"
 do_kubernetes.web_services.web_services_container.openwebui_service -> do_kubernetes.web_services.web_services_container.tika_service: "Document Processing"
 
-do_kubernetes.web_services.web_services_container.zuplo_service -> ai_services_cluster.ai_services_container.bge_m3_service: "/v1/embeddings\n(model: bge-m3)"
-do_kubernetes.web_services.web_services_container.zuplo_service -> ai_services_cluster.ai_services_container.bge_reranker_service: "/v1/rerank\n(model: bge-reranker-v2.5)"
-do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.swisscom: "/v1/chat/completions\n(model: apertus-7b)"
-do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: apertus-7b)"
-do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.sealion_api: "/v1/chat/completions\n(model: sea-lion-7b)"
-do_kubernetes.web_services.web_services_container.zuplo_service -> external_ai_providers.bsc_api: "/v1/chat/completions\n(model: salamandra-7b)"
-do_kubernetes.web_services.web_services_container.zuplo_service -> ai_services_cluster.ai_services_container.apertus_service: "/v1/chat/completions\n(model: apertus-7b)"
+zuplo_gateway -> embedding_service: "/v1/embeddings"
+zuplo_gateway -> reranking_service: "/v1/rerank"
+
+zuplo_gateway.load_balancing_policies.apertus_8b_lb_policy -> p4d_instances.apertus8b_service: "/v1/chat/completions\n(model: apertus-8b)"
+zuplo_gateway.load_balancing_policies.apertus_8b_lb_policy -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: apertus-8b)"
+zuplo_gateway.load_balancing_policies.apertus_8b_lb_policy -> external_ai_providers.swisscom: "/v1/chat/completions\n(model: apertus-8b)"
+zuplo_gateway.load_balancing_policies.apertus_70b_lb_policy -> p4d_instances.apertus70b_service: "/v1/chat/completions\n(model: apertus-70b)"
+zuplo_gateway.load_balancing_policies.apertus_70b_lb_policy -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: apertus-70b)"
+zuplo_gateway.load_balancing_policies.apertus_70b_lb_policy -> external_ai_providers.swisscom: "/v1/chat/completions\n(model: apertus-70b)"
+zuplo_gateway.load_balancing_policies.other_models_policy -> external_ai_providers.ai_singapore: "/v1/chat/completions\n(model: sea-lion-*)"
+zuplo_gateway.load_balancing_policies.other_models_policy -> external_ai_providers.bsc_api: "/v1/chat/completions\n(model: salamandra-7b)"
+
+p4d_instances.apertus8b_service -> p4d_instances.apertus_8b_instance_1: "Load balances"
+p4d_instances.apertus8b_service -> p4d_instances.apertus_8b_instance_2: "Load balances"
+p4d_instances.apertus8b_service -> p4d_instances.apertus_8b_instance_3: "Load balances"
+p4d_instances.apertus70b_service -> p4d_instances.apertus_70b_instance_1: "Load balances"
+p4d_instances.apertus70b_service -> p4d_instances.apertus_70b_instance_2: "Load balances"
+p4d_instances.apertus70b_service -> p4d_instances.apertus_70b_instance_3: "Load balances"
 
