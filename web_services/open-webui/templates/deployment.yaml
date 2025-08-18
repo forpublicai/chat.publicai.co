@@ -141,6 +141,8 @@ spec:
               key: GOOGLE_CLIENT_SECRET
         - name: OPENID_PROVIDER_URL
           value: "{{ .Values.app.auth.openidProviderUrl }}"
+        - name: ENABLE_FORWARD_USER_INFO_HEADERS
+          value: "{{ .Values.app.auth.enableForwardUserInfoHeaders }}"
 
         # Web Search with Searxng
         - name: ENABLE_WEB_SEARCH
