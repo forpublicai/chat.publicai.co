@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Values.ingress.name }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.ingress.namespace | default "default" }}
   annotations:
 {{- range $key, $value := .Values.ingress.annotations }}
   {{- if eq $key "alb.ingress.kubernetes.io/certificate-arn" }}
@@ -12,18 +12,17 @@ metadata:
     {{ $key }}: {{ $value | quote }}
   {{- end }}
 {{- end }}
-
-    #  TODO: Add back the host rule later - host: {{ .Values.ingress.host }}
 spec:
   ingressClassName: alb
   rules:
-  - http:
+  - host: {{ .Values.ingress.host }}
+    http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ .Values.service.name }}
+            name: {{ .Values.ingress.targetService.name }}
             port:
-              number: {{ .Values.service.port }}
+              number: {{ .Values.ingress.targetService.port }}
 {{- end }}

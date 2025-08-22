@@ -24,7 +24,6 @@ global:
 # OpenWebUI configuration - only environment-specific overrides
 open-webui:
   enabled: true
-  certificateArn: ""  # Set this for your environment
   
   # Production-specific overrides
   app:
@@ -36,12 +35,21 @@ open-webui:
         bucketName: publicai-bucket
         region: eu-central-2
         keyPrefix: uploads/
-  
-  ingress:
-    host: app2.publicai.company
 
   serviceAccount:
     roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
+
+  # Secrets configuration
+  secrets:
+    name: web-services-secrets
+    licenseKey: ""
+    webuiSecretKey: ""
+    databaseUrl: ""
+    redisUrl: ""
+    oauthClientId: ""
+    oauthClientSecret: ""
+    openidProviderUrl: ""
+    openidRedirectUri: ""
 
 # SearXNG configuration
 searxng:

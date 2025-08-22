@@ -1,4 +1,34 @@
 # Infrastructure chart values - essentials + basic resource management
+
+# Application Load Balancer Ingress Configuration
+ingress:
+  enabled: true
+  name: web-services-ingress
+  namespace: web-services
+  host: app2.publicai.company
+  
+  # Target service in web-services namespace
+  targetService:
+    name: openwebui-service
+    port: 8080
+  
+  # ALB annotations
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '5'
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+    alb.ingress.kubernetes.io/subnets: subnet-0483ba7b0f6e163fa,subnet-0b21f6615b27fca69
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+
+# SSL Certificate ARN - set via environment variable
+certificateArn: ""
+
 aws-load-balancer-controller:
   clusterName: publicai-eks
   region: eu-central-2

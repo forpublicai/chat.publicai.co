@@ -56,7 +56,8 @@ deploy_infrastructure() {
     helm dependency build charts/infrastructure/
     helm upgrade --install infrastructure charts/infrastructure/ \
         --namespace kube-system \
-        --create-namespace
+        --create-namespace \
+        --set certificateArn="$CERTIFICATE_ARN"
     
     # Wait for AWS Load Balancer Controller to be ready
     echo "⏳ Waiting for AWS Load Balancer Controller to be ready..."
@@ -64,10 +65,8 @@ deploy_infrastructure() {
     echo "✅ AWS Load Balancer Controller is ready!"
 }
 
-# Function to deploy web services only
-deploy() {
-    echo "📦 Deploying web services only..."
-    
+# Function to validate environment variables
+validate_env() {
     # Check if .env file exists
     if [ ! -f ".env" ]; then
         echo "❌ .env file not found. Please create .env with required variables."
@@ -78,7 +77,7 @@ deploy() {
     set -a && source .env && set +a
     
     # Validate required environment variables
-    required_vars=(
+    local required_vars=(
         "LICENSE_KEY"
         "WEBUI_SECRET_KEY"
         "DATABASE_URL"
@@ -98,8 +97,10 @@ deploy() {
     done
     
     echo "✅ All required environment variables found"
-    
-    # Deploy applications only
+}
+
+# Function to deploy web services
+deploy_web_services() {
     echo "🔧 Building Helm dependencies..."
     helm dependency build charts/web_services/
     
@@ -114,14 +115,25 @@ deploy() {
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
         --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
-        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
-        --set open-webui.certificateArn="$CERTIFICATE_ARN"
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI"
     
     echo "✅ Web services deployment complete!"
-    
+}
+
+# Function to show ingress information
+show_ingress_info() {
     echo ""
     echo "🌐 Access your application:"
     kubectl get ingress -n web-services
+}
+
+# Function to deploy web services only
+deploy() {
+    echo "📦 Deploying web services only..."
+    
+    validate_env
+    deploy_web_services
+    show_ingress_info
     
     exit 0
 }
@@ -130,63 +142,13 @@ deploy() {
 deploy_all() {
     echo "🚀 Deploying everything (infrastructure + web services)..."
     
-    # Check if .env file exists
-    if [ ! -f ".env" ]; then
-        echo "❌ .env file not found. Please create .env with required variables."
-        exit 1
-    fi
-    
-    # Load environment variables from .env file
-    set -a && source .env && set +a
-    
-    # Validate required environment variables
-    required_vars=(
-        "LICENSE_KEY"
-        "WEBUI_SECRET_KEY"
-        "DATABASE_URL"
-        "REDIS_URL"
-        "CERTIFICATE_ARN"
-        "OAUTH_CLIENT_ID"
-        "OAUTH_CLIENT_SECRET"
-        "OPENID_PROVIDER_URL"
-        "OPENID_REDIRECT_URI"
-    )
-    
-    for var in "${required_vars[@]}"; do
-        if [ -z "${!var}" ]; then
-            echo "❌ Missing required environment variable: $var"
-            exit 1
-        fi
-    done
-    
-    echo "✅ All required environment variables found"
-    
-    # Deploy infrastructure first
+    validate_env
     deploy_infrastructure
-    
-    # Deploy applications
-    echo "🔧 Building Helm dependencies..."
-    helm dependency build charts/web_services/
-    
-    echo "📦 Deploying web services..."
-    helm upgrade --install web-services charts/web_services/ \
-        -n web-services \
-        --create-namespace \
-        --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
-        --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
-        --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
-        --set open-webui.secrets.redisUrl="$REDIS_URL" \
-        --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
-        --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
-        --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
-        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
-        --set open-webui.certificateArn="$CERTIFICATE_ARN"
+    deploy_web_services
     
     echo "✅ Complete deployment finished!"
-    
-    echo ""
     echo "🌐 Access your application by running kubectl get ingress -n web-services"
-    kubectl get ingress -n web-services
+    show_ingress_info
     
     exit 0
 }
