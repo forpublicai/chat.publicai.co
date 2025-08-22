@@ -83,9 +83,11 @@ deploy() {
         "WEBUI_SECRET_KEY"
         "DATABASE_URL"
         "REDIS_URL"
-        "GOOGLE_CLIENT_ID"
-        "GOOGLE_CLIENT_SECRET"
         "CERTIFICATE_ARN"
+        "OAUTH_CLIENT_ID"
+        "OAUTH_CLIENT_SECRET"
+        "OPENID_PROVIDER_URL"
+        "OPENID_REDIRECT_URI"
     )
     
     for var in "${required_vars[@]}"; do
@@ -109,8 +111,10 @@ deploy() {
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
         --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
         --set open-webui.secrets.redisUrl="$REDIS_URL" \
-        --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+        --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
+        --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
+        --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
         --set open-webui.certificateArn="$CERTIFICATE_ARN"
     
     echo "✅ Web services deployment complete!"
@@ -141,9 +145,11 @@ deploy_all() {
         "WEBUI_SECRET_KEY"
         "DATABASE_URL"
         "REDIS_URL"
-        "GOOGLE_CLIENT_ID"
-        "GOOGLE_CLIENT_SECRET"
         "CERTIFICATE_ARN"
+        "OAUTH_CLIENT_ID"
+        "OAUTH_CLIENT_SECRET"
+        "OPENID_PROVIDER_URL"
+        "OPENID_REDIRECT_URI"
     )
     
     for var in "${required_vars[@]}"; do
@@ -170,8 +176,10 @@ deploy_all() {
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
         --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
         --set open-webui.secrets.redisUrl="$REDIS_URL" \
-        --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+        --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
+        --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
+        --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
         --set open-webui.certificateArn="$CERTIFICATE_ARN"
     
     echo "✅ Complete deployment finished!"

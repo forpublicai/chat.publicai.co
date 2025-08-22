@@ -21,7 +21,6 @@ searxng:
   
   storage:
     size: 1Gi
-    storageClassName: ""  # Use default storage class
   
   resources:
     requests:

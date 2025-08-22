@@ -47,7 +47,7 @@ app:
     oauthUpdatePictureOnLogin: "true"
     enableOauthRoleManagement: "true"
     enableOauthGroupManagement: "true"
-    openidProviderUrl: https://accounts.google.com/.well-known/openid-configuration
+    # openidProviderUrl now loaded from secret OPENID_PROVIDER_URL
     enableForwardUserInfoHeaders: "true"
   
   # Web Search configuration
@@ -110,5 +110,7 @@ secrets:
   webuiSecretKey: ""
   databaseUrl: ""
   redisUrl: ""
-  googleClientId: ""
-  googleClientSecret: ""
+  oauthClientId: ""
+  oauthClientSecret: ""
+  openidProviderUrl: ""
+  openidRedirectUri: ""

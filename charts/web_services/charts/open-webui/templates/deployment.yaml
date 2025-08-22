@@ -122,18 +122,26 @@ spec:
           value: "{{ .Values.app.auth.enableOauthRoleManagement }}"
         - name: ENABLE_OAUTH_GROUP_MANAGEMENT
           value: "{{ .Values.app.auth.enableOauthGroupManagement }}"
-        - name: GOOGLE_CLIENT_ID
+        - name: OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
-              key: GOOGLE_CLIENT_ID
-        - name: GOOGLE_CLIENT_SECRET
+              key: OAUTH_CLIENT_ID
+        - name: OAUTH_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
-              key: GOOGLE_CLIENT_SECRET
+              key: OAUTH_CLIENT_SECRET
         - name: OPENID_PROVIDER_URL
-          value: "{{ .Values.app.auth.openidProviderUrl }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OPENID_PROVIDER_URL
+        - name: OPENID_REDIRECT_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OPENID_REDIRECT_URI
         - name: ENABLE_FORWARD_USER_INFO_HEADERS
           value: "{{ .Values.app.auth.enableForwardUserInfoHeaders }}"
 
