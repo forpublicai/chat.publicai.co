@@ -5,7 +5,13 @@ metadata:
   name: {{ .Values.ingress.name }}
   namespace: {{ .Release.Namespace }}
   annotations:
-    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+{{- range $key, $value := .Values.ingress.annotations }}
+  {{- if eq $key "alb.ingress.kubernetes.io/certificate-arn" }}
+    {{ $key }}: {{ tpl $value $ | quote }}
+  {{- else }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
 
     #  TODO: Add back the host rule later - host: {{ .Values.ingress.host }}
 spec:

@@ -24,6 +24,7 @@ global:
 # OpenWebUI configuration
 open-webui:
   enabled: true
+  certificateArn: ""
   app:
     name: openwebui
     replicas: 2

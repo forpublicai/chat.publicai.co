@@ -85,6 +85,7 @@ deploy() {
         "REDIS_URL"
         "GOOGLE_CLIENT_ID"
         "GOOGLE_CLIENT_SECRET"
+        "CERTIFICATE_ARN"
     )
     
     for var in "${required_vars[@]}"; do
@@ -109,7 +110,8 @@ deploy() {
         --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
         --set open-webui.secrets.redisUrl="$REDIS_URL" \
         --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET"
+        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+        --set open-webui.certificateArn="$CERTIFICATE_ARN"
     
     echo "✅ Web services deployment complete!"
     
@@ -141,6 +143,7 @@ deploy_all() {
         "REDIS_URL"
         "GOOGLE_CLIENT_ID"
         "GOOGLE_CLIENT_SECRET"
+        "CERTIFICATE_ARN"
     )
     
     for var in "${required_vars[@]}"; do
@@ -168,12 +171,13 @@ deploy_all() {
         --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
         --set open-webui.secrets.redisUrl="$REDIS_URL" \
         --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET"
+        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+        --set open-webui.certificateArn="$CERTIFICATE_ARN"
     
     echo "✅ Complete deployment finished!"
     
     echo ""
-    echo "🌐 Access your application by running `kubectl get ingress -n web-services`"
+    echo "🌐 Access your application by running kubectl get ingress -n web-services"
     kubectl get ingress -n web-services
     
     exit 0
