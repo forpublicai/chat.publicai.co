@@ -1,0 +1,31 @@
+# Infrastructure chart values - essentials + basic resource management
+aws-load-balancer-controller:
+  clusterName: publicai-eks
+  region: eu-central-2
+  
+  # Workaround for https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/3695
+  hostNetwork: true
+  
+  # Change metrics port to avoid conflicts with hostNetwork
+  metricsBindAddr: ":8081"
+  
+  serviceAccount:
+    create: true
+    name: aws-load-balancer-controller
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::901779868336:role/AmazonEKSLoadBalancerControllerRole
+  
+  # Basic resource management
+  replicaCount: 2
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 500Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  
+  # High availability
+  podDisruptionBudget:
+    maxUnavailable: 1

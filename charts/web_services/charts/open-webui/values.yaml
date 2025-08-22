@@ -1,14 +1,12 @@
 # Default values for open-webui
 # This is the base configuration - override in values-prod.yaml
 
-namespace: web-services
-
 app:
   name: openwebui
   replicas: 2
   image:
     repository: ghcr.io/open-webui/open-webui
-    tag: latest
+    tag: main
   port: 8080
   webuiUrl: "https://app.publicai.company"
   vectorDb: pgvector
@@ -28,15 +26,18 @@ app:
   storage:
     provider: s3
     s3:
-      bucketName: publicai
-      endpointUrl: https://publicai.fra1.digitaloceanspaces.com
-      region: fra1
+      bucketName: publicai-bucket
+      region: eu-central-2
       keyPrefix: uploads/
   
   # Websocket configuration
   websocket:
     enabled: "true"
     manager: redis
+  
+  # Redis configuration
+  redis:
+    cluster: "true"
   
   # Authentication configuration
   auth:
@@ -79,16 +80,17 @@ ingress:
   name: web-services-ingress
   host: app.publicai.company
   annotations:
-    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/websocket-services: "openwebui-service"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  tls:
-    enabled: true
-    secretName: app-publicai-company-tls
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '5'
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+    alb.ingress.kubernetes.io/subnets: subnet-0483ba7b0f6e163fa,subnet-0b21f6615b27fca69
+    # TODO: Add back SSL and certificate when ready to use custom domain
+    # alb.ingress.kubernetes.io/ssl-redirect: '443'
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERTIFICATE_ID
 
 autoscaling:
   enabled: true
@@ -97,6 +99,10 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
 
+serviceAccount:
+  name: openwebui-sa
+  roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
+
 secrets:
   name: web-services-secrets
   # These will be loaded from .env file using external script
@@ -104,7 +110,5 @@ secrets:
   webuiSecretKey: ""
   databaseUrl: ""
   redisUrl: ""
-  s3AccessKeyId: ""
-  s3SecretAccessKey: ""
   googleClientId: ""
   googleClientSecret: ""

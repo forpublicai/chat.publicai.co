@@ -1,2 +1,25 @@
+# Environment and secrets
 .env
+*.env
 **/secrets.yaml
+**/*secret*
+**/*key*
+
+# Helm dependency artifacts
+charts/*/Chart.lock
+charts/*/charts/*.tgz
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*.bak
+*.backup

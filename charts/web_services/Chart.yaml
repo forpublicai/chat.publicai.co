@@ -1,0 +1,27 @@
+apiVersion: v2
+name: web-services
+description: Complete web services stack including OpenWebUI, SearXNG, and Tika
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: open-webui
+    version: "0.1.0"
+    repository: "file://./charts/open-webui"
+  - name: searxng
+    version: "0.1.0" 
+    repository: "file://./charts/searxng"
+  - name: tika
+    version: "0.1.0"
+    repository: "file://./charts/tika"
+
+keywords:
+  - ai
+  - chatbot
+  - search
+  - content-extraction
+
+maintainers:
+  - name: Your Name
+    email: your.email@example.com

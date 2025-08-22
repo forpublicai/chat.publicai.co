@@ -1,0 +1,21 @@
+apiVersion: v2
+name: infrastructure
+description: Kubernetes infrastructure components for web services
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: aws-load-balancer-controller
+    version: "1.13.4"
+    repository: "https://aws.github.io/eks-charts"
+
+keywords:
+  - infrastructure
+  - aws
+  - load-balancer
+  - eks
+
+maintainers:
+  - name: Your Name
+    email: your.email@example.com

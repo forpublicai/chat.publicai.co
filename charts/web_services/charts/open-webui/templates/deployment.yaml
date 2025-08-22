@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.app.name }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.app.replicas }}
   selector:
@@ -13,6 +13,7 @@ spec:
       labels:
         app: {{ .Values.app.name }}
     spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- if .Values.app.affinity.enabled }}
       affinity:
         podAntiAffinity:
@@ -73,6 +74,8 @@ spec:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
               key: REDIS_URL
+        - name: REDIS_CLUSTER
+          value: "{{ .Values.app.redis.cluster }}"
 
         # Vector DB
         - name: VECTOR_DB
@@ -88,18 +91,6 @@ spec:
           value: "{{ .Values.app.storage.provider }}"
         - name: S3_BUCKET_NAME
           value: "{{ .Values.app.storage.s3.bucketName }}"
-        - name: S3_ENDPOINT_URL
-          value: "{{ .Values.app.storage.s3.endpointUrl }}"
-        - name: S3_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: S3_ACCESS_KEY_ID
-        - name: S3_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: S3_SECRET_ACCESS_KEY
         - name: S3_REGION_NAME
           value: "{{ .Values.app.storage.s3.region }}"
         - name: S3_KEY_PREFIX
@@ -115,6 +106,8 @@ spec:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
               key: REDIS_URL
+        - name: WEBSOCKET_REDIS_CLUSTER
+          value: "{{ .Values.app.redis.cluster }}"
 
         # Auth
         - name: ENABLE_LOGIN_FORM

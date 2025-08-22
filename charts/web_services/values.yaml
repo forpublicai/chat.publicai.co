@@ -1,0 +1,135 @@
+# Global values for web-services umbrella chart
+global:
+  # Shared namespace for all services
+  namespace: web-services
+  
+  # AWS configuration
+  aws:
+    region: eu-central-2
+    
+  # Ingress configuration
+  ingress:
+    enabled: true
+    className: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/healthcheck-path: /health
+      alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+      alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+      alb.ingress.kubernetes.io/unhealthy-threshold-count: '5'
+      alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+      alb.ingress.kubernetes.io/subnets: subnet-0483ba7b0f6e163fa,subnet-0b21f6615b27fca69
+
+# OpenWebUI configuration
+open-webui:
+  enabled: true
+  app:
+    name: openwebui
+    replicas: 2
+    image:
+      repository: ghcr.io/open-webui/open-webui
+      tag: main
+    port: 8080
+    webuiUrl: "https://app.publicai.company"
+    vectorDb: pgvector
+    
+    # Affinity settings for production
+    affinity:
+      enabled: true
+      hard: false
+    
+    # Topology spread constraints
+    topologySpreadConstraints:
+      enabled: true
+      maxSkew: 1
+      whenUnsatisfiable: DoNotSchedule
+    
+    # Storage configuration
+    storage:
+      provider: s3
+      s3:
+        bucketName: publicai-bucket
+        region: eu-central-2
+        keyPrefix: uploads/
+    
+    # Websocket configuration
+    websocket:
+      enabled: "true"
+      manager: redis
+    
+    # Authentication configuration
+    auth:
+      enableLoginForm: "true"
+      enableSignupPasswordConfirmation: "true"
+      enableOauthSignup: "true"
+      oauthUpdatePictureOnLogin: "true"
+      enableOauthRoleManagement: "true"
+      enableOauthGroupManagement: "true"
+      openidProviderUrl: https://accounts.google.com/.well-known/openid-configuration
+      enableForwardUserInfoHeaders: "true"
+    
+    # Web Search configuration
+    webSearch:
+      enabled: "true"
+      engine: "searxng"
+      searxngQueryUrl: "http://searxng-service:8080/search?q=<query>"
+    
+    # Content Extraction configuration (Tika)
+    contentExtraction:
+      engine: "tika"
+      tikaServerUrl: "http://tika-service:9998"
+    
+    # Resource configuration
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "900m"
+      limits:
+        memory: "3Gi"
+        cpu: "1500m"
+
+  service:
+    name: openwebui-service
+    port: 8080
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    name: web-services-ingress
+    host: app.publicai.company
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  serviceAccount:
+    name: openwebui-sa
+    roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
+
+  secrets:
+    name: web-services-secrets
+    # These will be set via --set flags or external secrets
+    licenseKey: ""
+    webuiSecretKey: ""
+    databaseUrl: ""
+    redisUrl: ""
+    googleClientId: ""
+    googleClientSecret: ""
+
+# SearXNG configuration
+searxng:
+  enabled: true
+  service:
+    name: searxng-service
+    port: 8080
+
+# Tika configuration  
+tika:
+  enabled: true
+  service:
+    name: tika-service
+    port: 9998
