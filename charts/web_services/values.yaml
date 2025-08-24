@@ -46,10 +46,12 @@ open-webui:
     webuiSecretKey: ""
     databaseUrl: ""
     redisUrl: ""
-    oauthClientId: ""
-    oauthClientSecret: ""
-    openidProviderUrl: ""
-    openidRedirectUri: ""
+    googleClientId: ""
+    googleClientSecret: ""
+    # oauthClientId: ""
+    # oauthClientSecret: ""
+    # openidProviderUrl: ""
+    # openidRedirectUri: ""
 
 # SearXNG configuration
 searxng:
