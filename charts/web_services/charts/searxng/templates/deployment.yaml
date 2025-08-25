@@ -21,12 +21,15 @@ spec:
         env:
         - name: FORCE_OWNERSHIP
           value: "{{ .Values.searxng.forceOwnership }}"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: web-services-secrets
+              key: REDIS_URL
         volumeMounts:
         - name: searxng-config
           mountPath: /etc/searxng
           readOnly: true
-        - name: searxng-cache
-          mountPath: /var/cache/searxng
         resources:
           requests:
             memory: "{{ .Values.searxng.resources.requests.memory }}"
@@ -50,6 +53,3 @@ spec:
       - name: searxng-config
         configMap:
           name: {{ .Values.searxng.name }}-config
-      - name: searxng-cache
-        persistentVolumeClaim:
-          claimName: {{ .Values.searxng.name }}-cache

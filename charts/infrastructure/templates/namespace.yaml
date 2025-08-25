@@ -1,8 +1,0 @@
-{{- if .Values.ingress.enabled }}
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ .Values.ingress.namespace | default "web-services" }}
-  labels:
-    name: {{ .Values.ingress.namespace | default "web-services" }}
-{{- end }}

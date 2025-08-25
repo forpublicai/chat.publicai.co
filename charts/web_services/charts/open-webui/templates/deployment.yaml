@@ -116,18 +116,20 @@ spec:
           value: "{{ .Values.app.auth.enableSignupPasswordConfirmation }}"
         - name: ENABLE_OAUTH_SIGNUP
           value: "{{ .Values.app.auth.enableOauthSignup }}"
+        - name: ENABLE_OAUTH_PERSISTENT_CONFIG
+          value: "{{ .Values.app.auth.enableOauthPersistentConfig }}"
         - name: OAUTH_UPDATE_PICTURE_ON_LOGIN
           value: "{{ .Values.app.auth.oauthUpdatePictureOnLogin }}"
         - name: ENABLE_OAUTH_ROLE_MANAGEMENT
           value: "{{ .Values.app.auth.enableOauthRoleManagement }}"
         - name: ENABLE_OAUTH_GROUP_MANAGEMENT
           value: "{{ .Values.app.auth.enableOauthGroupManagement }}"
-        - name: GOOGLE_OAUTH_CLIENT_ID
+        - name: GOOGLE_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
               key: GOOGLE_CLIENT_ID
-        - name: GOOGLE_OAUTH_CLIENT_SECRET
+        - name: GOOGLE_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
@@ -142,11 +144,8 @@ spec:
         #     secretKeyRef:
         #       name: {{ .Values.secrets.name }}
         #       key: OAUTH_CLIENT_SECRET
-        # - name: OPENID_PROVIDER_URL
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: {{ .Values.secrets.name }}
-        #       key: OPENID_PROVIDER_URL
+        - name: OPENID_PROVIDER_URL
+          value: "https://accounts.google.com/.well-known/openid-configuration"
         # - name: OPENID_REDIRECT_URI
         #   valueFrom:
         #     secretKeyRef:

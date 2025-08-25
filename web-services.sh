@@ -26,7 +26,6 @@ cleanup() {
     echo "🧹 Cleaning up web services deployment..."
     
     helm uninstall web-services -n web-services --ignore-not-found || true
-    kubectl delete namespace web-services --ignore-not-found
     
     echo "✅ Web services cleanup complete!"
     exit 0
@@ -36,12 +35,10 @@ cleanup() {
 cleanup_all() {
     echo "🧹 Cleaning up everything (infrastructure + web services)..."
     
-    # Remove web services first
+    # Remove both releases first, then delete namespace
     helm uninstall web-services -n web-services --ignore-not-found || true
+    helm uninstall infrastructure -n web-services --ignore-not-found || true
     kubectl delete namespace web-services --ignore-not-found
-    
-    # Remove infrastructure
-    helm uninstall infrastructure -n kube-system --ignore-not-found || true
     
     echo "✅ Complete cleanup finished!"
     exit 0
@@ -55,13 +52,13 @@ deploy_infrastructure() {
     helm repo update
     helm dependency build charts/infrastructure/
     helm upgrade --install infrastructure charts/infrastructure/ \
-        --namespace kube-system \
+        --namespace web-services \
         --create-namespace \
         --set certificateArn="$CERTIFICATE_ARN"
     
     # Wait for AWS Load Balancer Controller to be ready
     echo "⏳ Waiting for AWS Load Balancer Controller to be ready..."
-    kubectl wait --for=condition=available --timeout=60s deployment/infrastructure-aws-load-balancer-controller -n kube-system
+    kubectl wait --for=condition=available --timeout=60s deployment/infrastructure-aws-load-balancer-controller -n web-services
     echo "✅ AWS Load Balancer Controller is ready!"
 }
 
@@ -85,9 +82,9 @@ validate_env() {
         "CERTIFICATE_ARN"
         "GOOGLE_CLIENT_ID"
         "GOOGLE_CLIENT_SECRET"
+        "OPENID_PROVIDER_URL"
         # "OAUTH_CLIENT_ID"
         # "OAUTH_CLIENT_SECRET"
-        # "OPENID_PROVIDER_URL"
         # "OPENID_REDIRECT_URI"
     )
     
@@ -109,16 +106,15 @@ deploy_web_services() {
     echo "📦 Deploying web services..."
     helm upgrade --install web-services charts/web_services/ \
         -n web-services \
-        --create-namespace \
         --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
         --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
         --set open-webui.secrets.redisUrl="$REDIS_URL" \
         --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET"
+        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+        --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
         # --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         # --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
-        # --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
         # --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI"
     
     echo "✅ Web services deployment complete!"

@@ -3,7 +3,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Values.ingress.name }}
-  namespace: {{ .Values.ingress.namespace | default "default" }}
   annotations:
 {{- range $key, $value := .Values.ingress.annotations }}
   {{- if eq $key "alb.ingress.kubernetes.io/certificate-arn" }}

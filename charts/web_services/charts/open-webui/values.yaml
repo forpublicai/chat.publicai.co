@@ -8,7 +8,7 @@ app:
     repository: ghcr.io/open-webui/open-webui
     tag: main
   port: 8080
-  webuiUrl: "https://app2.publicai.company"
+  webuiUrl: "https://localhost:8080"
   vectorDb: pgvector
   
   # Affinity settings for production
@@ -26,8 +26,8 @@ app:
   storage:
     provider: s3
     s3:
-      bucketName: publicai-bucket
-      region: eu-central-2
+      bucketName: my-bucket
+      region: us-west-2
       keyPrefix: uploads/
   
   # Websocket configuration
@@ -41,15 +41,16 @@ app:
   
   # Authentication configuration
   auth:
-    enableLoginForm: "false"
+    enableLoginForm: "true"
     enableSignupPasswordConfirmation: "true"
-    enableOauthSignup: "false"
+    enableOauthSignup: "true"
+    enableOauthPersistentConfig: "false"
     oauthUpdatePictureOnLogin: "true"
-    enableOauthRoleManagement: "true"
-    enableOauthGroupManagement: "true"
-    # openidProviderUrl now loaded from secret OPENID_PROVIDER_URL
+    enableOauthRoleManagement: "false"
+    enableOauthGroupManagement: "false"
+    openidProviderUrl: "https://accounts.google.com/.well-known/openid-configuration"
     enableForwardUserInfoHeaders: "true"
-    signoutRedirectUri: "https://app2.publicai.company"
+    signoutRedirectUri: "https://localhost:8080"
   
   # Web Search configuration
   webSearch:
@@ -87,7 +88,7 @@ autoscaling:
 
 serviceAccount:
   name: openwebui-sa
-  roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
+  roleArn: ""
 
 secrets:
   name: web-services-secrets

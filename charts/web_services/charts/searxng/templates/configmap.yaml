@@ -18,6 +18,9 @@ data:
       limiter: false
       image_proxy: false
       
+    redis:
+      url: "${REDIS_URL}"
+      
     search:
       safe_search: 0
       formats:

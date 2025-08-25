@@ -7,19 +7,7 @@ global:
   aws:
     region: eu-central-2
     
-  # Ingress configuration
-  ingress:
-    enabled: true
-    className: alb
-    annotations:
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/healthcheck-path: /health
-      alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
-      alb.ingress.kubernetes.io/healthy-threshold-count: '2'
-      alb.ingress.kubernetes.io/unhealthy-threshold-count: '5'
-      alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
-      alb.ingress.kubernetes.io/subnets: subnet-0483ba7b0f6e163fa,subnet-0b21f6615b27fca69
+  # Ingress now handled by infrastructure chart
 
 # OpenWebUI configuration - only environment-specific overrides
 open-webui:

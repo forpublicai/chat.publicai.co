@@ -7,7 +7,7 @@ ingress:
   namespace: web-services
   host: app2.publicai.company
   
-  # Target service in web-services namespace
+  # Target service in same namespace
   targetService:
     name: openwebui-service
     port: 8080
