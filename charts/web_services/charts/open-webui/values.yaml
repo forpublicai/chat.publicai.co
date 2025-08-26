@@ -10,6 +10,7 @@ app:
   port: 8080
   webuiUrl: "https://localhost:8080"
   vectorDb: pgvector
+  enableVersionUpdateCheck: "false"
   
   # Affinity settings for production
   affinity:
@@ -63,14 +64,14 @@ app:
     engine: "tika"
     tikaServerUrl: "http://tika-service:9998"
   
-  # Resource configuration (optimized for 4GB nodes)
+  # Resource configuration - minimal defaults
   resources:
     requests:
-      memory: "2Gi"
-      cpu: "900m"
+      memory: "1Gi"
+      cpu: "500m"
     limits:
-      memory: "3Gi"
-      cpu: "1500m"
+      memory: "2Gi"
+      cpu: "1000m"
 
 service:
   name: openwebui-service
@@ -82,7 +83,7 @@ service:
 autoscaling:
   enabled: true
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 4
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
 

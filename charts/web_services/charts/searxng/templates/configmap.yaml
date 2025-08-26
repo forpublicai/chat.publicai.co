@@ -18,11 +18,38 @@ data:
       limiter: false
       image_proxy: false
       
-    redis:
-      url: "${REDIS_URL}"
+    # valkey:
+    #   url: "${REDIS_URL}"
       
     search:
       safe_search: 0
       formats:
         - html
         - json  # Required for OpenWebUI integration
+        
+    engines:
+      # Fast, reliable engines only
+      - name: google
+        engine: google
+        shortcut: go
+        
+      - name: duckduckgo
+        engine: duckduckgo
+        shortcut: ddg
+        
+      - name: bing
+        engine: bing
+        shortcut: bi
+        
+      # Disable slower engines
+      - name: startpage
+        disabled: true
+        
+      - name: yahoo
+        disabled: true
+        
+      - name: yandex
+        disabled: true
+        
+      - name: searx
+        disabled: true

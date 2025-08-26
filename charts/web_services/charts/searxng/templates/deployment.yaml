@@ -13,6 +13,7 @@ spec:
       labels:
         app: {{ .Values.searxng.name }}
     spec:
+      serviceAccountName: openwebui-sa
       containers:
       - name: {{ .Values.searxng.name }}
         image: {{ .Values.searxng.image.repository }}:{{ .Values.searxng.image.tag }}

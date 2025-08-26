@@ -15,7 +15,8 @@ open-webui:
   
   # Production-specific overrides
   app:
-    webuiUrl: "https://app2.publicai.company"
+    webuiUrl: "https://app.publicai.company"
+    replicas: 4  # Scaled for 5k users
     
     # Production storage configuration
     storage:
@@ -23,6 +24,23 @@ open-webui:
         bucketName: publicai-bucket
         region: eu-central-2
         keyPrefix: uploads/
+    
+    # Production resource allocation for 5k concurrent users
+    resources:
+      requests:
+        memory: "3Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+
+  # Autoscaling for high load
+  autoscaling:
+    enabled: true
+    minReplicas: 4
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
 
   serviceAccount:
     roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
@@ -47,6 +65,13 @@ searxng:
   service:
     name: searxng-service
     port: 8080
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi" 
+      cpu: "1000m"
 
 # Tika configuration  
 tika:
@@ -54,3 +79,11 @@ tika:
   service:
     name: tika-service
     port: 9998
+  javaOpts: "-Xms512m -Xmx2g"
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "200m"
+    limits:
+      memory: "2.5Gi"
+      cpu: "1000m"

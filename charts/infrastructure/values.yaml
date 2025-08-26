@@ -5,7 +5,7 @@ ingress:
   enabled: true
   name: web-services-ingress
   namespace: web-services
-  host: app2.publicai.company
+  host: app.publicai.company
   
   # Target service in same namespace
   targetService:
