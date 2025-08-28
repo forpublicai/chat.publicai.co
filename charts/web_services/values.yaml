@@ -52,16 +52,16 @@ open-webui:
     webuiSecretKey: ""
     databaseUrl: ""
     redisUrl: ""
-    googleClientId: ""
-    googleClientSecret: ""
-    # oauthClientId: ""
-    # oauthClientSecret: ""
-    # openidProviderUrl: ""
-    # openidRedirectUri: ""
+    # googleClientId: ""
+    # googleClientSecret: ""
+    oauthClientId: ""
+    oauthClientSecret: ""
+    openidProviderUrl: ""
+    openidRedirectUri: ""
 
 # SearXNG configuration
 searxng:
-  enabled: true
+  enabled: false
   service:
     name: searxng-service
     port: 8080

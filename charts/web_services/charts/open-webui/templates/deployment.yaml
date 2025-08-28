@@ -120,41 +120,48 @@ spec:
           value: "{{ .Values.app.auth.enableOauthPersistentConfig }}"
         - name: OAUTH_UPDATE_PICTURE_ON_LOGIN
           value: "{{ .Values.app.auth.oauthUpdatePictureOnLogin }}"
+        - name: OAUTH_MERGE_ACCOUNTS_BY_EMAIL
+          value: "{{ .Values.app.auth.oauthMergeAccountsByEmail }}"
         - name: ENABLE_OAUTH_ROLE_MANAGEMENT
           value: "{{ .Values.app.auth.enableOauthRoleManagement }}"
         - name: ENABLE_OAUTH_GROUP_MANAGEMENT
           value: "{{ .Values.app.auth.enableOauthGroupManagement }}"
-        - name: GOOGLE_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: GOOGLE_CLIENT_ID
-        - name: GOOGLE_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: GOOGLE_CLIENT_SECRET
-        # - name: OAUTH_CLIENT_ID
+        # - name: GOOGLE_CLIENT_ID
         #   valueFrom:
         #     secretKeyRef:
         #       name: {{ .Values.secrets.name }}
-        #       key: OAUTH_CLIENT_ID
-        # - name: OAUTH_CLIENT_SECRET
+        #       key: GOOGLE_CLIENT_ID
+        # - name: GOOGLE_CLIENT_SECRET
         #   valueFrom:
         #     secretKeyRef:
         #       name: {{ .Values.secrets.name }}
-        #       key: OAUTH_CLIENT_SECRET
+        #       key: GOOGLE_CLIENT_SECRET
+        - name: OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OAUTH_CLIENT_ID
+        - name: OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OAUTH_CLIENT_SECRET
         - name: OPENID_PROVIDER_URL
-          value: "https://accounts.google.com/.well-known/openid-configuration"
-        # - name: OPENID_REDIRECT_URI
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: {{ .Values.secrets.name }}
-        #       key: OPENID_REDIRECT_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OPENID_PROVIDER_URL
+        - name: OPENID_REDIRECT_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OPENID_REDIRECT_URI
         - name: ENABLE_FORWARD_USER_INFO_HEADERS
           value: "{{ .Values.app.auth.enableForwardUserInfoHeaders }}"
-        - name: WEBUI_AUTH_SIGNOUT_REDIRECT_URI
-          value: "{{ .Values.app.auth.signoutRedirectUri }}"
+        - name: OAUTH_PROVIDER_NAME
+          value: "{{ .Values.app.auth.oauthProviderName }}"
+        - name: WEBUI_AUTH_SIGNOUT_REDIRECT_URL
+          value: "{{ .Values.app.auth.signoutRedirectUrl }}"
 
         # Version Update Check
         - name: ENABLE_VERSION_UPDATE_CHECK

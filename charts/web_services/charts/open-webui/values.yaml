@@ -5,8 +5,8 @@ app:
   name: openwebui
   replicas: 2
   image:
-    repository: ghcr.io/open-webui/open-webui
-    tag: main
+    repository: 901779868336.dkr.ecr.eu-central-2.amazonaws.com/open-webui
+    tag: cognito_patch
   port: 8080
   webuiUrl: "https://localhost:8080"
   vectorDb: pgvector
@@ -42,16 +42,18 @@ app:
   
   # Authentication configuration
   auth:
-    enableLoginForm: "true"
+    enableLoginForm: "false"
     enableSignupPasswordConfirmation: "true"
     enableOauthSignup: "true"
     enableOauthPersistentConfig: "false"
     oauthUpdatePictureOnLogin: "true"
+    oauthMergeAccountsByEmail: "true"
     enableOauthRoleManagement: "false"
     enableOauthGroupManagement: "false"
-    openidProviderUrl: "https://accounts.google.com/.well-known/openid-configuration"
+    openidProviderUrl: ""
     enableForwardUserInfoHeaders: "true"
-    signoutRedirectUri: "https://localhost:8080"
+    signoutRedirectUrl: "https://app.publicai.company/" 
+    oauthProviderName: "Public AI"
   
   # Web Search configuration
   webSearch:
@@ -98,9 +100,9 @@ secrets:
   webuiSecretKey: ""
   databaseUrl: ""
   redisUrl: ""
-  googleClientId: ""
-  googleClientSecret: ""
-  # oauthClientId: ""
-  # oauthClientSecret: ""
-  # openidProviderUrl: ""
-  # openidRedirectUri: ""
+  # googleClientId: ""
+  # googleClientSecret: ""
+  oauthClientId: ""
+  oauthClientSecret: ""
+  openidProviderUrl: ""
+  openidRedirectUri: ""
