@@ -1,0 +1,102 @@
+# Global values for llm-services chart
+global:
+  namespace: llm-services
+  
+  # AWS configuration
+  aws:
+    region: eu-central-2
+    bucketName: publicai-bucket
+    bucketPrefix: weights/
+
+# Karpenter GPU node pool configuration
+nodePool:
+  enabled: true
+  name: gpu
+  disruption:
+    budgets:
+    - nodes: "10%"
+    consolidateAfter: 1h
+    consolidationPolicy: WhenEmpty
+  
+  requirements:
+    capacityType: "on-demand"  # Change to "capacity-block" for Capacity Blocks
+    architecture: "amd64"
+    instanceTypes:
+      - "p4d.24xlarge"  # TODO: Adapt to p instances once available
+  
+  taints:
+    - key: nvidia.com/gpu
+      effect: NoSchedule
+  
+  terminationGracePeriod: 24h0m0s
+
+# S3 storage configuration
+s3Storage:
+  enabled: true
+  persistentVolume:
+    name: s3-pv
+    capacity: 1200Gi
+    mountOptions:
+      region: eu-central-2  # Will use global.aws.region if not specified
+      prefix: weights/      # Will use global.aws.bucketPrefix if not specified
+    bucketName: publicai-bucket  # Will use global.aws.bucketName if not specified
+  
+  persistentVolumeClaim:
+    name: s3-pvc
+    capacity: 1200Gi
+
+vllm:
+  enabled: true
+
+# Values for vllm-stack subchart  
+vllm-stack:
+  servingEngineSpec:
+    runtimeClassName: ""
+    vllmApiKey: "" # Will be set via --set from llm.sh script
+    
+    modelSpec:
+    # Large model: 70B Apertus (4 GPUs - factor of 64 for tensor parallelism)
+    - name: "apertus-8b-sft-mixture-8b"
+      repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"  # TODO: Fill in ECR registry (e.g., 123456789.dkr.ecr.eu-central-2.amazonaws.com/vllm-transformers-apertus)
+      tag: "latest"
+      modelURL: "/models/Apertus-8B-sft-mixture-8b"  # Fixed: correct S3 mount path
+      replicaCount: 1
+      requestCPU: 60
+      requestMemory: "600Gi"
+      requestGPU: 4  # Factor of 64 for tensor parallelism
+      
+      vllmConfig:
+        tensorParallelSize: 4
+      
+      extraVolumes:
+        - name: s3-storage
+          persistentVolumeClaim:
+            claimName: s3-pvc
+      
+      extraVolumeMounts:
+        - name: s3-storage
+          mountPath: /models
+    
+    # Small model: 8B or TinyLlama for testing (1 GPU)
+    - name: "tinyllama-1-1b-chat"
+      repository: "vllm/vllm-openai"
+      tag: "latest"
+      modelURL: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+      replicaCount: 1
+      
+      requestCPU: 20
+      requestMemory: "50Gi"
+      requestGPU: 1
+      
+      extraVolumes:
+        - name: s3-storage
+          persistentVolumeClaim:
+            claimName: s3-pvc
+      
+      extraVolumeMounts:
+        - name: s3-storage
+          mountPath: /models
+
+# Observability stack (optional)
+observability:
+  enabled: false  # Set to true to enable Prometheus/Grafana stack

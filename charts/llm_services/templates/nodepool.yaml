@@ -1,0 +1,48 @@
+{{- if .Values.nodePool.enabled }}
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: {{ .Values.nodePool.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  disruption:
+    budgets:
+    {{- range .Values.nodePool.disruption.budgets }}
+    - nodes: {{ .nodes }}
+    {{- end }}
+    consolidateAfter: {{ .Values.nodePool.disruption.consolidateAfter }}
+    consolidationPolicy: {{ .Values.nodePool.disruption.consolidationPolicy }}
+  template:
+    metadata: {}
+    spec:
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: default
+      requirements:
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: ["{{ .Values.nodePool.requirements.capacityType }}"]
+        - key: "kubernetes.io/arch"
+          operator: In
+          values: ["{{ .Values.nodePool.requirements.architecture }}"]
+        - key: "node.kubernetes.io/instance-type"
+          operator: In
+          values:
+          {{- range .Values.nodePool.requirements.instanceTypes }}
+          - "{{ . }}"
+          {{- end }}
+      taints:
+        {{- range .Values.nodePool.taints }}
+        - key: {{ .key }}
+          effect: {{ .effect }}
+        {{- end }}
+      terminationGracePeriod: {{ .Values.nodePool.terminationGracePeriod }}
+{{- end }}

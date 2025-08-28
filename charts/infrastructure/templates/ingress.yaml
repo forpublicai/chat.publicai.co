@@ -1,0 +1,19 @@
+{{/* Web IngressClass */}}
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/name: LoadBalancerController
+  name: alb-web
+spec:
+  controller: eks.amazonaws.com/alb
+---
+{{/* LLM IngressClass */}}
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/name: LoadBalancerController
+  name: alb-llm
+spec:
+  controller: eks.amazonaws.com/alb

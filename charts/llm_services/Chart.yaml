@@ -1,0 +1,23 @@
+apiVersion: v2
+name: llm-services
+description: vLLM production stack for Apertus LLM models
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: vllm-stack
+    version: "0.1.6"
+    repository: "https://vllm-project.github.io/production-stack"
+    condition: vllm.enabled
+
+keywords:
+  - ai
+  - llm
+  - vllm
+  - inference
+  - gpu
+
+maintainers:
+  - name: Joseph Low
+    email: jolow999@gmail.com

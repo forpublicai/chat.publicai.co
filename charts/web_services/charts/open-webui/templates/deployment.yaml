@@ -95,6 +95,8 @@ spec:
           value: "{{ .Values.app.storage.s3.region }}"
         - name: S3_KEY_PREFIX
           value: "{{ .Values.app.storage.s3.keyPrefix }}"
+        - name: S3_ENDPOINT_URL
+          value: "{{ .Values.app.storage.s3.endpointUrl }}"
         
         # Websocket Broker
         - name: ENABLE_WEBSOCKET_SUPPORT

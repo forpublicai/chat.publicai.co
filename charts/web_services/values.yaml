@@ -24,6 +24,7 @@ open-webui:
         bucketName: publicai-bucket
         region: eu-central-2
         keyPrefix: uploads/
+        endpointUrl: 	https://s3.eu-central-2.amazonaws.com
     
     # Production resource allocation for 5k concurrent users
     resources:

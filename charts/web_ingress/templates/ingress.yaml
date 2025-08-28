@@ -12,7 +12,7 @@ metadata:
   {{- end }}
 {{- end }}
 spec:
-  ingressClassName: alb
+  ingressClassName: alb-web
   rules:
   - host: {{ .Values.ingress.host }}
     http:

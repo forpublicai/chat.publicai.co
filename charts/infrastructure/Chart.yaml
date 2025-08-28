@@ -1,6 +1,6 @@
 apiVersion: v2
-name: web-infrastructure
-description: Kubernetes web infrastructure components for web services
+name: infrastructure
+description: Kubernetes infrastructure components for web and LLM services
 type: application
 version: 1.0.0
 appVersion: "1.0"
@@ -17,5 +17,5 @@ keywords:
   - eks
 
 maintainers:
-  - name: Your Name
-    email: your.email@example.com
+  - name: Joseph Low
+    email: jolow999@gmail.com

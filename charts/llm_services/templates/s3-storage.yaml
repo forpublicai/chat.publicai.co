@@ -1,0 +1,37 @@
+{{- if .Values.s3Storage.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.s3Storage.persistentVolume.name }}
+spec:
+  capacity:
+    storage: {{ .Values.s3Storage.persistentVolume.capacity }}
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: ""
+  claimRef:
+    namespace: {{ .Values.global.namespace }}
+    name: {{ .Values.s3Storage.persistentVolumeClaim.name }}
+  mountOptions:
+    - region {{ .Values.s3Storage.persistentVolume.mountOptions.region | default .Values.global.aws.region }}
+    - prefix {{ .Values.s3Storage.persistentVolume.mountOptions.prefix | default .Values.global.aws.bucketPrefix }}
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume
+    volumeAttributes:
+      bucketName: {{ .Values.s3Storage.persistentVolume.bucketName | default .Values.global.aws.bucketName }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.s3Storage.persistentVolumeClaim.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: {{ .Values.s3Storage.persistentVolumeClaim.capacity }}
+  volumeName: {{ .Values.s3Storage.persistentVolume.name }}
+{{- end }}
