@@ -8,16 +8,16 @@ show_usage() {
     echo "Usage: $0 [COMMAND]"
     echo ""
     echo "Commands:"
-    echo "  --deploy-all   Deploy infrastructure and web services"
-    echo "  --cleanup-all  Remove everything (infrastructure + web services)"
+    echo "  --deploy-all   Deploy web infrastructure and web services"
+    echo "  --cleanup-all  Remove web services and web infrastructure"
     echo "  --deploy       Deploy web services only"
     echo "  --cleanup      Remove web services only"
     echo ""
     echo "Examples:"
-    echo "  $0 --deploy-all  # Deploy infrastructure + web services"
+    echo "  $0 --deploy-all  # Deploy web infrastructure + web services"
     echo "  $0 --deploy      # Deploy web services only"
     echo "  $0 --cleanup     # Remove web services only"
-    echo "  $0 --cleanup-all # Remove everything"
+    echo "  $0 --cleanup-all # Remove web services and web infrastructure"
     exit 1
 }
 
@@ -31,34 +31,35 @@ cleanup() {
     exit 0
 }
 
-# Function to cleanup everything
+# Function to cleanup web services and web infrastructure  
 cleanup_all() {
-    echo "🧹 Cleaning up everything (infrastructure + web services)..."
+    echo "🧹 Cleaning up web services and web infrastructure..."
     
     # Remove both releases first, then delete namespace
     helm uninstall web-services -n web-services --ignore-not-found || true
-    helm uninstall infrastructure -n web-services --ignore-not-found || true
+    helm uninstall web-infrastructure -n web-services --ignore-not-found || true
     kubectl delete namespace web-services --ignore-not-found
     
-    echo "✅ Complete cleanup finished!"
+    echo "✅ Web services and web infrastructure cleanup complete!"
     exit 0
 }
 
-# Function to deploy infrastructure only
+
+# Function to deploy web infrastructure only
 deploy_infrastructure() {
-    echo "🏗️  Deploying infrastructure..."
-    echo "📦 Installing infrastructure chart..."
+    echo "🏗️  Deploying web infrastructure..."
+    echo "📦 Installing web infrastructure chart..."
     helm repo add eks https://aws.github.io/eks-charts
     helm repo update
-    helm dependency build charts/infrastructure/
-    helm upgrade --install infrastructure charts/infrastructure/ \
+    helm dependency build charts/web_infrastructure/
+    helm upgrade --install web-infrastructure charts/web_infrastructure/ \
         --namespace web-services \
         --create-namespace \
         --set certificateArn="$CERTIFICATE_ARN"
     
     # Wait for AWS Load Balancer Controller to be ready
     echo "⏳ Waiting for AWS Load Balancer Controller to be ready..."
-    kubectl wait --for=condition=available --timeout=60s deployment/infrastructure-aws-load-balancer-controller -n web-services
+    kubectl wait --for=condition=available --timeout=60s deployment/web-infrastructure-aws-load-balancer-controller -n web-services
     echo "✅ AWS Load Balancer Controller is ready!"
 }
 
@@ -80,12 +81,12 @@ validate_env() {
         "DATABASE_URL"
         "REDIS_URL"
         "CERTIFICATE_ARN"
-        "GOOGLE_CLIENT_ID"
-        "GOOGLE_CLIENT_SECRET"
+        # "GOOGLE_CLIENT_ID"
+        # "GOOGLE_CLIENT_SECRET"
         "OPENID_PROVIDER_URL"
-        # "OAUTH_CLIENT_ID"
-        # "OAUTH_CLIENT_SECRET"
-        # "OPENID_REDIRECT_URI"
+        "OAUTH_CLIENT_ID"
+        "OAUTH_CLIENT_SECRET"
+        "OPENID_REDIRECT_URI"
     )
     
     for var in "${required_vars[@]}"; do
@@ -110,12 +111,12 @@ deploy_web_services() {
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
         --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
         --set open-webui.secrets.redisUrl="$REDIS_URL" \
-        --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
-        --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
         --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
-        # --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
-        # --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
-        # --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI"
+        --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
+        --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI"
+        # --set open-webui.secrets.googleClientId="$GOOGLE_CLIENT_ID" \
+        # --set open-webui.secrets.googleClientSecret="$GOOGLE_CLIENT_SECRET" \
     
     echo "✅ Web services deployment complete!"
 }
@@ -138,20 +139,21 @@ deploy() {
     exit 0
 }
 
-# Function to deploy everything (infrastructure + web services)
+# Function to deploy web services (web infrastructure + web services)
 deploy_all() {
-    echo "🚀 Deploying everything (infrastructure + web services)..."
+    echo "🚀 Deploying web services (web infrastructure + web services)..."
     
     validate_env
     deploy_infrastructure
     deploy_web_services
     
-    echo "✅ Complete deployment finished!"
+    echo "✅ Web services deployment finished!"
     echo "🌐 Access your application by running kubectl get ingress -n web-services"
     show_ingress_info
     
     exit 0
 }
+
 
 # Check arguments
 if [ "$1" = "--deploy-all" ]; then

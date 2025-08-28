@@ -12,6 +12,7 @@ dependencies:
   - name: searxng
     version: "0.1.0" 
     repository: "file://./charts/searxng"
+    condition: searxng.enabled
   - name: tika
     version: "0.1.0"
     repository: "file://./charts/tika"
