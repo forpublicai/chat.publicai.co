@@ -88,3 +88,9 @@ tika:
     limits:
       memory: "2.5Gi"
       cpu: "1000m"
+
+# LiteLLM configuration
+litellm:
+  enabled: true
+  secrets:
+    litellmMasterKey: ""

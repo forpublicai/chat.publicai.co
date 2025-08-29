@@ -1,0 +1,16 @@
+apiVersion: v2
+name: litellm
+description: LiteLLM proxy for managing multiple LLM providers
+type: application
+version: 0.1.0
+appVersion: "main-stable"
+
+keywords:
+  - ai
+  - llm
+  - proxy
+  - bedrock
+
+maintainers:
+  - name: Joseph Low
+    email: jolow999@gmail.com

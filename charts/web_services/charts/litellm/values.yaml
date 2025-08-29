@@ -1,0 +1,66 @@
+# LiteLLM configuration
+app:
+  name: litellm
+  image:
+    repository: ghcr.io/berriai/litellm
+    tag: "main-stable"
+    pullPolicy: Always
+  
+  replicas: 1
+  port: 4000
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# Service configuration
+service:
+  name: litellm-service
+  type: ClusterIP
+  port: 4000
+  targetPort: 4000
+
+# ServiceAccount configuration
+serviceAccount:
+  enabled: true
+  name: litellm-sa
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::901779868336:role/AmazonEKS_LiteLLM_Role"
+
+# ConfigMap for model configuration
+config:
+  models:
+    # Task model - Chat completions (using inference profile)
+    - model_name: llama3-2-3b-instruct
+      litellm_params:
+        model: bedrock/eu.meta.llama3-2-3b-instruct-v1:0
+        aws_region_name: eu-central-1
+    # Embedding model (ON_DEMAND - no inference profile needed)
+    - model_name: cohere-embed-english-v3
+      litellm_params:
+        model: bedrock/cohere.embed-english-v3
+        aws_region_name: eu-central-1
+    # Reranking model (ON_DEMAND - no inference profile needed)
+    - model_name: cohere-rerank-v3-5
+      litellm_params:
+        model: bedrock/cohere.rerank-v3-5:0
+        aws_region_name: eu-central-1
+    # Placeholder for vLLM (keep for later)
+    - model_name: tinyllama-instruct
+      litellm_params:
+        model: openai/tinyllama-instruct
+        api_base: http://internal-k8s-vllmstac-ingressv-58a74f4b01-1492608482.eu-west-2.elb.amazonaws.com/v1
+        api_key: "TESTKEY"
+
+# Secrets configuration
+secrets:
+  name: litellm-secrets
+  litellmMasterKey: ""
+
+# Environment variables
+env:
+  aws_region: "eu-central-1"

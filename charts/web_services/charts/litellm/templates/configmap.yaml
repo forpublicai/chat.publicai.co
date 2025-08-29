@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-config
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+data:
+  config.yaml: |
+    model_list:
+    {{- range .Values.config.models }}
+    - model_name: {{ .model_name }}
+      litellm_params:
+        model: {{ .litellm_params.model }}
+        {{- if .litellm_params.aws_region_name }}
+        aws_region_name: {{ .litellm_params.aws_region_name }}
+        {{- end }}
+        {{- if .litellm_params.api_base }}
+        api_base: {{ .litellm_params.api_base }}
+        {{- end }}
+        {{- if .litellm_params.api_key }}
+        api_key: {{ .litellm_params.api_key | quote }}
+        {{- end }}
+    {{- end }}

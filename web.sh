@@ -42,6 +42,7 @@ validate_env() {
         "OAUTH_CLIENT_ID"
         "OAUTH_CLIENT_SECRET"
         "OPENID_REDIRECT_URI"
+        "LITELLM_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -70,7 +71,8 @@ deploy_services() {
         --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
-        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI"
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY"
     
     echo "✅ Web services deployment complete!"
 }
