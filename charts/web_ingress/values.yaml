@@ -15,8 +15,9 @@ ingresses:
       name: openwebui-service  # Actual service name from OpenWebUI stack
       port: 8080               # Default OpenWebUI port
   
-  # LiteLLM API ingress - no host restriction
-  - enabled: true
+  # LiteLLM API ingress - disabled for now (internal VPC communication only)
+  # Enable this when you want to expose LiteLLM as api.publicai.company
+  - enabled: false
     name: litellm-public-ingress
     annotations:
       kubernetes.io/ingress.class: alb-web

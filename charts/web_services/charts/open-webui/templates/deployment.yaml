@@ -110,6 +110,8 @@ spec:
               key: REDIS_URL
         - name: WEBSOCKET_REDIS_CLUSTER
           value: "{{ .Values.app.redis.cluster }}"
+        - name: REDIS_KEY_PREFIX
+          value: "{{ .Values.app.redis.keyPrefix }}"
 
         # Auth
         - name: ENABLE_LOGIN_FORM

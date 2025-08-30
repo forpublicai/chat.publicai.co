@@ -38,7 +38,8 @@ app:
   
   # Redis configuration
   redis:
-    cluster: "true"
+    cluster: "false"
+    keyPrefix: "{open-webui}"
   
   # Authentication configuration
   auth:
@@ -84,10 +85,23 @@ service:
 
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 4
-  targetCPUUtilizationPercentage: 70
-  targetMemoryUtilizationPercentage: 80
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 20
+        periodSeconds: 60
 
 serviceAccount:
   name: openwebui-sa

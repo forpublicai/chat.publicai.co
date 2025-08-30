@@ -35,14 +35,19 @@ validate_env() {
     local required_vars=(
         "LICENSE_KEY"
         "WEBUI_SECRET_KEY"
-        "DATABASE_URL"
-        "REDIS_URL"
+        "OWUI_DATABASE_URL"
+        "OWUI_REDIS_URL"
         "CERTIFICATE_ARN"
         "OPENID_PROVIDER_URL"
         "OAUTH_CLIENT_ID"
         "OAUTH_CLIENT_SECRET"
         "OPENID_REDIRECT_URI"
         "LITELLM_API_KEY"
+        "LITELLM_SALT_KEY"
+        "LITELLM_DATABASE_URL"
+        "LITELLM_REDIS_HOST"
+        "TOGETHER_API_KEY"
+        "SEALION_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -66,13 +71,18 @@ deploy_services() {
         --create-namespace \
         --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
-        --set open-webui.secrets.databaseUrl="$DATABASE_URL" \
-        --set open-webui.secrets.redisUrl="$REDIS_URL" \
+        --set open-webui.secrets.databaseUrl="$OWUI_DATABASE_URL" \
+        --set open-webui.secrets.redisUrl="$OWUI_REDIS_URL" \
         --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
         --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
-        --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY"
+        --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
+        --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
+        --set litellm.secrets.databaseUrl="$LITELLM_DATABASE_URL" \
+        --set litellm.secrets.redisHost="$LITELLM_REDIS_HOST" \
+        --set litellm.secrets.togetherApiKey="$TOGETHER_API_KEY" \
+        --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" 
     
     echo "✅ Web services deployment complete!"
 }

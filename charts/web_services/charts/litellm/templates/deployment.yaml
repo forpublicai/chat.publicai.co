@@ -23,14 +23,48 @@ spec:
           args:
             - "--config"
             - "/app/proxy_config.yaml"
+            - "--detailed_debug"
           env:
             - name: AWS_REGION
               value: {{ .Values.env.aws_region | quote }}
+            - name: LITELLM_MODE
+              value: "PRODUCTION"
+            - name: LITELLM_SALT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: litellm_salt_key
+            - name: USE_PRISMA_MIGRATE
+              value: "True"
             - name: LITELLM_MASTER_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: litellm_master_key
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: database_url
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: redis_host
+            - name: REDIS_PORT
+              value: "{{ .Values.env.litellmRedisPort }}"
+            - name: LITELLM_REDIS_PORT
+              value: "{{ .Values.env.litellmRedisPort }}"
+            - name: TOGETHER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: together_api_key
+            - name: SEALION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: sealion_api_key
           volumeMounts:
             - name: config-volume
               mountPath: /app/proxy_config.yaml

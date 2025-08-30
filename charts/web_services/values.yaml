@@ -16,7 +16,7 @@ open-webui:
   # Production-specific overrides
   app:
     webuiUrl: "https://app.publicai.company"
-    replicas: 4  # Scaled for 5k users
+    replicas: 2  # Scaled for 5k users
     
     # Production storage configuration
     storage:

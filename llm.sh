@@ -8,16 +8,14 @@ show_usage() {
     echo "Usage: $0 [COMMAND]"
     echo ""
     echo "Commands:"
-    echo "  --deploy        Deploy LLM services only"
-    echo "  --deploy-all    Deploy LLM services and ingress"
-    echo "  --cleanup       Remove LLM services only"
-    echo "  --cleanup-all   Remove LLM services and ingress"
+    echo "  --deploy        Deploy LLM services"
+    echo "  --cleanup       Remove LLM services"
     echo ""
     echo "Examples:"
-    echo "  $0 --deploy     # Deploy services only"
-    echo "  $0 --deploy-all # Deploy services + ingress"
-    echo "  $0 --cleanup    # Remove services only"
-    echo "  $0 --cleanup-all # Remove services + ingress"
+    echo "  $0 --deploy     # Deploy vLLM services (ClusterIP only)"
+    echo "  $0 --cleanup    # Remove vLLM services"
+    echo ""
+    echo "Note: LLM services use ClusterIP - access via LiteLLM API gateway"
     exit 1
 }
 
@@ -62,65 +60,33 @@ deploy_services() {
     echo "✅ LLM services deployment complete!"
 }
 
-# Function to deploy LLM ingress
-deploy_ingress() {
-    echo "📦 Deploying LLM ingress..."
-    helm upgrade --install llm-ingress charts/llm_ingress/ \
-        -n llm-services \
-        --create-namespace
-    
-    echo "✅ LLM ingress deployment complete!"
-}
-
-# Function to deploy everything (ingress first, then services)
-deploy_all() {
-    echo "🚀 Deploying LLM services and ingress..."
-    validate_env
-    deploy_ingress
-    deploy_services
-    show_ingress_info
-}
-
-# Function to show ingress information
-show_ingress_info() {
+# Function to show service information
+show_service_info() {
     echo ""
-    echo "🌐 LLM services access:"
-    kubectl get ingress -n llm-services 2>/dev/null || echo "  No LLM ingress found"
+    echo "🔗 LLM services (internal ClusterIP):"
+    kubectl get services -n llm-services 2>/dev/null || echo "  No LLM services found"
+    echo ""
+    echo "💡 Access via LiteLLM API gateway at api.publicai.company (when enabled)"
 }
 
 # Cleanup functions
 cleanup_services() {
     echo "🧹 Cleaning up LLM services..."
     helm uninstall llm-services -n llm-services --ignore-not-found || true
-    echo "✅ LLM services cleanup complete!"
-}
-
-cleanup_ingress() {
-    echo "🧹 Cleaning up LLM ingress..."
+    # Clean up any remaining llm-ingress (legacy)
     helm uninstall llm-ingress -n llm-services --ignore-not-found || true
-    echo "✅ LLM ingress cleanup complete!"
-}
-
-cleanup_all() {
-    echo "🧹 Cleaning up LLM services and ingress..."
-    cleanup_services
-    cleanup_ingress
     kubectl delete namespace llm-services --ignore-not-found
-    echo "✅ LLM cleanup complete!"
+    echo "✅ LLM services cleanup complete!"
 }
 
 # Check arguments
 if [ "$1" = "--deploy" ]; then
-    echo "🚀 Deploying LLM services only..."
+    echo "🚀 Deploying LLM services (ClusterIP only)..."
     validate_env
     deploy_services
-    show_ingress_info
-elif [ "$1" = "--deploy-all" ]; then
-    deploy_all
+    show_service_info
 elif [ "$1" = "--cleanup" ]; then
     cleanup_services
-elif [ "$1" = "--cleanup-all" ]; then
-    cleanup_all
 else
     show_usage
 fi

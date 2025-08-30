@@ -5,6 +5,21 @@ metadata:
   namespace: {{ .Values.global.namespace | default "web-services" }}
 data:
   config.yaml: |
+    general_settings:
+      database_url: "{{ .Values.secrets.databaseUrl }}"
+      database_connection_pool_limit: 100
+      database_connection_timeout: 60
+      allow_requests_on_db_unavailable: true
+      master_key: "{{ .Values.secrets.litellmMasterKey }}"
+    
+    router_settings:
+      routing_strategy: "{{ .Values.router.routingStrategy }}"
+      redis_host: "{{ .Values.secrets.redisHost }}"
+      redis_port: {{ .Values.env.litellmRedisPort }}
+    
+    litellm_settings:
+      cache: false
+    
     model_list:
     {{- range .Values.config.models }}
     - model_name: {{ .model_name }}
@@ -19,4 +34,23 @@ data:
         {{- if .litellm_params.api_key }}
         api_key: {{ .litellm_params.api_key | quote }}
         {{- end }}
+    {{- end }}
+    
+    {{- if .Values.config.guardrails }}
+    guardrails:
+    {{- range .Values.config.guardrails }}
+    - guardrail_name: {{ .guardrail_name | quote }}
+      litellm_params:
+        guardrail: {{ .litellm_params.guardrail }}
+        mode: {{ .litellm_params.mode | quote }}
+        guardrailIdentifier: {{ .litellm_params.guardrailIdentifier | quote }}
+        guardrailVersion: {{ .litellm_params.guardrailVersion | quote }}
+        aws_region_name: {{ .litellm_params.aws_region_name | quote }}
+        {{- if .litellm_params.disable_exception_on_block }}
+        disable_exception_on_block: {{ .litellm_params.disable_exception_on_block }}
+        {{- end }}
+        {{- if .litellm_params.default_on }}
+        default_on: {{ .litellm_params.default_on }}
+        {{- end }}
+    {{- end }}
     {{- end }}

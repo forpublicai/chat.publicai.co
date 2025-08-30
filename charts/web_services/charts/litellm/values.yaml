@@ -11,11 +11,11 @@ app:
 
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "200m"
+      memory: "2Gi"
+      cpu: "1000m"
     limits:
-      memory: "1Gi"
-      cpu: "500m"
+      memory: "4Gi"
+      cpu: "2000m"
 
 # Service configuration
 service:
@@ -40,27 +40,82 @@ config:
         model: bedrock/eu.meta.llama3-2-3b-instruct-v1:0
         aws_region_name: eu-central-1
     # Embedding model (ON_DEMAND - no inference profile needed)
-    - model_name: cohere-embed-english-v3
+    - model_name: cohere-embed-multilingual-v3
       litellm_params:
-        model: bedrock/cohere.embed-english-v3
+        model: bedrock/cohere.embed-multilingual-v3
         aws_region_name: eu-central-1
     # Reranking model (ON_DEMAND - no inference profile needed)
     - model_name: cohere-rerank-v3-5
       litellm_params:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
-    # Placeholder for vLLM (keep for later)
+    # vLLM via internal ClusterIP service (no more public ALB needed)
     - model_name: tinyllama-instruct
       litellm_params:
         model: openai/tinyllama-instruct
-        api_base: http://internal-k8s-vllmstac-ingressv-58a74f4b01-1492608482.eu-west-2.elb.amazonaws.com/v1
+        api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "TESTKEY"
+    # Together AI model
+    - model_name: gpt-oss-120b
+      litellm_params:
+        model: together_ai/openai/gpt-oss-120b
+        api_base: https://api.together.xyz/v1
+        api_key: "os.environ/TOGETHER_API_KEY"
+    # SeaLion model
+    - model_name: gemma-sea-lion-v3-9b-it
+      litellm_params:
+        model: openai/aisingapore/Gemma-SEA-LION-v3-9B-IT
+        api_base: https://api.sea-lion.ai
+        api_key: "os.environ/SEALION_API_KEY"
+  
+  guardrails:
+    - guardrail_name: "publicai-guardrail"
+      litellm_params:
+        guardrail: bedrock
+        mode: "during_call"
+        guardrailIdentifier: "ux3n95in9v9h"
+        guardrailVersion: "DRAFT"
+        aws_region_name: "eu-central-1"
+        disable_exception_on_block: true
+        default_on: true
 
 # Secrets configuration
 secrets:
   name: litellm-secrets
   litellmMasterKey: ""
+  litellmSaltKey: ""
+  databaseUrl: ""
+  redisHost: ""
+  togetherApiKey: ""
+  sealionApiKey: ""
 
 # Environment variables
 env:
   aws_region: "eu-central-1"
+  litellmRedisPort: "6379"
+  litellmRedisNamespace: "litellm"
+
+# Router configuration
+router:
+  routingStrategy: "simple-shuffle"
+
+# Autoscaling configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
