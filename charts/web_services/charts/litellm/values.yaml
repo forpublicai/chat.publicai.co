@@ -87,6 +87,7 @@ secrets:
   litellmSaltKey: ""
   databaseUrl: ""
   redisHost: ""
+  redisUrl: ""
   togetherApiKey: ""
   sealionApiKey: ""
 

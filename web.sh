@@ -45,7 +45,7 @@ validate_env() {
         "LITELLM_API_KEY"
         "LITELLM_SALT_KEY"
         "LITELLM_DATABASE_URL"
-        "LITELLM_REDIS_HOST"
+        "LITELLM_REDIS_URL"
         "TOGETHER_API_KEY"
         "SEALION_API_KEY"
     )
@@ -80,7 +80,7 @@ deploy_services() {
         --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
         --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
         --set litellm.secrets.databaseUrl="$LITELLM_DATABASE_URL" \
-        --set litellm.secrets.redisHost="$LITELLM_REDIS_HOST" \
+        --set litellm.secrets.redisUrl="$LITELLM_REDIS_URL" \
         --set litellm.secrets.togetherApiKey="$TOGETHER_API_KEY" \
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" 
     

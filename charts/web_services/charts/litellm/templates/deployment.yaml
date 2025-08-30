@@ -22,8 +22,7 @@ spec:
           imagePullPolicy: {{ .Values.app.image.pullPolicy }}
           args:
             - "--config"
-            - "/app/proxy_config.yaml"
-            - "--detailed_debug"
+            - "/app/config.yaml"
           env:
             - name: AWS_REGION
               value: {{ .Values.env.aws_region | quote }}
@@ -67,8 +66,12 @@ spec:
                   key: sealion_api_key
           volumeMounts:
             - name: config-volume
-              mountPath: /app/proxy_config.yaml
+              mountPath: /app/config.yaml
               subPath: config.yaml
+              readOnly: true
+            - name: custom-auth-volume
+              mountPath: /app/custom_auth.py
+              subPath: custom_auth.py
               readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
@@ -78,3 +81,6 @@ spec:
         - name: config-volume
           configMap:
             name: {{ .Values.app.name }}-config
+        - name: custom-auth-volume
+          configMap:
+            name: {{ .Values.app.name }}-custom-auth

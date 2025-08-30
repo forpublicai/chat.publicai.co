@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-custom-auth
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+data:
+  custom_auth.py: |
+{{ .Files.Get "custom_auth.py" | indent 4 }}
