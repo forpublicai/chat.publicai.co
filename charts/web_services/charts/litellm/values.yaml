@@ -68,16 +68,17 @@ config:
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
   
-  guardrails:
-    - guardrail_name: "publicai-guardrail"
-      litellm_params:
-        guardrail: bedrock
-        mode: "during_call"
-        guardrailIdentifier: "ux3n95in9v9h"
-        guardrailVersion: "DRAFT"
-        aws_region_name: "eu-central-1"
-        disable_exception_on_block: true
-        default_on: true
+  # Disable guardrails to improve performance - was adding 400+ms to every request
+  # guardrails:
+  #   - guardrail_name: "publicai-guardrail"
+  #     litellm_params:
+  #       guardrail: bedrock
+  #       mode: "during_call"
+  #       guardrailIdentifier: "ux3n95in9v9h"
+  #       guardrailVersion: "DRAFT"
+  #       aws_region_name: "eu-central-1"
+  #       disable_exception_on_block: true
+  #       default_on: true
 
 # Secrets configuration
 secrets:

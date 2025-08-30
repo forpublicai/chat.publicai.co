@@ -36,9 +36,9 @@ app:
     enabled: "true"
     manager: redis
   
-  # Redis configuration
+  # Redis configuration  
   redis:
-    cluster: "false"
+    cluster: "true"
     keyPrefix: "{open-webui}"
   
   # Authentication configuration
