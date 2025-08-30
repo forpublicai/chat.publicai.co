@@ -13,7 +13,7 @@ data:
       master_key: "{{ .Values.secrets.litellmMasterKey }}"
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
-        mode: "auto"
+        mode: "on"
       enforce_user_param: true
     
     router_settings:
