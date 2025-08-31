@@ -55,6 +55,7 @@ app:
     enableForwardUserInfoHeaders: "true"
     signoutRedirectUrl: "https://app.publicai.company/" 
     oauthProviderName: "Public AI"
+    defaultUserRole: "user"
   
   # Web Search configuration
   webSearch:
