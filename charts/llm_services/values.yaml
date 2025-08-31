@@ -6,7 +6,7 @@ global:
   aws:
     region: eu-central-2
     bucketName: publicai-bucket
-    bucketPrefix: weights/
+    bucketPrefix: models/
 
 # Karpenter GPU node pool configuration
 nodePool:
@@ -38,7 +38,7 @@ s3Storage:
     capacity: 1200Gi
     mountOptions:
       region: eu-central-2  # Will use global.aws.region if not specified
-      prefix: weights/      # Will use global.aws.bucketPrefix if not specified
+      prefix: models/      # Will use global.aws.bucketPrefix if not specified
     bucketName: publicai-bucket  # Will use global.aws.bucketName if not specified
   
   persistentVolumeClaim:
@@ -56,17 +56,17 @@ vllm-stack:
     
     modelSpec:
     # Large model: 70B Apertus (4 GPUs - factor of 64 for tensor parallelism)
-    - name: "apertus-8b-sft-mixture-8b"
+    - name: "apertus-70b-aligned-branded"
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"  # TODO: Fill in ECR registry (e.g., 123456789.dkr.ecr.eu-central-2.amazonaws.com/vllm-transformers-apertus)
       tag: "latest"
-      modelURL: "/models/Apertus-8B-sft-mixture-8b"  # Fixed: correct S3 mount path
+      modelURL: "/models/Apertus-70B-aligned-branded"  # Fixed: correct S3 mount path
       replicaCount: 1
       requestCPU: 60
       requestMemory: "600Gi"
-      requestGPU: 4  # Factor of 64 for tensor parallelism
+      requestGPU: 8  # Factor of 64 for tensor parallelism
       
       vllmConfig:
-        tensorParallelSize: 4
+        tensorParallelSize: 8
       
       extraVolumes:
         - name: s3-storage
@@ -78,15 +78,15 @@ vllm-stack:
           mountPath: /models
     
     # Small model: 8B or TinyLlama for testing (1 GPU)
-    - name: "tinyllama-1-1b-chat"
-      repository: "vllm/vllm-openai"
+    - name: "apertus-8b-aligned-branded"
+      repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"
       tag: "latest"
-      modelURL: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+      modelURL: "/models/Apertus-8B-aligned-branded"
       replicaCount: 1
       
-      requestCPU: 20
-      requestMemory: "50Gi"
-      requestGPU: 1
+      requestCPU: 16
+      requestMemory: "64Gi"
+      requestGPU: 4
       
       extraVolumes:
         - name: s3-storage

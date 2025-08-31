@@ -49,12 +49,18 @@ config:
       litellm_params:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
-    # vLLM via internal ClusterIP service (no more public ALB needed)
-    - model_name: tinyllama-instruct
+    # Apertus 8B model via vLLM router service
+    - model_name: apertus-8b-instruct
       litellm_params:
-        model: openai/tinyllama-instruct
+        model: openai//models/Apertus-8B-aligned-branded
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
-        api_key: "TESTKEY"
+        api_key: "os.environ/VLLM_API_KEY"
+    # Apertus 70B model via vLLM router service  
+    - model_name: apertus-70b-instruct
+      litellm_params:
+        model: openai//models/Apertus-70B-aligned-branded
+        api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
+        api_key: "os.environ/VLLM_API_KEY"
     # Together AI model
     - model_name: gpt-oss-120b
       litellm_params:
@@ -90,6 +96,7 @@ secrets:
   redisUrl: ""
   togetherApiKey: ""
   sealionApiKey: ""
+  vllmApiKey: ""
 
 # Environment variables
 env:
