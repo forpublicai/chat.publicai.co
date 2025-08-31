@@ -11,10 +11,11 @@ data:
       database_connection_timeout: 60
       allow_requests_on_db_unavailable: true
       master_key: "{{ .Values.secrets.litellmMasterKey }}"
+      user_header_name: X-OpenWebUI-User-Id
+      enforce_user_param: false
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
-        mode: "on"
-      enforce_user_param: true
+        mode: "auto"
     
     router_settings:
       routing_strategy: "{{ .Values.router.routingStrategy }}"
