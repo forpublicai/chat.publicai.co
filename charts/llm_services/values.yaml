@@ -60,13 +60,17 @@ vllm-stack:
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"  # TODO: Fill in ECR registry (e.g., 123456789.dkr.ecr.eu-central-2.amazonaws.com/vllm-transformers-apertus)
       tag: "latest"
       modelURL: "/models/Apertus-70B-aligned-branded"  # Fixed: correct S3 mount path
-      replicaCount: 1
+      replicaCount: 2
       requestCPU: 60
       requestMemory: "600Gi"
       requestGPU: 8  # Factor of 64 for tensor parallelism
       
       vllmConfig:
         tensorParallelSize: 8
+
+        extraArgs:
+          - "--served-model-name"
+          - "apertus-70b"
       
       extraVolumes:
         - name: s3-storage
@@ -82,11 +86,16 @@ vllm-stack:
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"
       tag: "latest"
       modelURL: "/models/Apertus-8B-aligned-branded"
-      replicaCount: 1
+      replicaCount: 2
       
       requestCPU: 16
       requestMemory: "64Gi"
       requestGPU: 4
+
+      vllmConfig:
+        extraArgs:
+          - "--served-model-name"
+          - "apertus-8b"
       
       extraVolumes:
         - name: s3-storage

@@ -2,7 +2,7 @@
 app:
   name: litellm
   image:
-    repository: ghcr.io/berriai/litellm
+    repository: ghcr.io/berriai/litellm-database
     tag: "main-stable"
     pullPolicy: Always
   
@@ -35,56 +35,55 @@ serviceAccount:
 config:
   models:
     # Task model - Chat completions (using inference profile)
-    - model_name: llama3-2-3b-instruct
+    - model_name: meta-llama/Llama-3.2-3B-Instruct
       litellm_params:
         model: bedrock/eu.meta.llama3-2-3b-instruct-v1:0
         aws_region_name: eu-central-1
     # Embedding model (ON_DEMAND - no inference profile needed)
-    - model_name: cohere-embed-multilingual-v3
+    - model_name: Cohere/Cohere-embed-multilingual-v3.0
       litellm_params:
         model: bedrock/cohere.embed-multilingual-v3
         aws_region_name: eu-central-1
     # Reranking model (ON_DEMAND - no inference profile needed)
-    - model_name: cohere-rerank-v3-5
+    - model_name: Cohere/rerank-v3.5
       litellm_params:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
     # Apertus 8B model via vLLM router service
-    - model_name: apertus-8b-instruct
+    - model_name: swiss-ai/apertus-8b-it
       litellm_params:
-        model: openai//models/Apertus-8B-aligned-branded
+        model: openai/apertus-8b
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "os.environ/VLLM_API_KEY"
     # Apertus 70B model via vLLM router service  
-    - model_name: apertus-70b-instruct
+    - model_name: swiss-ai/apertus-70b-it
       litellm_params:
-        model: openai//models/Apertus-70B-aligned-branded
+        model: openai/apertus-70b
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "os.environ/VLLM_API_KEY"
     # Together AI model
-    - model_name: gpt-oss-120b
+    - model_name: openai/gpt-oss-120b
       litellm_params:
         model: together_ai/openai/gpt-oss-120b
         api_base: https://api.together.xyz/v1
         api_key: "os.environ/TOGETHER_API_KEY"
     # SeaLion model
-    - model_name: gemma-sea-lion-v3-9b-it
+    - model_name: aisingapore/Gemma-SEA-LION-v3-9B-IT
       litellm_params:
         model: openai/aisingapore/Gemma-SEA-LION-v3-9B-IT
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
-  
-  # Disable guardrails to improve performance - was adding 400+ms to every request
-  # guardrails:
-  #   - guardrail_name: "publicai-guardrail"
-  #     litellm_params:
-  #       guardrail: bedrock
-  #       mode: "during_call"
-  #       guardrailIdentifier: "ux3n95in9v9h"
-  #       guardrailVersion: "DRAFT"
-  #       aws_region_name: "eu-central-1"
-  #       disable_exception_on_block: true
-  #       default_on: true
+
+  guardrails:
+    - guardrail_name: "publicai-guardrail"
+      litellm_params:
+        guardrail: bedrock
+        mode: "pre_call"
+        guardrailIdentifier: ux3n95in9v9h
+        guardrailVersion: "DRAFT"
+        aws_region_name: "eu-central-1"
+        disable_exception_on_block: false
+        default_on: false
 
 # Secrets configuration
 secrets:

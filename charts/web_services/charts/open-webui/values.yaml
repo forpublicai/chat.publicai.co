@@ -8,9 +8,10 @@ app:
     repository: 901779868336.dkr.ecr.eu-central-2.amazonaws.com/open-webui
     tag: cognito_patch
   port: 8080
-  webuiUrl: "https://localhost:8080"
+  webuiUrl: "https://chat.publicai.co"
   vectorDb: pgvector
   enableVersionUpdateCheck: "false"
+  enablePersistentConfig: "false"
   
   # Affinity settings for production
   affinity:
@@ -53,7 +54,7 @@ app:
     enableOauthGroupManagement: "false"
     openidProviderUrl: ""
     enableForwardUserInfoHeaders: "true"
-    signoutRedirectUrl: "https://app.publicai.company/" 
+    signoutRedirectUrl: "https://chat.publicai.co/" 
     oauthProviderName: "Public AI"
     defaultUserRole: "user"
   
