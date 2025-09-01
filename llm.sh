@@ -66,7 +66,7 @@ show_service_info() {
     echo "🔗 LLM services (internal ClusterIP):"
     kubectl get services -n llm-services 2>/dev/null || echo "  No LLM services found"
     echo ""
-    echo "💡 Access via LiteLLM API gateway at api.publicai.company (when enabled)"
+    echo "💡 Access via LiteLLM API gateway at api.publicai.co (when enabled)"
 }
 
 # Cleanup functions

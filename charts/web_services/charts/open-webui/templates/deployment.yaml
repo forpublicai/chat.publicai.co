@@ -172,6 +172,10 @@ spec:
         # Version Update Check
         - name: ENABLE_VERSION_UPDATE_CHECK
           value: "{{ .Values.app.enableVersionUpdateCheck }}"
+        
+        # Persistent Config
+        - name: ENABLE_PERSISTENT_CONFIG
+          value: "{{ .Values.app.enablePersistentConfig }}"
 
         # Web Search with Searxng
         - name: ENABLE_WEB_SEARCH

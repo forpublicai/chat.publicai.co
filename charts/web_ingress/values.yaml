@@ -3,7 +3,7 @@ ingresses:
   # Main web app ingress
   - enabled: true
     name: web-public-ingress
-    host: app.publicai.company  # Configure your domain
+    host: chat.publicai.co  # Configure your domain
     annotations:
       kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
@@ -17,8 +17,9 @@ ingresses:
   
   # LiteLLM API ingress - disabled for now (internal VPC communication only)
   # Enable this when you want to expose LiteLLM as api.publicai.company
-  - enabled: false
+  - enabled: true
     name: litellm-public-ingress
+    host: api-internal.publicai.co
     annotations:
       kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
