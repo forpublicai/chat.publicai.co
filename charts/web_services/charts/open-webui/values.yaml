@@ -42,6 +42,9 @@ app:
     cluster: "true"
     keyPrefix: "{open-webui}"
   
+  # Models configuration
+  defaultModels: "swiss-ai/apertus-70b-it"
+  
   # Authentication configuration
   auth:
     enableLoginForm: "false"
