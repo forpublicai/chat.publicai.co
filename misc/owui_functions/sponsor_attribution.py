@@ -104,12 +104,7 @@ class Filter:
                 }
             )
 
-            # Optional: Store sponsor info in body for downstream use
-            body["_sponsor_info"] = {
-                "name": sponsor_info["sponsor_name"],
-                "location": sponsor_info["sponsor_location"],
-                "country": sponsor_info["sponsor_country"],
-                "attribution": sponsor_info["attribution_message"],
-            }
+            # Note: We don't store sponsor info in body as some providers (like Bedrock) 
+            # reject extra parameters. The attribution is already sent via event_emitter.
 
         return body
