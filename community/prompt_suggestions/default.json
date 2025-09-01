@@ -1,0 +1,44 @@
+[
+  {
+    "title": [
+      "Tell me about Public AI",
+      "Learn about public AI infrastructure and its benefits"
+    ],
+    "content": "Tell me about Public AI - what it is, how it works, and why public AI infrastructure matters."
+  },
+  {
+    "title": [
+      "Explain AI Safety",
+      "Understand AI safety principles and practices"
+    ],
+    "content": "Explain AI safety - what are the key risks and how are they being addressed in public AI systems?"
+  },
+  {
+    "title": [
+      "What is AI Transparency?",
+      "Learn about transparent and accountable AI systems"
+    ],
+    "content": "What is AI transparency and why is it important for public sector AI deployment?"
+  },
+  {
+    "title": [
+      "Compare Public vs Private AI",
+      "Understand the differences between public and commercial AI"
+    ],
+    "content": "Compare public AI infrastructure with commercial AI platforms - what are the key differences and trade-offs?"
+  },
+  {
+    "title": [
+      "How does AI Governance work?",
+      "Learn about AI regulation and oversight mechanisms"
+    ],
+    "content": "How does AI governance work in the public sector? What oversight and accountability measures exist?"
+  },
+  {
+    "title": [
+      "What is Data Sovereignty?",
+      "Understand data control and digital sovereignty concepts"
+    ],
+    "content": "What is data sovereignty and why does it matter for national AI infrastructure?"
+  }
+]
