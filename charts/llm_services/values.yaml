@@ -108,4 +108,4 @@ vllm-stack:
 
 # Observability stack (optional)
 observability:
-  enabled: false  # Set to true to enable Prometheus/Grafana stack
+  enabled: true  # Set to true to enable Prometheus/Grafana stack

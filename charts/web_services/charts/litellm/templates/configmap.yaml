@@ -26,6 +26,7 @@ data:
     
     litellm_settings:
       cache: false
+      drop_params: true
     
     model_list:
     {{- range .Values.config.models }}

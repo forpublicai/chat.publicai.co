@@ -1,0 +1,30 @@
+# Exoscale API Configuration
+exoscale_api_key    = "EXOxxxxxxxxxxxxxxxxxxxxxxxx"
+exoscale_api_secret = "your-secret-key-here"
+zone                = "ch-gva-2"  # or ch-dk-2, at-vie-1, de-fra-1, bg-sof-1
+
+# Cluster Configuration
+cluster_name = "vllm-inference-cluster"
+environment  = "production"
+
+# Instance Configuration
+gpu_instance_type   = "gpu3.large"    # gpu3.large, gpu3.xlarge, gpu3.2xlarge
+cpu_instance_type   = "standard.large"
+initial_node_count  = 2
+cpu_node_count      = 2
+node_disk_size      = 200
+
+# vLLM Configuration
+vllm_api_key        = "vllm_TMCW-HHOdaQrPrWrxrhVJTZJfnmPtmjTAlVI2gfxBKs"
+huggingface_token   = "hf_xxxxxxxxxxxxxxxxxxxxxxxxxx"
+model_repository    = "s3://your-bucket/apertus-model/"  # or leave empty for local model
+max_model_len       = 4096
+tensor_parallel_size = 1
+
+# Scaling Configuration
+enable_autoscaling  = true
+min_replicas       = 1
+max_replicas       = 5
+
+# Monitoring
+enable_metrics = true

@@ -73,17 +73,23 @@ config:
         model: openai/aisingapore/Gemma-SEA-LION-v3-9B-IT
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
-
-  guardrails:
-    - guardrail_name: "publicai-guardrail"
+    # External Apertus 8B model from Ubuntu A5000 instance
+    - model_name: swiss-ai/apertus-8b-it
       litellm_params:
-        guardrail: bedrock
-        mode: "pre_call"
-        guardrailIdentifier: ux3n95in9v9h
-        guardrailVersion: "DRAFT"
-        aws_region_name: "eu-central-1"
-        disable_exception_on_block: false
-        default_on: false
+        model: openai/apertus-8b
+        api_base: http://YOUR_GPU_INSTANCE_IP/v1  # Replace with actual IP/domain
+        api_key: "os.environ/VLLM_API_KEY"
+
+  # guardrails:
+  #   - guardrail_name: "bedrock-pre-guard"
+  #     litellm_params:
+  #       guardrail: bedrock
+  #       mode: "during_call"
+  #       guardrailIdentifier: ux3n95in9v9h
+  #       guardrailVersion: "DRAFT"
+  #       aws_region_name: "eu-central-1"
+  #       disable_exception_on_block: true
+  #       default_on: true
 
 # Secrets configuration
 secrets:

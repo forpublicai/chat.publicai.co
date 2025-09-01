@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  vllm-apertus:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-apertus
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models
+      - /tmp:/tmp
+    environment:
+      - VLLM_API_KEY=${VLLM_API_KEY}
+    command: >
+      --model TinyLlama/TinyLlama-1.1B-Chat-v1.0
+      --served-model-name tinyllama
+      --host 0.0.0.0
+      --port 8000
+      --api-key ${VLLM_API_KEY}
+      --gpu-memory-utilization 0.5
+      --max-model-len 2048
+      --dtype auto
+      --trust-remote-code
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      
+  # Nginx reverse proxy for load balancing (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: vllm-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - vllm-apertus
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

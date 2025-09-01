@@ -98,3 +98,6 @@ async def user_api_key_auth(
         print(f"❌ Custom auth error: {str(e)}")
         # On any error, fall back to normal auth
         return api_key
+    
+
+# Budget Limiting by spend
