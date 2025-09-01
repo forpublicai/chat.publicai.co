@@ -11,6 +11,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/security-groups: "sg-002fe9601c42fc291"
     targetService:
       name: openwebui-service  # Actual service name from OpenWebUI stack
       port: 8080               # Default OpenWebUI port
@@ -27,6 +28,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/security-groups: "sg-0ea7fbf4d422dcff2"
     targetService:
       name: litellm-service
       port: 4000
