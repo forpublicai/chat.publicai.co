@@ -170,6 +170,8 @@ spec:
           value: "{{ .Values.app.auth.defaultUserRole }}"
         - name: ENABLE_ADMIN_CHAT_ACCESS
           value: "{{ .Values.app.auth.enableAdminChatAccess }}"
+        - name: USER_PERMISSIONS_CHAT_CONTROLS
+          value: "{{ .Values.app.auth.userPermissionsChatControls }}"
         - name: DEFAULT_MODELS
           value: "{{ .Values.app.defaultModels }}"
 

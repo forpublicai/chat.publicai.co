@@ -39,7 +39,7 @@ app:
   
   # Redis configuration  
   redis:
-    cluster: "true"
+    cluster: "false"
     keyPrefix: "{open-webui}"
   
   # Models configuration
@@ -61,6 +61,7 @@ app:
     oauthProviderName: "Public AI"
     defaultUserRole: "user"
     enableAdminChatAccess: "false"
+    userPermissionsChatControls: "false"
   
   # Web Search configuration
   webSearch:
