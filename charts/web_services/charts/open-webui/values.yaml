@@ -43,7 +43,7 @@ app:
     keyPrefix: "{open-webui}"
   
   # Models configuration
-  defaultModels: "swiss-ai/apertus-70b-it"
+  defaultModels: "swiss-ai/apertus-70b-instruct"
   
   # Authentication configuration
   auth:
@@ -60,6 +60,7 @@ app:
     signoutRedirectUrl: "https://chat.publicai.co/" 
     oauthProviderName: "Public AI"
     defaultUserRole: "user"
+    enableAdminChatAccess: "false"
   
   # Web Search configuration
   webSearch:

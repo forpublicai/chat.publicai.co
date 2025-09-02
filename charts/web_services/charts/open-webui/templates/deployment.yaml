@@ -168,6 +168,8 @@ spec:
           value: "{{ .Values.app.auth.signoutRedirectUrl }}"
         - name: DEFAULT_USER_ROLE
           value: "{{ .Values.app.auth.defaultUserRole }}"
+        - name: ENABLE_ADMIN_CHAT_ACCESS
+          value: "{{ .Values.app.auth.enableAdminChatAccess }}"
         - name: DEFAULT_MODELS
           value: "{{ .Values.app.defaultModels }}"
 

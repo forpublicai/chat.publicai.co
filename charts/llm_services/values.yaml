@@ -56,11 +56,11 @@ vllm-stack:
     
     modelSpec:
     # Large model: 70B Apertus (4 GPUs - factor of 64 for tensor parallelism)
-    - name: "apertus-70b-aligned-branded"
+    - name: "apertus-70b-instruct"
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"  # TODO: Fill in ECR registry (e.g., 123456789.dkr.ecr.eu-central-2.amazonaws.com/vllm-transformers-apertus)
       tag: "latest"
-      modelURL: "/models/Apertus-70B-aligned-branded"  # Fixed: correct S3 mount path
-      replicaCount: 2
+      modelURL: "/models/Apertus-70B-sft-mixture-8e-pwl-aligned"  # Fixed: correct S3 mount path
+      replicaCount: 3
       requestCPU: 60
       requestMemory: "600Gi"
       requestGPU: 8  # Factor of 64 for tensor parallelism
@@ -70,7 +70,7 @@ vllm-stack:
 
         extraArgs:
           - "--served-model-name"
-          - "apertus-70b"
+          - "apertus-70b-instruct"
       
       extraVolumes:
         - name: s3-storage
@@ -82,20 +82,21 @@ vllm-stack:
           mountPath: /models
     
     # Small model: 8B or TinyLlama for testing (1 GPU)
-    - name: "apertus-8b-aligned-branded"
+    - name: "apertus-8b-instruct"
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"
       tag: "latest"
-      modelURL: "/models/Apertus-8B-aligned-branded"
-      replicaCount: 2
+      modelURL: "/models/Apertus-8B-sft-mixture-8e-pwl-aligned"
+      replicaCount: 1
       
       requestCPU: 16
       requestMemory: "64Gi"
-      requestGPU: 4
+      requestGPU: 8
 
       vllmConfig:
+        tensorParallelSize: 8
         extraArgs:
           - "--served-model-name"
-          - "apertus-8b"
+          - "apertus-8b-instruct"
       
       extraVolumes:
         - name: s3-storage

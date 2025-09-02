@@ -50,15 +50,15 @@ config:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
     # Apertus 8B model via vLLM router service
-    - model_name: swiss-ai/apertus-8b-it
+    - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
-        model: openai/apertus-8b
+        model: openai/apertus-8b-instruct
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "os.environ/VLLM_API_KEY"
     # Apertus 70B model via vLLM router service  
-    - model_name: swiss-ai/apertus-70b-it
+    - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
-        model: openai/apertus-70b
+        model: openai/apertus-70b-instruct
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "os.environ/VLLM_API_KEY"
     # Together AI model
