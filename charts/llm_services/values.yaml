@@ -59,7 +59,7 @@ vllm-stack:
     - name: "apertus-70b-instruct"
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"  # TODO: Fill in ECR registry (e.g., 123456789.dkr.ecr.eu-central-2.amazonaws.com/vllm-transformers-apertus)
       tag: "latest"
-      modelURL: "/models/Apertus-70B-sft-mixture-8e-pwl-aligned"  # Fixed: correct S3 mount path
+      modelURL: "/models/Apertus-70B-sft-mixture-8e-aligned"  # Fixed: correct S3 mount path
       replicaCount: 3
       requestCPU: 60
       requestMemory: "600Gi"
@@ -85,7 +85,7 @@ vllm-stack:
     - name: "apertus-8b-instruct"
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"
       tag: "latest"
-      modelURL: "/models/Apertus-8B-sft-mixture-8e-pwl-aligned"
+      modelURL: "/models/Apertus-8B-sft-mixture-8e-aligned"
       replicaCount: 1
       
       requestCPU: 16
