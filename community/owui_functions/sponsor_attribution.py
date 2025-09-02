@@ -62,9 +62,12 @@ class Filter:
         if "singapore" in model_lower or "sea-lion" in model_lower:
             sponsor = next(s for s in self.sponsors if s["name"] == "AI Singapore")
         elif "apertus" in model_lower:
-            # For apertus models, randomly select from the other sponsors
-            other_sponsors = [s for s in self.sponsors if s["name"] != "AI Singapore"]
-            sponsor = random.choice(other_sponsors)
+            # For apertus models, heavily weight AWS (95% probability)
+            if random.random() < 0.95:
+                sponsor = next(s for s in self.sponsors if s["name"] == "Amazon Web Services")
+            else:
+                other_sponsors = [s for s in self.sponsors if s["name"] not in ["AI Singapore", "Amazon Web Services"]]
+                sponsor = random.choice(other_sponsors)
         else:
             # Default: random selection from all sponsors
             sponsor = random.choice(self.sponsors)
