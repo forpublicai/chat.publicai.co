@@ -29,11 +29,11 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "3Gi"
-        cpu: "1000m"
-      limits:
         memory: "4Gi"
-        cpu: "2000m"
+        cpu: "1500m"
+      limits:
+        memory: "6Gi"
+        cpu: "3000m"
 
   # Autoscaling for high load
   autoscaling:

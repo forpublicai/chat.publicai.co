@@ -49,6 +49,7 @@ validate_env() {
         "TOGETHER_API_KEY"
         "SEALION_API_KEY"
         "VLLM_API_KEY"
+        "VLLM_API_KEY_EXOSCALE"
     )
     
     for var in "${required_vars[@]}"; do
@@ -84,7 +85,8 @@ deploy_services() {
         --set litellm.secrets.redisUrl="$LITELLM_REDIS_URL" \
         --set litellm.secrets.togetherApiKey="$TOGETHER_API_KEY" \
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
-        --set litellm.secrets.vllmApiKey="$VLLM_API_KEY" 
+        --set litellm.secrets.vllmApiKey="$VLLM_API_KEY" \
+        --set litellm.secrets.vllmApiKeyExoscale="$VLLM_API_KEY_EXOSCALE" 
     
     echo "✅ Web services deployment complete!"
 }

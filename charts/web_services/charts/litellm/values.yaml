@@ -11,11 +11,11 @@ app:
 
   resources:
     requests:
-      memory: "2Gi"
-      cpu: "1000m"
+      memory: "3Gi"
+      cpu: "1500m"
     limits:
-      memory: "4Gi"
-      cpu: "2000m"
+      memory: "6Gi"
+      cpu: "3000m"
 
 # Service configuration
 service:
@@ -74,11 +74,11 @@ config:
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
     # External Apertus 8B model from Ubuntu A5000 instance
-    - model_name: swiss-ai/apertus-8b-it
+    - model_name: swiss-ai/apertus-8b-instruct-exoscale
       litellm_params:
-        model: openai/apertus-8b
-        api_base: http://YOUR_GPU_INSTANCE_IP/v1  # Replace with actual IP/domain
-        api_key: "os.environ/VLLM_API_KEY"
+        model: openai/swiss-ai/Apertus-8B-Instruct-2509
+        api_base: https://api-internal-exoscale.publicai.co/v1 
+        api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
 
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
@@ -102,6 +102,7 @@ secrets:
   togetherApiKey: ""
   sealionApiKey: ""
   vllmApiKey: ""
+  vllmApiKeyExoscale: ""
 
 # Environment variables
 env:
