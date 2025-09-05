@@ -87,3 +87,7 @@ To get involved with the Public AI Inference Utility:
 4. **Stay updated**: Watch this repository for updates and new contribution opportunities
 
 Together, we're building infrastructure that democratizes access to AI capabilities for everyone.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
