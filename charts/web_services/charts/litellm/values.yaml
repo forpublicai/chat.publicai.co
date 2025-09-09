@@ -50,18 +50,24 @@ config:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
     # Apertus 8B models with weight-based routing (90% internal, 10% Exoscale)
-    - model_name: swiss-ai/apertus-8b-instruct
-      litellm_params:
-        model: openai/apertus-8b-instruct
-        api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
-        api_key: "os.environ/VLLM_API_KEY"
-        weight: 9
+    # - model_name: swiss-ai/apertus-8b-instruct
+    #   litellm_params:
+    #     model: openai/apertus-8b-instruct
+    #     api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
+    #     api_key: "os.environ/VLLM_API_KEY"
+    #     weight: 2
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
         api_base: https://api-internal-exoscale.publicai.co/v1 
         api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
         weight: 1
+    - model_name: swiss-ai/apertus-8b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-8B-Instruct-2509
+        api_base: https://api-internal-exoscale-2.publicai.co/v1 
+        api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
+        weight: 9
     # Apertus 70B model via vLLM router service  
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:

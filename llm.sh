@@ -32,6 +32,7 @@ validate_env() {
     
     local required_vars=(
         "VLLM_API_KEY"
+        "EXPECTED_KUBE_CONTEXT"
     )
     
     for var in "${required_vars[@]}"; do
@@ -42,6 +43,20 @@ validate_env() {
     done
     
     echo "✅ Environment variables validated"
+}
+
+# Function to set Kubernetes context
+set_kube_context() {
+    local current_context=$(kubectl config current-context 2>/dev/null)
+    
+    if [ "$current_context" != "$EXPECTED_KUBE_CONTEXT" ]; then
+        echo "🔄 Switching Kubernetes context..."
+        echo "   From: $current_context"
+        echo "   To: $EXPECTED_KUBE_CONTEXT"
+        kubectl config use-context "$EXPECTED_KUBE_CONTEXT"
+    fi
+    
+    echo "✅ Using Kubernetes context: $EXPECTED_KUBE_CONTEXT"
 }
 
 # Function to deploy LLM services
@@ -83,6 +98,7 @@ cleanup_services() {
 if [ "$1" = "--deploy" ]; then
     echo "🚀 Deploying LLM services (ClusterIP only)..."
     validate_env
+    set_kube_context
     deploy_services
     show_service_info
 elif [ "$1" = "--cleanup" ]; then

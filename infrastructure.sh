@@ -17,6 +17,45 @@ show_usage() {
     exit 1
 }
 
+# Function to validate environment variables
+validate_env() {
+    # Check if .env file exists
+    if [ ! -f ".env" ]; then
+        echo "❌ .env file not found. Please create .env with required variables."
+        exit 1
+    fi
+    
+    # Load environment variables from .env file
+    set -a && source .env && set +a
+    
+    local required_vars=(
+        "EXPECTED_KUBE_CONTEXT"
+    )
+    
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var}" ]; then
+            echo "❌ Missing required environment variable: $var"
+            exit 1
+        fi
+    done
+    
+    echo "✅ Environment variables validated"
+}
+
+# Function to set Kubernetes context
+set_kube_context() {
+    local current_context=$(kubectl config current-context 2>/dev/null)
+    
+    if [ "$current_context" != "$EXPECTED_KUBE_CONTEXT" ]; then
+        echo "🔄 Switching Kubernetes context..."
+        echo "   From: $current_context"
+        echo "   To: $EXPECTED_KUBE_CONTEXT"
+        kubectl config use-context "$EXPECTED_KUBE_CONTEXT"
+    fi
+    
+    echo "✅ Using Kubernetes context: $EXPECTED_KUBE_CONTEXT"
+}
+
 # Function to deploy infrastructure
 deploy() {
     echo "🚀 Deploying shared infrastructure..."
@@ -47,6 +86,8 @@ cleanup() {
 
 # Check arguments
 if [ "$1" = "--deploy" ]; then
+    validate_env
+    set_kube_context
     deploy
 elif [ "$1" = "--cleanup" ]; then
     cleanup

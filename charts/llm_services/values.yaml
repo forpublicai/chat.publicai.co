@@ -86,7 +86,7 @@ vllm-stack:
       repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"
       tag: "latest"
       modelURL: "/models/Apertus-8B-sft-mixture-8e-aligned"
-      replicaCount: 1
+      replicaCount: 0
       
       requestCPU: 16
       requestMemory: "64Gi"
