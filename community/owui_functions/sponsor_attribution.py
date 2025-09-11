@@ -15,43 +15,29 @@ class Filter:
                 "location": "Zurich",
                 "country": "Switzerland",
             },
-            {"name": "Exoscale", "location": "Austria", "country": "Austria"},
+            {"name": "Exoscale", "location": "Vienna", "country": "Austria"},
             {
                 "name": "National Computational Infrastructure",
-                "location": "Australia",
+                "location": "Canberra",
                 "country": "Australia",
             },
+            {"name": "Cudo Compute", "location": "Oslo", "country": "Norway"},
         ]
 
         # Attribution message variants for each sponsor (full messages with emojis)
         self.attribution_variants = {
             "AI Singapore": [
-                "🇸🇬 Powered by sovereign compute infrastructure in Singapore, provided by AI Singapore",
-                "🚀 Running on cutting-edge AI compute resources from the heart of Singapore, courtesy of AI Singapore",
-                "⚡ Energized by next-generation computational power from Singapore's AI innovation hub, AI Singapore",
-                "🏙️ Streaming from state-of-the-art processing infrastructure in the Lion City, powered by AI Singapore",
-                "🧠 Thinking with advanced computational resources from Singapore's premier AI institute, AI Singapore",
+                "⚡ Powered by compute infrastructure in Singapore, provided by AI Singapore",
             ],
-            "Amazon Web Services": [
-                "☁️ Powered by cloud-native compute infrastructure in Zurich, provided by Amazon Web Services",
-                "🏔️ Running on scalable computational resources from the Swiss Alps region, courtesy of AWS Zurich",
-                "💼 Energized by enterprise-grade compute power from Switzerland's financial capital, powered by Amazon Web Services",
-                "🎯 Streaming with globally-distributed infrastructure with Swiss precision, provided by AWS Zurich",
-                "🌍 Thinking on hyperscale computational resources from the heart of Europe, courtesy of Amazon Web Services",
-            ],
+            "Amazon Web Services": ["⚡ I run on AWS infrastructure in Switzerland"],
             "Exoscale": [
                 "❄️ Powered by liquid-cooled compute infrastructure in Austria, provided by Exoscale",
-                "🌿 Running on carbon-neutral computational power from the Austrian Alps, courtesy of Exoscale",
-                "🛡️ Energized by European sovereign cloud infrastructure in Austria, powered by Exoscale",
-                "🔋 Streaming with green energy-powered compute resources from Austria's data centers, provided by Exoscale",
-                "🔒 Thinking on privacy-focused computational infrastructure in the heart of Europe, courtesy of Exoscale",
             ],
             "National Computational Infrastructure": [
-                "🦘 Powered by high-performance computing infrastructure across Australia, provided by National Computational Infrastructure",
-                "🔬 Running on research-grade computational resources from Down Under, courtesy of NCI Australia",
-                "⚡ Energized by supercomputing power from Australia's national research infrastructure, powered by NCI",
-                "🌏 Streaming across continent-spanning computational resources in Australia, provided by National Computational Infrastructure",
-                "🏆 Thinking with world-class HPC infrastructure from Australia's research computing backbone, courtesy of NCI",
+                "⚡ Powered by soverign compute infrastructure in Canberra, courtesy of NCI Australia ",
+            ],
+            "Cudo Compute": [
+                "⚡ Powered by compute infrastructure in Europe, provided by Cudo Compute",
             ],
         }
 
@@ -62,12 +48,15 @@ class Filter:
         if "singapore" in model_lower or "sea-lion" in model_lower:
             sponsor = next(s for s in self.sponsors if s["name"] == "AI Singapore")
         elif "apertus" in model_lower:
-            # For apertus models, heavily weight AWS (95% probability)
-            if random.random() < 0.95:
-                sponsor = next(s for s in self.sponsors if s["name"] == "Amazon Web Services")
+            # For apertus models, split 50/50 between AWS and Cudo Compute
+            if random.random() < 0.5:
+                sponsor = next(
+                    s for s in self.sponsors if s["name"] == "Amazon Web Services"
+                )
             else:
-                other_sponsors = [s for s in self.sponsors if s["name"] not in ["AI Singapore", "Amazon Web Services"]]
-                sponsor = random.choice(other_sponsors)
+                sponsor = next(
+                    s for s in self.sponsors if s["name"] == "Cudo Compute"
+                )
         else:
             # Default: random selection from all sponsors
             sponsor = random.choice(self.sponsors)
@@ -107,7 +96,7 @@ class Filter:
                 }
             )
 
-            # Note: We don't store sponsor info in body as some providers (like Bedrock) 
+            # Note: We don't store sponsor info in body as some providers (like Bedrock)
             # reject extra parameters. The attribution is already sent via event_emitter.
 
         return body
