@@ -74,6 +74,21 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: vllm_api_key_exoscale
+            - name: VLLM_API_KEY_ANU
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: vllm_api_key_anu
+            - name: VLLM_API_KEY_CSCS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: vllm_api_key_cscs
+            - name: VLLM_API_KEY_CUDO
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: vllm_api_key_cudo
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml

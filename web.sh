@@ -50,6 +50,9 @@ validate_env() {
         "SEALION_API_KEY"
         "VLLM_API_KEY"
         "VLLM_API_KEY_EXOSCALE"
+        "VLLM_API_KEY_ANU"
+        "VLLM_API_KEY_CSCS"
+        "VLLM_API_KEY_CUDO"
         "EXPECTED_KUBE_CONTEXT"
     )
     
@@ -101,7 +104,10 @@ deploy_services() {
         --set litellm.secrets.togetherApiKey="$TOGETHER_API_KEY" \
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
         --set litellm.secrets.vllmApiKey="$VLLM_API_KEY" \
-        --set litellm.secrets.vllmApiKeyExoscale="$VLLM_API_KEY_EXOSCALE" 
+        --set litellm.secrets.vllmApiKeyExoscale="$VLLM_API_KEY_EXOSCALE" \
+        --set litellm.secrets.vllmApiKeyAnu="$VLLM_API_KEY_ANU" \
+        --set litellm.secrets.vllmApiKeyCscs="$VLLM_API_KEY_CSCS" \
+        --set litellm.secrets.vllmApiKeyCudo="$VLLM_API_KEY_CUDO" 
     
     echo "✅ Web services deployment complete!"
 }

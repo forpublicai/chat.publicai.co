@@ -67,13 +67,50 @@ config:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
         api_base: https://api-internal-exoscale-2.publicai.co/v1 
         api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
-        weight: 9
+        weight: 20
+    # Apertus 8B model via AISG endpoint
+    - model_name: swiss-ai/apertus-8b-instruct-aisg
+      litellm_params:
+        model: openai/swiss-ai/Apertus-8B-Instruct-2509
+        api_base: https://api.sea-lion.ai/v1
+        api_key: "os.environ/SEALION_API_KEY"
+        weight: 1
+    # Apertus 8B model via ANU endpoint
+    - model_name: swiss-ai/apertus-8b-instruct-anu
+      litellm_params:
+        model: openai/swiss-ai/Apertus-8B-2509
+        api_base: https://apertus-01.nci.org.au/v1
+        api_key: "os.environ/VLLM_API_KEY_ANU"
+    # Apertus 70B model via AISG endpoint
+    - model_name: swiss-ai/apertus-70b-instruct-aisg
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        api_base: https://api.sea-lion.ai/v1
+        api_key: "os.environ/SEALION_API_KEY"
     # Apertus 70B model via vLLM router service  
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
         model: openai/apertus-70b-instruct
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "os.environ/VLLM_API_KEY"
+    # Apertus 70B model via CUDO endpoint
+    - model_name: swiss-ai/apertus-70b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        api_base: https://api-internal-cudo.publicai.co/v1
+        api_key: "os.environ/VLLM_API_KEY_CUDO"
+     # Apertus 70B model via ANU endpoint
+    - model_name: swiss-ai/apertus-70b-instruct-anu
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-2509
+        api_base: https://apertus-02.nci.org.au/v1
+        api_key: "os.environ/VLLM_API_KEY_ANU"
+     # Apertus 70B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-70b-instruct-cscs
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-2509
+        api_base: https://vllm.svc.cscs.ch/apertus-70b-instruct/v1
+        api_key: "os.environ/VLLM_API_KEY_CSCS"
     # Together AI model
     - model_name: openai/gpt-oss-120b
       litellm_params:
@@ -110,6 +147,9 @@ secrets:
   sealionApiKey: ""
   vllmApiKey: ""
   vllmApiKeyExoscale: ""
+  vllmApiKeyAnu: ""
+  vllmApiKeyCscs: ""
+  vllmApiKeyCudo: ""
 
 # Environment variables
 env:
