@@ -1,13 +1,12 @@
 # Public AI Inference Utility
 
-**A public compute platform for running AI models that serves researchers, developers, and institutions worldwide.**
+**A public compute platform for everyone.**
 
-The Public AI Inference Utility is a global compute platform that provides free and low-cost access to state-of-the-art AI models. Built on principles of openness, accessibility, and democratic governance, the Utility serves as critical infrastructure for the AI ecosystem.
+The Public AI Inference Utility is a public compute platform that provides free and low-cost access to state-of-the-art AI models. Built on principles of openness and accessibility, the Utility serves as critical infrastructure for citizens, businesses, researchers, and the public sectors of several different countries.
 
 Unlike commercial AI APIs that prioritize profit maximization, the Utility is designed to serve the public interest. We provide transparent pricing, open governance, and equitable access to ensure that AI capabilities are available to everyone, not just those who can afford premium services.
 
 This repository contains the production deployment configuration and community contributions for the platform.
-
 
 ## How to Contribute
 
