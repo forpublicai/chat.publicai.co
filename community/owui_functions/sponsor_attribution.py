@@ -22,6 +22,7 @@ class Filter:
                 "country": "Australia",
             },
             {"name": "Cudo Compute", "location": "Oslo", "country": "Norway"},
+            {"name": "Swiss National Supercomputing Centre", "location": "Lugano", "country": "Switzerland"},
         ]
 
         # Attribution message variants for each sponsor (full messages with emojis)
@@ -39,6 +40,9 @@ class Filter:
             "Cudo Compute": [
                 "⚡ Powered by compute infrastructure in Europe, provided by Cudo Compute",
             ],
+            "Swiss National Supercomputing Centre": [
+                "⚡ Powered by soverign compute infrastructure in Lugano, courtesy of Swiss National Supercomputing Centre",
+            ],
         }
 
     def get_sponsor_by_model(self, model_name: str):
@@ -48,15 +52,16 @@ class Filter:
         if "singapore" in model_lower or "sea-lion" in model_lower:
             sponsor = next(s for s in self.sponsors if s["name"] == "AI Singapore")
         elif "apertus" in model_lower:
-            # For apertus models, split 50/50 between AWS and Cudo Compute
-            if random.random() < 0.5:
-                sponsor = next(
-                    s for s in self.sponsors if s["name"] == "Amazon Web Services"
-                )
-            else:
-                sponsor = next(
-                    s for s in self.sponsors if s["name"] == "Cudo Compute"
-                )
+            # For apertus models: AWS, Cudo, and Swiss National Supercomputing Centre have equal weight
+            # AI Singapore has much lower weight
+            sponsors_apertus = [
+                next(s for s in self.sponsors if s["name"] == "Amazon Web Services"),
+                next(s for s in self.sponsors if s["name"] == "Cudo Compute"),
+                next(s for s in self.sponsors if s["name"] == "Swiss National Supercomputing Centre"),
+                next(s for s in self.sponsors if s["name"] == "AI Singapore")
+            ]
+            weights = [1, 1, 1, 0.05]  # AI Singapore gets 5% weight compared to others
+            sponsor = random.choices(sponsors_apertus, weights=weights)[0]
         else:
             # Default: random selection from all sponsors
             sponsor = random.choice(self.sponsors)
