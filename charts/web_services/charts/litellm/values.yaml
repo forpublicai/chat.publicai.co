@@ -64,7 +64,7 @@ config:
         weight: 1
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
@@ -73,7 +73,7 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 8B model via CSCS endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
@@ -83,7 +83,7 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 8B model via AISG endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
@@ -93,7 +93,7 @@ config:
         weight: 1
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 8B model via ANU endpoint
     - model_name: swiss-ai/apertus-8b-instruct-anu
       litellm_params:
@@ -102,7 +102,7 @@ config:
         api_key: "os.environ/VLLM_API_KEY_ANU"
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 70B model via AISG endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -112,7 +112,7 @@ config:
         weight: 1
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 70B model via vLLM router service
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -122,7 +122,7 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 70B model via CUDO endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -132,7 +132,7 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # Apertus 70B model via CSCS endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -142,7 +142,7 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
      # Apertus 70B model via ANU endpoint
     - model_name: swiss-ai/apertus-70b-instruct-anu
       litellm_params:
@@ -151,7 +151,7 @@ config:
         api_key: "os.environ/VLLM_API_KEY_ANU"
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 32768
+        max_tokens: 8192
     # SeaLion model
     - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:
