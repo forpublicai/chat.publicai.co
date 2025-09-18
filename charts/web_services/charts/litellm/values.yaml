@@ -49,7 +49,7 @@ config:
       litellm_params:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
-    # Apertus 8B models with weight-based routing (90% internal, 10% Exoscale)
+    # Apertus 8B models
     # - model_name: swiss-ai/apertus-8b-instruct
     #   litellm_params:
     #     model: openai/apertus-8b-instruct
@@ -68,8 +68,15 @@ config:
         api_base: https://api-internal-exoscale-2.publicai.co/v1 
         api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
         weight: 20
+    # Apertus 8B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-8b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-8B-Instruct-2509
+        api_base: https://vllm.svc.cscs.ch/apertus-70b-instruct/v1
+        api_key: "os.environ/VLLM_API_KEY_CSCS"
+        weight: 20
     # Apertus 8B model via AISG endpoint
-    - model_name: swiss-ai/apertus-8b-instruct-aisg
+    - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
         api_base: https://api.sea-lion.ai/v1
@@ -82,45 +89,43 @@ config:
         api_base: https://apertus-01.nci.org.au/v1
         api_key: "os.environ/VLLM_API_KEY_ANU"
     # Apertus 70B model via AISG endpoint
-    - model_name: swiss-ai/apertus-70b-instruct-aisg
+    - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-70B-Instruct-2509
         api_base: https://api.sea-lion.ai/v1
         api_key: "os.environ/SEALION_API_KEY"
+        weight: 1
     # Apertus 70B model via vLLM router service  
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
         model: openai/apertus-70b-instruct
         api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
         api_key: "os.environ/VLLM_API_KEY"
+        weight: 20
     # Apertus 70B model via CUDO endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-70B-Instruct-2509
         api_base: https://api-internal-cudo.publicai.co/v1
         api_key: "os.environ/VLLM_API_KEY_CUDO"
+        weight: 20
+    # Apertus 70B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-70b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        api_base: https://vllm.svc.cscs.ch/apertus-70b-instruct/v1
+        api_key: "os.environ/VLLM_API_KEY_CSCS"
+        weight: 20
      # Apertus 70B model via ANU endpoint
     - model_name: swiss-ai/apertus-70b-instruct-anu
       litellm_params:
         model: openai/swiss-ai/Apertus-70B-2509
         api_base: https://apertus-02.nci.org.au/v1
         api_key: "os.environ/VLLM_API_KEY_ANU"
-     # Apertus 70B model via CSCS endpoint
-    - model_name: swiss-ai/apertus-70b-instruct-cscs
-      litellm_params:
-        model: openai/swiss-ai/Apertus-70B-2509
-        api_base: https://vllm.svc.cscs.ch/apertus-70b-instruct/v1
-        api_key: "os.environ/VLLM_API_KEY_CSCS"
-    # Together AI model
-    - model_name: openai/gpt-oss-120b
-      litellm_params:
-        model: together_ai/openai/gpt-oss-120b
-        api_base: https://api.together.xyz/v1
-        api_key: "os.environ/TOGETHER_API_KEY"
     # SeaLion model
-    - model_name: aisingapore/Gemma-SEA-LION-v3-9B-IT
+    - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:
-        model: openai/aisingapore/Gemma-SEA-LION-v3-9B-IT
+        model: openai/aisingapore/Gemma-SEA-LION-v4-27B-IT
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
 
