@@ -5,8 +5,8 @@ app:
   name: openwebui
   replicas: 2
   image:
-    repository: 901779868336.dkr.ecr.eu-central-2.amazonaws.com/open-webui
-    tag: cognito_patch
+    repository: ghcr.io/forpublicai/open-webui
+    tag: latest-cognito-patch
   port: 8080
   webuiUrl: "https://chat.publicai.co"
   vectorDb: pgvector
