@@ -57,8 +57,8 @@ vllm-stack:
     modelSpec:
     # Large model: 70B Apertus (4 GPUs - factor of 64 for tensor parallelism)
     - name: "apertus-70b-instruct"
-      repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"  # TODO: Fill in ECR registry (e.g., 123456789.dkr.ecr.eu-central-2.amazonaws.com/vllm-transformers-apertus)
-      tag: "latest"
+      repository: "vllm/vllm-openai"
+      tag: "v0.10.2"
       modelURL: "/models/Apertus-70B-sft-mixture-8e-aligned"  # Fixed: correct S3 mount path
       replicaCount: 1
       requestCPU: 60
@@ -71,20 +71,37 @@ vllm-stack:
         extraArgs:
           - "--served-model-name"
           - "apertus-70b-instruct"
+          - "--enable-auto-tool-choice"
+          - "--tool-parser-plugin"
+          - "/opt/apertus_tool_parser.py"
+          - "--tool-call-parser"
+          - "apertus_json"
+          - "--chat-template"
+          - "/opt/apertus_chat_template.jinja"
       
       extraVolumes:
         - name: s3-storage
           persistentVolumeClaim:
             claimName: s3-pvc
-      
+        - name: apertus-templates
+          configMap:
+            name: apertus-templates
+            defaultMode: 0755
+
       extraVolumeMounts:
         - name: s3-storage
           mountPath: /models
-    
+        - name: apertus-templates
+          mountPath: /opt/apertus_tool_parser.py
+          subPath: apertus_tool_parser.py
+        - name: apertus-templates
+          mountPath: /opt/apertus_chat_template.jinja
+          subPath: apertus_chat_template.jinja
+
     # Small model: 8B for testing (currently disabled)
     - name: "apertus-8b-instruct"
-      repository: "901779868336.dkr.ecr.eu-north-1.amazonaws.com/vllm-transformers-apertus"
-      tag: "latest"
+      repository: "vllm/vllm-openai"
+      tag: "v0.10.2"
       modelURL: "/models/Apertus-8B-sft-mixture-8e-aligned"
       replicaCount: 0               # Disabled (set to 1 to enable)
 
@@ -98,15 +115,32 @@ vllm-stack:
         extraArgs:
           - "--served-model-name"
           - "apertus-8b-instruct"
+          - "--enable-auto-tool-choice"
+          - "--tool-parser-plugin"
+          - "/opt/apertus_tool_parser.py"
+          - "--tool-call-parser"
+          - "apertus_json"
+          - "--chat-template"
+          - "/opt/apertus_chat_template.jinja"
       
       extraVolumes:
         - name: s3-storage
           persistentVolumeClaim:
             claimName: s3-pvc
-      
+        - name: apertus-templates
+          configMap:
+            name: apertus-templates
+            defaultMode: 0755
+
       extraVolumeMounts:
         - name: s3-storage
           mountPath: /models
+        - name: apertus-templates
+          mountPath: /opt/apertus_tool_parser.py
+          subPath: apertus_tool_parser.py
+        - name: apertus-templates
+          mountPath: /opt/apertus_chat_template.jinja
+          subPath: apertus_chat_template.jinja
 
 # Observability stack (optional)
 observability:

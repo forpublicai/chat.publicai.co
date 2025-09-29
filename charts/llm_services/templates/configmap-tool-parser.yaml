@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apertus-templates
+  namespace: {{ .Values.global.namespace }}
+data:
+  apertus_tool_parser.py: |
+{{ .Files.Get "apertus_tool_parser.py" | indent 4 }}
+  apertus_chat_template.jinja: |
+{{ .Files.Get "apertus_chat_template.jinja" | indent 4 }}
