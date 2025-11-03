@@ -11,7 +11,12 @@ data:
       database_connection_timeout: 60
       allow_requests_on_db_unavailable: true
       master_key: "{{ .Values.secrets.litellmMasterKey }}"
-      user_header_name: X-OpenWebUI-User-Id
+      user_header_mappings:
+        - header_name: X-OpenWebUI-User-Id
+          litellm_user_role: customer
+        # Rate limiting is currently based on customer/end-user, which should use the user-id.
+        # - header_name: X-OpenWebUI-User-Email
+        #   litellm_user_role: customer
       enforce_user_param: false
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
@@ -27,6 +32,9 @@ data:
     litellm_settings:
       cache: false
       drop_params: true
+      extra_spend_tag_headers:
+        - "x-openwebui-user-id"
+        - "x-zuplo-user-id"
     
     model_list:
     {{- range .Values.config.models }}

@@ -66,32 +66,57 @@ async def user_api_key_auth(
     """
     Custom auth in 'auto' mode:
     - If OpenWebUI headers present: create customer with budget, return api_key for fallback auth
+    - If Zuplo headers present: create customer with budget, return api_key for fallback auth
     - If no headers: return api_key for normal LiteLLM auth
     """
     try:
-        # Extract OpenWebUI user info using .lower() for reliable header parsing
+        # Only apply custom auth logic for completion requests
+        request_path = str(request.url.path) if hasattr(request.url, 'path') else str(request.url)
+        if "completions" not in request_path:
+            # Not a completion request, skip custom auth
+            return api_key
+
+        # Extract user info using .lower() for reliable header parsing
         headers_lower = {k.lower(): v for k, v in request.headers.items()}
-        
-        user_id = headers_lower.get('x-openwebui-user-id')
-        user_email = headers_lower.get('x-openwebui-user-email', '')
+
+        # Check for OpenWebUI headers
+        openwebui_user_id = headers_lower.get('x-openwebui-user-id')
+        openwebui_user_email = headers_lower.get('x-openwebui-user-email', '')
         user_name = headers_lower.get('x-openwebui-user-name', '')
         user_role = headers_lower.get('x-openwebui-user-role', '')
-        chat_id = headers_lower.get('x-openwebui-chat-id', '')
 
-        print(f"🔑 CUSTOM AUTH - Headers: user_id={user_id}, email={user_email}, name={user_name}, role={user_role}")
+        # Check for Zuplo headers
+        zuplo_user_id = headers_lower.get('x-zuplo-user-id')
+        zuplo_user_email = headers_lower.get('x-zuplo-user-email', '')
+
+        # Determine user_id, source, and email (prioritize source-specific email)
+        if openwebui_user_id:
+            user_id = openwebui_user_id
+            user_email = openwebui_user_email
+            source = "OpenWebUI"
+        elif zuplo_user_id:
+            user_id = zuplo_user_id
+            user_email = zuplo_user_email
+            source = "Zuplo"
+        else:
+            user_id = None
+            user_email = ''
+            source = None
+
+        print(f"🔑 CUSTOM AUTH - Source: {source}, user_id={user_id}")
 
         if user_id:
-            # This is an OpenWebUI request - ensure user has budget
-            print(f"📋 OpenWebUI request detected, ensuring customer {user_id} has budget...")
+            # This is an OpenWebUI or Zuplo request - ensure user has budget
+            print(f"📋 {source} request detected, ensuring customer {user_id} has budget...")
             await ensure_end_user_with_budget(user_id, user_email)
-            
+
             # Return the API key to let LiteLLM handle normal auth
             # But now the end-user will have rate limits applied
             print(f"✅ Returning API key for LiteLLM auth with end-user: {user_id}")
             return api_key
         else:
-            # No OpenWebUI headers - let LiteLLM handle normal auth
-            print("ℹ️ No OpenWebUI headers, returning API key for normal auth")
+            # No OpenWebUI or Zuplo headers - let LiteLLM handle normal auth
+            print("ℹ️ No OpenWebUI or Zuplo headers, returning API key for normal auth")
             return api_key
 
     except Exception as e:
