@@ -53,6 +53,8 @@ validate_env() {
         "VLLM_API_KEY_ANU"
         "VLLM_API_KEY_CSCS"
         "VLLM_API_KEY_CUDO"
+        "VLLM_API_KEY_HH"
+        "VLLM_API_KEY_INTEL"
         "EXPECTED_KUBE_CONTEXT"
     )
     
@@ -107,7 +109,9 @@ deploy_services() {
         --set litellm.secrets.vllmApiKeyExoscale="$VLLM_API_KEY_EXOSCALE" \
         --set litellm.secrets.vllmApiKeyAnu="$VLLM_API_KEY_ANU" \
         --set litellm.secrets.vllmApiKeyCscs="$VLLM_API_KEY_CSCS" \
-        --set litellm.secrets.vllmApiKeyCudo="$VLLM_API_KEY_CUDO" 
+        --set litellm.secrets.vllmApiKeyCudo="$VLLM_API_KEY_CUDO" \
+        --set litellm.secrets.vllmApiKeyHh="$VLLM_API_KEY_HH" \
+        --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" 
     
     echo "✅ Web services deployment complete!"
 }

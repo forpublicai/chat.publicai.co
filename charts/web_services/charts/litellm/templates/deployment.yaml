@@ -89,6 +89,16 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: vllm_api_key_cudo
+            - name: VLLM_API_KEY_HH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: vllm_api_key_hh
+            - name: VLLM_API_KEY_INTEL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: vllm_api_key_intel
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml
