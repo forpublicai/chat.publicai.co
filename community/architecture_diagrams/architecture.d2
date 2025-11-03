@@ -1,0 +1,361 @@
+direction: down
+
+# Users at top
+users: {
+  label: "Users & Developers"
+  shape: person
+  style.fill: "#374151"
+}
+
+
+# AWS EKS Kubernetes Cluster
+aws_eks: {
+  label: "AWS EKS Cluster\n(publicai-eks, eu-central-2)"
+  style.fill: "#dbeafe"
+  style.stroke: "#3b82f6"
+
+  # Web Ingress
+  web_ingress: {
+    label: "Ingress Layer"
+    style.fill: "#e8f5e8"
+    style.stroke: "#4caf50"
+
+    web_public_ingress: {
+      label: "Public Ingress\nchat.publicai.co\nAuth: AWS Cognito"
+      shape: hexagon
+      style.fill: "#4caf50"
+      style.stroke: "#2e7d32"
+    }
+
+    litellm_internal_ingress: {
+      label: "Internal API Ingress\napi-internal.publicai.co"
+      shape: hexagon
+      style.fill: "#66bb6a"
+      style.stroke: "#388e3c"
+    }
+  }
+
+  # Web Services Namespace
+  web_services: {
+    label: "web-services namespace"
+    style.fill: "#f3e5f5"
+    style.stroke: "#9c27b0"
+
+    services_container: {
+      label: "Kubernetes Services"
+      style.fill: "#faf5ff"
+      style.stroke: "#7c3aed"
+
+      openwebui_service: {
+        label: "openwebui-service\nport 8080"
+        shape: oval
+        style.fill: "#e1bee7"
+      }
+
+      litellm_service: {
+        label: "litellm-service\nport 4000"
+        shape: oval
+        style.fill: "#f3e5f5"
+      }
+
+      tika_service: {
+        label: "tika-service\nport 9998"
+        shape: oval
+        style.fill: "#c4b5fd"
+      }
+    }
+
+    openwebui_pods: {
+      label: "OpenWebUI Pods\n4-12 replicas (autoscaling)\nUser Portal"
+      shape: rectangle
+      style.fill: "#3b82f6"
+      style.stroke: "#1976d2"
+    }
+
+    litellm_pods: {
+      label: "LiteLLM Pods\n2-8 replicas (autoscaling)\nAI Gateway"
+      shape: rectangle
+      style.fill: "#8b5cf6"
+      style.stroke: "#6d28d9"
+    }
+
+    tika_pods: {
+      label: "Apache Tika Pods\n2-6 replicas\nDocument Extraction"
+      shape: rectangle
+      style.fill: "#a855f7"
+    }
+
+    services_container.openwebui_service -> openwebui_pods: "Routes traffic"
+    services_container.litellm_service -> litellm_pods: "Routes traffic"
+    services_container.tika_service -> tika_pods: "Routes traffic"
+  }
+
+  # LLM Services Namespace
+  llm_services: {
+    label: "llm-services namespace"
+    style.fill: "#fee2e2"
+    style.stroke: "#dc2626"
+
+    llm_router_service: {
+      label: "llm-services-router-service\nInternal vLLM Router"
+      shape: oval
+      style.fill: "#fca5a5"
+      style.stroke: "#dc2626"
+    }
+
+    vllm_apertus_70b: {
+      label: "vLLM Pod\nApertus 70B Instruct\n8x A100 GPUs\np4d.24xlarge"
+      shape: rectangle
+      style.fill: "#dc2626"
+      style.stroke: "#991b1b"
+    }
+
+    llm_router_service -> vllm_apertus_70b: "Load balances"
+  }
+
+  # Connections within cluster
+  web_ingress.web_public_ingress -> web_services.services_container.openwebui_service
+  web_ingress.litellm_internal_ingress -> web_services.services_container.litellm_service
+}
+
+# External Services & Dependencies
+
+# Zuplo Services
+zuplo: {
+  label: "Zuplo (SaaS)"
+  style.fill: "#ede9fe"
+  style.stroke: "#6366f1"
+
+  developer_portal: {
+    label: "Developer Portal\nplatform.publicai.co\n(Zudoku)\nAuth: Auth0"
+    shape: cloud
+    style.fill: "#c7d2fe"
+    style.stroke: "#6366f1"
+    style.font-color: "#1e1b4b"
+  }
+
+  api_gateway: {
+    label: "api.publicai.co"
+    shape: cloud
+    style.fill: "#e0e7ff"
+    style.stroke: "#6366f1"
+    style.font-color: "#1e1b4b"
+
+    api_gateway_label: {
+      label: "API Gateway\nAPI Key Validation\nRate Limiting & Budget Enforcement"
+      shape: hexagon
+      style.fill: "#f59e0b"
+      style.stroke: "#d97706"
+      style.font-color: "#ffffff"
+    }
+  }
+}
+
+# Landing Page (Vercel)
+vercel: {
+  label: "Landing Page\npublicai.company"
+  shape: cloud
+  style.fill: "#1a1a1a"
+  style.stroke: "#666666"
+  style.font-color: "#ffffff"
+}
+
+# Firecrawl (SaaS)
+firecrawl: {
+  label: "Firecrawl API (SaaS)\nWeb Search & Loader"
+  shape: cloud
+  style.fill: "#f97316"
+  style.stroke: "#ea580c"
+  style.font-color: "#ffffff"
+}
+
+# Identity Providers
+identity_providers: {
+  label: "Identity Providers"
+  style.fill: "#fef3c7"
+  style.stroke: "#f59e0b"
+
+  aws_cognito: {
+    label: "AWS Cognito\nUser Authentication"
+    shape: cloud
+    style.fill: "#fbbf24"
+    style.stroke: "#f59e0b"
+  }
+
+  auth0: {
+    label: "Auth0\nDeveloper Authentication"
+    shape: cloud
+    style.fill: "#fb923c"
+    style.stroke: "#ea580c"
+  }
+}
+
+# AWS Managed Data Layer
+aws_data_layer: {
+  label: "AWS Managed Data Layer (eu-central-2)"
+  style.fill: "#fff7ed"
+  style.stroke: "#f97316"
+
+  postgres: {
+    label: "Managed PostgreSQL\nOpenWebUI (pgvector)\nLiteLLM (Prisma)"
+    shape: cylinder
+    style.fill: "#0ea5e9"
+  }
+
+  redis: {
+    label: "Managed Redis\nWebSocket, Caching\nRate Limiting"
+    shape: cylinder
+    style.fill: "#ef4444"
+  }
+
+  s3: {
+    label: "AWS S3 - publicai-bucket\nuploads/ (User Files)"
+    shape: cloud
+    style.fill: "#06b6d4"
+  }
+}
+
+# Managed Inference Partners
+managed_inference_partners: {
+  label: "Managed Inference Partners"
+  style.fill: "#f0fdf4"
+  style.stroke: "#22c55e"
+
+  bedrock: {
+    label: "AWS Bedrock (eu-central-1)\nLlama 3.2 3B\nCohere Embed/Rerank"
+    shape: cloud
+    style.fill: "#ff9900"
+    style.stroke: "#cc7a00"
+  }
+
+  aisg: {
+    label: "AI Singapore\nSEA-LION Models\nApertus Models"
+    shape: cloud
+    style.fill: "#84cc16"
+  }
+
+  anu: {
+    label: "ANU (Australia)\nApertus 8B & 70B"
+    shape: cloud
+    style.fill: "#fbbf24"
+  }
+
+  hh: {
+    label: "Heidelberg Uni (Germany)\nApertus Models"
+    shape: cloud
+    style.fill: "#8b5cf6"
+  }
+}
+
+# Bare-Metal Inference Partners
+bare_metal_partners: {
+  label: "Bare-Metal Inference Partners"
+  style.fill: "#fef2f2"
+  style.stroke: "#dc2626"
+
+  intel_aws: {
+    label: "Intel on AWS"
+    style.fill: "#dbeafe"
+    style.stroke: "#0071c5"
+
+    nginx_ingress: {
+      label: "Nginx Ingress"
+      shape: hexagon
+      style.fill: "#10b981"
+      style.stroke: "#059669"
+    }
+
+    vllm_pods: {
+      label: "vLLM Instances\nApertus Models"
+      shape: rectangle
+      style.fill: "#0ea5e9"
+    }
+
+    nginx_ingress -> vllm_pods: "Routes to"
+  }
+
+  exoscale: {
+    label: "Exoscale"
+    style.fill: "#eff6ff"
+    style.stroke: "#0066cc"
+
+    nginx_ingress: {
+      label: "Nginx Ingress"
+      shape: hexagon
+      style.fill: "#10b981"
+      style.stroke: "#059669"
+    }
+
+    vllm_pods: {
+      label: "vLLM Instances\nSalamandra 7B"
+      shape: rectangle
+      style.fill: "#3b82f6"
+    }
+
+    nginx_ingress -> vllm_pods: "Routes to"
+  }
+
+  cudo: {
+    label: "Cudo Compute"
+    style.fill: "#faf5ff"
+    style.stroke: "#9333ea"
+
+    nginx_ingress: {
+      label: "Nginx Ingress"
+      shape: hexagon
+      style.fill: "#10b981"
+      style.stroke: "#059669"
+    }
+
+    vllm_pods: {
+      label: "vLLM Instances\nALIA, Salamandra Models"
+      shape: rectangle
+      style.fill: "#a855f7"
+    }
+
+    nginx_ingress -> vllm_pods: "Routes to"
+  }
+}
+
+# User Flow
+users -> vercel: "Browse Landing Page"
+users -> identity_providers.aws_cognito: "Login to\nchat.publicai.co"
+users -> identity_providers.auth0: "Login to\nplatform.publicai.co"
+identity_providers.aws_cognito -> aws_eks.web_ingress.web_public_ingress: "Authenticated Users"
+identity_providers.auth0 -> zuplo.developer_portal: "Authenticated Developers"
+users -> zuplo.api_gateway.api_gateway_label: "API Requests"
+
+# OpenWebUI Dependencies
+aws_eks.web_services.services_container.openwebui_service -> aws_data_layer.postgres: "Vector DB\nUser Data"
+aws_eks.web_services.services_container.openwebui_service -> aws_data_layer.redis: "WebSocket\nState Management"
+aws_eks.web_services.services_container.openwebui_service -> aws_data_layer.s3: "File Uploads\nuploads/"
+
+# OpenWebUI External Services
+aws_eks.web_services.services_container.openwebui_service -> firecrawl: "Web Search & Loading"
+
+# OpenWebUI Internal Services
+aws_eks.web_services.services_container.openwebui_service -> aws_eks.web_services.services_container.tika_service: "Document Processing"
+
+# OpenWebUI to LiteLLM (AI Gateway)
+aws_eks.web_services.services_container.openwebui_service -> aws_eks.web_services.services_container.litellm_service: "AI Inference Requests\nX-OpenWebUI-User-* headers"
+
+# Zuplo API Gateway to Internal API Ingress
+zuplo.api_gateway.api_gateway_label -> aws_eks.web_ingress.litellm_internal_ingress: "Authenticated & Rate Limited\napi-internal.publicai.co"
+
+# LiteLLM Dependencies
+aws_eks.web_services.services_container.litellm_service -> aws_data_layer.postgres: "User Budgets\nAPI Keys"
+aws_eks.web_services.services_container.litellm_service -> aws_data_layer.redis: "Caching\nRate Limiting"
+
+# LiteLLM to Managed Inference Partners
+aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.bedrock: "/v1/chat/completions\n/v1/embeddings\n/v1/rerank"
+aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.aisg: "/v1/chat/completions\nSEA-LION, Apertus"
+aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.anu: "/v1/chat/completions\nApertus 8B & 70B"
+aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.hh: "/v1/chat/completions\nApertus Models"
+
+# LiteLLM to Bare-Metal Inference Partners
+aws_eks.web_services.services_container.litellm_service -> bare_metal_partners.intel_aws.nginx_ingress: "/v1/chat/completions\nApertus Models"
+aws_eks.web_services.services_container.litellm_service -> bare_metal_partners.exoscale.nginx_ingress: "/v1/chat/completions\nSalamandra 7B"
+aws_eks.web_services.services_container.litellm_service -> bare_metal_partners.cudo.nginx_ingress: "/v1/chat/completions\nALIA, Salamandra"
+
+# LiteLLM to Internal vLLM
+aws_eks.web_services.services_container.litellm_service -> aws_eks.llm_services.llm_router_service: "/v1/chat/completions\nApertus 70B"
