@@ -1,0 +1,248 @@
+direction: right
+
+# User Layer
+user_layer: {
+  label: ""
+  style.fill: "#f3f4f6"
+  style.stroke: "#6b7280"
+
+  user: {
+    label: "User"
+    shape: person
+    style.fill: "#374151"
+  }
+
+  auth: {
+    label: "Authentication"
+    style.fill: "#fef3c7"
+    style.stroke: "#f59e0b"
+
+    cognito: {
+      label: "AWS Cognito"
+      shape: rectangle
+      style.fill: "#fbbf24"
+    }
+
+    auth0: {
+      label: "Auth0"
+      shape: rectangle
+      style.fill: "#fb923c"
+    }
+  }
+
+  access_points: {
+    label: "Access Points"
+    style.fill: "#dbeafe"
+    style.stroke: "#3b82f6"
+
+    openwebui: {
+      label: "OpenWebUI"
+      shape: rectangle
+      style.fill: "#3b82f6"
+      style.font-color: "#ffffff"
+    }
+
+    zuplo: {
+      label: "Zuplo/Zudoku"
+      shape: rectangle
+      style.fill: "#8b5cf6"
+      style.font-color: "#ffffff"
+    }
+  }
+
+  gateway: {
+    label: "AI Gateway"
+    style.fill: "#fff7ed"
+    style.stroke: "#f97316"
+
+    litellm: {
+      label: "LiteLLM"
+      shape: hexagon
+      style.fill: "#f59e0b"
+      style.font-color: "#ffffff"
+    }
+  }
+
+  federated: {
+    label: "Federated Compute Partners"
+    style.fill: "#f0fdf4"
+    style.stroke: "#22c55e"
+
+    managed: {
+      label: "Managed Inference"
+      style.fill: "#d1fae5"
+      style.stroke: "#10b981"
+
+      aisg: {
+        label: "AI Singapore"
+        shape: cloud
+        style.fill: "#84cc16"
+        style.font-color: "#ffffff"
+      }
+
+      bedrock: {
+        label: "AWS Bedrock"
+        shape: cloud
+        style.fill: "#ff9900"
+        style.font-color: "#ffffff"
+      }
+
+      anu: { 
+        label: "ANU (Australia)"
+        shape: cloud
+        style.fill: "#fbbf24"
+      }
+
+      heidelberg: {
+        label: "Heidelberg Uni (Germany)"
+        shape: cloud
+        style.fill: "#8b5cf6"
+        style.font-color: "#ffffff"
+      }
+
+      cscs: {
+        label: "CSCS (Switzerland)"
+        shape: cloud
+        style.fill: "#ec4899"
+        style.font-color: "#ffffff"
+      }
+    }
+
+    bare_metal: {
+      label: "Bare-Metal Inference"
+      style.fill: "#fef2f2"
+      style.stroke: "#dc2626"
+
+      intel: {
+        label: "Intel/AWS"
+        style.fill: "#dbeafe"
+        style.stroke: "#0071c5"
+
+        nginx_intel: {
+          label: "Nginx"
+          shape: hexagon
+          style.fill: "#10b981"
+          style.font-color: "#ffffff"
+        }
+
+        vllm_intel: {
+          label: "vLLM"
+          shape: rectangle
+          style.fill: "#0ea5e9"
+          style.font-color: "#ffffff"
+        }
+
+        nginx_intel -> vllm_intel
+      }
+
+      exoscale: {
+        label: "Exoscale"
+        style.fill: "#eff6ff"
+        style.stroke: "#0066cc"
+
+        nginx_exoscale: {
+          label: "Nginx"
+          shape: hexagon
+          style.fill: "#10b981"
+          style.font-color: "#ffffff"
+        }
+
+        vllm_exoscale: {
+          label: "vLLM"
+          shape: rectangle
+          style.fill: "#3b82f6"
+          style.font-color: "#ffffff"
+        }
+
+        nginx_exoscale -> vllm_exoscale
+      }
+
+      cudo: {
+        label: "Cudo"
+        style.fill: "#faf5ff"
+        style.stroke: "#9333ea"
+
+        nginx_cudo: {
+          label: "Nginx"
+          shape: hexagon
+          style.fill: "#10b981"
+          style.font-color: "#ffffff"
+        }
+
+        vllm_cudo: {
+          label: "vLLM"
+          shape: rectangle
+          style.fill: "#a855f7"
+          style.font-color: "#ffffff"
+        }
+
+        nginx_cudo -> vllm_cudo
+      }
+    }
+  }
+
+  data: {
+    label: "Data Layer"
+    style.fill: "#f0fdf4"
+    style.stroke: "#22c55e"
+
+    postgres: {
+      label: "PostgreSQL\n(pgvector)"
+      shape: cylinder
+      style.fill: "#0ea5e9"
+      style.font-color: "#ffffff"
+    }
+
+    redis: {
+      label: "Redis"
+      shape: cylinder
+      style.fill: "#ef4444"
+      style.font-color: "#ffffff"
+    }
+
+    s3: {
+      label: "S3"
+      shape: cylinder
+      style.fill: "#06b6d4"
+      style.font-color: "#ffffff"
+    }
+  }
+
+  supporting: {
+    label: "Supporting Services"
+    style.fill: "#fef3c7"
+    style.stroke: "#f59e0b"
+
+    tika: {
+      label: "Apache Tika"
+      shape: rectangle
+      style.fill: "#a855f7"
+      style.font-color: "#ffffff"
+    }
+
+    firecrawl: {
+      label: "Firecrawl API"
+      shape: rectangle
+      style.fill: "#f97316"
+      style.font-color: "#ffffff"
+    }
+  }
+
+  # User flow connections
+  user -> auth.cognito
+  user -> auth.auth0
+  auth.cognito -> access_points.openwebui
+  auth.auth0 -> access_points.zuplo
+  access_points.openwebui -> gateway.litellm
+  access_points.zuplo -> gateway.litellm
+  access_points -> data
+  access_points -> supporting
+  gateway.litellm -> federated.managed.aisg
+  gateway.litellm -> federated.managed.bedrock
+  gateway.litellm -> federated.managed.anu
+  gateway.litellm -> federated.managed.heidelberg
+  gateway.litellm -> federated.managed.cscs
+  gateway.litellm -> federated.bare_metal.intel.nginx_intel
+  gateway.litellm -> federated.bare_metal.exoscale.nginx_exoscale
+  gateway.litellm -> federated.bare_metal.cudo.nginx_cudo
+}

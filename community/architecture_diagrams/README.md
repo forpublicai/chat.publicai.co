@@ -33,7 +33,7 @@ brew install d2  # macOS
 
 To generate a one-time SVG from the D2 file:
 ```bash
-d2 architecture.d2 architecture.svg --layout=elk
+d2 -w architecture_components.d2 architecture_components.svg --layout=elk
 ```
 
 ### Watch mode (recommended for editing)

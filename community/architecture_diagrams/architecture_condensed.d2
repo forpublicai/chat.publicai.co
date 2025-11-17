@@ -1,0 +1,103 @@
+direction: right
+
+# Access Points
+access_points: {
+  label: "Access Points"
+  style.fill: "#f3f4f6"
+  style.stroke: "#6b7280"
+
+  chat_ui: {
+    label: "Chat UI"
+    shape: rectangle
+    style.fill: "#3b82f6"
+    style.font-color: "#ffffff"
+  }
+
+  developer_api: {
+    label: "Developer API"
+    shape: rectangle
+    style.fill: "#8b5cf6"
+    style.font-color: "#ffffff"
+  }
+}
+
+# AI Gateway
+ai_gateway: {
+  label: "AI Gateway"
+  shape: hexagon
+  style.fill: "#f59e0b"
+  style.font-color: "#ffffff"
+}
+
+# Bare-Metal Inference Partners
+bare_metal: {
+  label: "Bare-Metal Inference Partners"
+  style.fill: "#fef2f2"
+  style.stroke: "#dc2626"
+
+  intel: {
+    label: "Intel on AWS\nApertus Models"
+    shape: cloud
+    style.fill: "#0ea5e9"
+    style.font-color: "#ffffff"
+  }
+
+  exoscale: {
+    label: "Exoscale\nSalamandra 7B"
+    shape: cloud
+    style.fill: "#3b82f6"
+    style.font-color: "#ffffff"
+  }
+
+  cudo: {
+    label: "Cudo Compute\nALIA, Salamandra"
+    shape: cloud
+    style.fill: "#a855f7"
+    style.font-color: "#ffffff"
+  }
+}
+
+# Managed Inference Partners
+managed_inference: {
+  label: "Managed Inference Partners"
+  style.fill: "#f0fdf4"
+  style.stroke: "#22c55e"
+
+  aisg: {
+    label: "AI Singapore\nSEA-LION, Apertus"
+    shape: cloud
+    style.fill: "#84cc16"
+    style.font-color: "#ffffff"
+  }
+
+  anu: {
+    label: "ANU Australia\nApertus 8B & 70B"
+    shape: cloud
+    style.fill: "#fbbf24"
+  }
+
+  heidelberg: {
+    label: "Heidelberg Uni\nApertus Models"
+    shape: cloud
+    style.fill: "#8b5cf6"
+    style.font-color: "#ffffff"
+  }
+
+  cscs: {
+    label: "CSCS Switzerland\nApertus 8B & 70B"
+    shape: cloud
+    style.fill: "#ec4899"
+    style.font-color: "#ffffff"
+  }
+}
+
+# Connections
+access_points.chat_ui -> ai_gateway
+access_points.developer_api -> ai_gateway
+ai_gateway -> bare_metal.intel
+ai_gateway -> bare_metal.exoscale
+ai_gateway -> bare_metal.cudo
+ai_gateway -> managed_inference.aisg
+ai_gateway -> managed_inference.anu
+ai_gateway -> managed_inference.heidelberg
+ai_gateway -> managed_inference.cscs

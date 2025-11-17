@@ -245,6 +245,12 @@ managed_inference_partners: {
     shape: cloud
     style.fill: "#8b5cf6"
   }
+
+  cscs: {
+    label: "CSCS (Switzerland)\nApertus 8B & 70B"
+    shape: cloud
+    style.fill: "#ec4899"
+  }
 }
 
 # Bare-Metal Inference Partners
@@ -351,6 +357,7 @@ aws_eks.web_services.services_container.litellm_service -> managed_inference_par
 aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.aisg: "/v1/chat/completions\nSEA-LION, Apertus"
 aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.anu: "/v1/chat/completions\nApertus 8B & 70B"
 aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.hh: "/v1/chat/completions\nApertus Models"
+aws_eks.web_services.services_container.litellm_service -> managed_inference_partners.cscs: "/v1/chat/completions\nApertus 8B & 70B"
 
 # LiteLLM to Bare-Metal Inference Partners
 aws_eks.web_services.services_container.litellm_service -> bare_metal_partners.intel_aws.nginx_ingress: "/v1/chat/completions\nApertus Models"
