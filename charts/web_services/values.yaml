@@ -16,7 +16,7 @@ open-webui:
   # Production-specific overrides
   app:
     webuiUrl: "https://chat.publicai.co"
-    replicas: 2  # Scaled for 5k users
+    replicas: 2  
     
     # Production storage configuration
     storage:
@@ -29,18 +29,18 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "4Gi"
-        cpu: "1500m"
+        memory: "1Gi"
+        cpu: "500m"
       limits:
-        memory: "6Gi"
-        cpu: "3000m"
+        memory: "4Gi"
+        cpu: "2000m"
 
   # Autoscaling for high load
   autoscaling:
     enabled: true
-    minReplicas: 4
-    maxReplicas: 12
-    targetCPUUtilizationPercentage: 60
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 70
 
   serviceAccount:
@@ -80,14 +80,14 @@ tika:
   service:
     name: tika-service
     port: 9998
-  javaOpts: "-Xms512m -Xmx2g"
+  javaOpts: "-Xms2g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
   resources:
     requests:
-      memory: "1Gi"
-      cpu: "200m"
+      memory: "2Gi"      # Reserve less, but enough for normal ops
+      cpu: "500m"
     limits:
-      memory: "2.5Gi"
-      cpu: "1000m"
+      memory: "6Gi"      # Keep high for OCR/large PDFs!
+      cpu: "2000m"
 
 # LiteLLM configuration
 litellm:

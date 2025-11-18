@@ -75,20 +75,20 @@ config:
     #     temperature: 0.8
     #     top_p: 0.9
     #     max_tokens: 8192
-    - model_name: swiss-ai/apertus-8b-instruct
-      litellm_params:
-        model: openai/swiss-ai/Apertus-8B-Instruct-2509
-        api_base: https://api-internal-exoscale-2.publicai.co/v1
-        api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 8192
+    # - model_name: swiss-ai/apertus-8b-instruct
+    #   litellm_params:
+    #     model: openai/swiss-ai/Apertus-8B-Instruct-2509
+    #     api_base: https://api-internal-exoscale-2.publicai.co/v1
+    #     api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
+    #     weight: 20
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 8192
     # Apertus 8B model via CSCS endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
-        model: openai/swiss-ai/Apertus-8B-Instruct-2509
-        api_base: https://vllm.svc.cscs.ch/apertus-70b-instruct/v1
+        model: openai/Apertus-8B-Instruct-2509
+        api_base: https://llm-proxy.svc.cscs.ch/v1
         api_key: "os.environ/VLLM_API_KEY_CSCS"
         weight: 20
         temperature: 0.8
@@ -164,15 +164,15 @@ config:
     #     top_p: 0.9
     #     max_tokens: 8192
     # Apertus 70B model via CSCS endpoint
-    # - model_name: swiss-ai/apertus-70b-instruct
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-70B-Instruct-2509
-    #     api_base: https://vllm.svc.cscs.ch/apertus-70b-instruct/v1
-    #     api_key: "os.environ/VLLM_API_KEY_CSCS"
-    #     weight: 20
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192
+    - model_name: swiss-ai/apertus-70b-instruct
+      litellm_params:
+        model: openai/Apertus-70B-Instruct-2509
+        api_base: https://llm-proxy.svc.cscs.ch/v1
+        api_key: "os.environ/VLLM_API_KEY_CSCS"
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 8192
      # Apertus 70B model via ANU endpoint
     - model_name: swiss-ai/apertus-70b-instruct-anu
       litellm_params:
@@ -249,9 +249,9 @@ router:
 autoscaling:
   enabled: true
   minReplicas: 2
-  maxReplicas: 8
-  targetCPUUtilizationPercentage: 60
-  targetMemoryUtilizationPercentage: 70
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60
