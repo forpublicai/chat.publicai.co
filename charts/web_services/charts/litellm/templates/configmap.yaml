@@ -18,6 +18,7 @@ data:
         # - header_name: X-OpenWebUI-User-Email
         #   litellm_user_role: customer
       enforce_user_param: false
+      store_prompts_in_spend_logs: true
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
         mode: "auto"
