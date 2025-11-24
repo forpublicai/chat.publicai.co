@@ -94,16 +94,25 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 8192
+    # Olmo 7B model via intel endpoint
+    - model_name: allenai/Olmo-3-7B-Instruct
+      litellm_params:
+        model: openai/allenai/Olmo-3-7B-Instruct
+        api_base: https://api-internal-intel.publicai.co/olmo/v1
+        api_key: "os.environ/VLLM_API_KEY_INTEL"
+        temperature: 0.6
+        top_p: 0.95
+        max_tokens: 16384
     # Apertus 8B model via intel endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
-        api_base: https://api-internal-intel.publicai.co/v1
+        api_base: https://api-internal-intel.publicai.co/apertus/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 8192
+        max_tokens: 16384
     # Apertus 8B model via AISG endpoint
     # - model_name: swiss-ai/apertus-8b-instruct
     #   litellm_params:
@@ -142,17 +151,17 @@ config:
     #     weight: 1
     #     temperature: 0.8
     #     top_p: 0.9
-    #     max_tokens: 8192
-    # Apertus 70B model via vLLM router service
-    - model_name: swiss-ai/apertus-70b-instruct
-      litellm_params:
-        model: openai/apertus-70b-instruct
-        api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
-        api_key: "os.environ/VLLM_API_KEY"
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 8192
+    #     max_tokens: 16384
+    # # Apertus 70B model via vLLM router service
+    # - model_name: swiss-ai/apertus-70b-instruct
+    #   litellm_params:
+    #     model: openai/apertus-70b-instruct
+    #     api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
+    #     api_key: "os.environ/VLLM_API_KEY"
+    #     weight: 20
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 16384
     # # Apertus 70B model via CUDO endpoint
     # - model_name: swiss-ai/apertus-70b-instruct
     #   litellm_params:
@@ -162,7 +171,7 @@ config:
     #     weight: 20
     #     temperature: 0.8
     #     top_p: 0.9
-    #     max_tokens: 8192
+    #     max_tokens: 16384
     # Apertus 70B model via CSCS endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -172,7 +181,7 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 8192
+        max_tokens: 16384
      # Apertus 70B model via ANU endpoint
     - model_name: swiss-ai/apertus-70b-instruct-anu
       litellm_params:
@@ -181,7 +190,7 @@ config:
         api_key: "os.environ/VLLM_API_KEY_ANU"
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 8192
+        max_tokens: 16384
     # SeaLion model
     - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:
@@ -196,7 +205,7 @@ config:
         api_key: "os.environ/VLLM_API_KEY_CUDO"
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 8192
+        max_tokens: 16384
     - model_name: BSC-LT/salamandra-7b-instruct-tools-16k
       litellm_params:
         model: openai/BSC-LT/salamandra-7b-instruct-tools-16k
@@ -204,7 +213,7 @@ config:
         api_key: "os.environ/VLLM_API_KEY_CUDO"
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 8192
+        max_tokens: 16384
 
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
