@@ -29,19 +29,19 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "768Mi"
+        cpu: "300m"
       limits:
-        memory: "4Gi"
-        cpu: "2000m"
+        memory: "2Gi"
+        cpu: "1000m"
 
   # Autoscaling for high load
   autoscaling:
     enabled: true
-    minReplicas: 2
+    minReplicas: 1
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 70
-    targetMemoryUtilizationPercentage: 70
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 85
 
   serviceAccount:
     roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
@@ -80,14 +80,14 @@ tika:
   service:
     name: tika-service
     port: 9998
-  javaOpts: "-Xms2g -Xmx4g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+  javaOpts: "-Xms256m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
   resources:
     requests:
-      memory: "2Gi"      # Reserve less, but enough for normal ops
-      cpu: "500m"
+      memory: "256Mi"    # Reserve less, but enough for normal ops
+      cpu: "100m"
     limits:
-      memory: "6Gi"      # Keep high for OCR/large PDFs!
-      cpu: "2000m"
+      memory: "2Gi"      # Keep high for OCR/large PDFs!
+      cpu: "1000m"
 
 # LiteLLM configuration
 litellm:

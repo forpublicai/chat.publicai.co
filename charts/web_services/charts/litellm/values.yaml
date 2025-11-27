@@ -11,11 +11,11 @@ app:
 
   resources:
     requests:
-      memory: "3Gi"
-      cpu: "1500m"
+      memory: "768Mi"
+      cpu: "300m"
     limits:
-      memory: "6Gi"
-      cpu: "3000m"
+      memory: "2Gi"
+      cpu: "1000m"
 
 # Service configuration
 service:
@@ -50,15 +50,15 @@ config:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
     # Salamandra 7B models 
-    - model_name: BSC-LT/salamandra-7b-instruct
-      litellm_params:
-        model: openai/BSC-LT/salamandra-7b-instruct
-        api_base: https://api-internal-exoscale-2.publicai.co/v1
-        api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 8192    
+    # - model_name: BSC-LT/salamandra-7b-instruct
+    #   litellm_params:
+    #     model: openai/BSC-LT/salamandra-7b-instruct
+    #     api_base: https://api-internal-exoscale-2.publicai.co/v1
+    #     api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
+    #     weight: 20
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 8192    
     # Apertus 8B models
     # - model_name: swiss-ai/apertus-8b-instruct
     #   litellm_params:
@@ -94,7 +94,45 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 8192
-    # Olmo 7B model via intel endpoint
+    # Olmo 7B model think via parascale endpoint
+    - model_name: allenai/Olmo-3-7B-Instruct
+      litellm_params:
+        model: openai/Olmo-3-7B-Instruct
+        api_base: https://api.parasail.io/v1
+        api_key: "os.environ/PARASCALE_API_KEY"
+        weight: 1
+        temperature: 0.6
+        top_p: 0.95
+        max_tokens: 16384
+    # # Olmo 7B model think via parascale endpoint
+    # - model_name: allenai/Olmo-3-7B-Think
+    #   litellm_params:
+    #     model: openai/Olmo-3-7B-Think
+    #     api_base: https://api.parasail.io/v1
+    #     api_key: "os.environ/PARASCALE_API_KEY"
+    #     temperature: 0.6
+    #     top_p: 0.95
+    #     max_tokens: 16384
+    # Olmo 32B model think via parascale endpoint
+    - model_name: allenai/Olmo-3-32B-Think
+      litellm_params:
+        model: openai/Olmo-3-32B-Think
+        api_base: https://api.parasail.io/v1
+        api_key: "os.environ/PARASCALE_API_KEY"
+        temperature: 0.6
+        top_p: 0.95
+        max_tokens: 16384
+    # Olmo 7B model think via cirrascale endpoint
+    - model_name: allenai/Olmo-3-7B-Think
+      litellm_params:
+        model: openai/Olmo-3-7B-Think
+        api_base: https://ai2endpoints.cirrascale.ai/api
+        api_key: "os.environ/CIRRASCALE_API_KEY"
+        weight: 1
+        temperature: 0.6
+        top_p: 0.95
+        max_tokens: 16384
+    # Olmo 7B model instruct via intel endpoint
     - model_name: allenai/Olmo-3-7B-Instruct
       litellm_params:
         model: openai/allenai/Olmo-3-7B-Instruct
@@ -124,24 +162,24 @@ config:
     #     top_p: 0.9
     #     max_tokens: 8192
     # Apertus 8B model via ANU endpoint
-    - model_name: swiss-ai/apertus-8b-instruct-anu
-      litellm_params:
-        model: openai/swiss-ai/Apertus-8B-2509
-        api_base: https://apertus-01.nci.org.au/v1
-        api_key: "os.environ/VLLM_API_KEY_ANU"
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 8192
+    # - model_name: swiss-ai/apertus-8b-instruct-anu
+    #   litellm_params:
+    #     model: openai/swiss-ai/Apertus-8B-2509
+    #     api_base: https://apertus-01.nci.org.au/v1
+    #     api_key: "os.environ/VLLM_API_KEY_ANU"
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 8192
     # Apertus 8B model via HH endpoint
-    - model_name: swiss-ai/apertus-8b-instruct-hh
-      litellm_params:
-        model: openai/alias-apertus
-        api_base: http://134.94.199.27:8080/v1
-        api_key: "os.environ/VLLM_API_KEY_HH"
-        weight: 2
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 8192
+    # - model_name: swiss-ai/apertus-8b-instruct-hh
+    #   litellm_params:
+    #     model: openai/alias-apertus
+    #     api_base: http://134.94.199.27:8080/v1
+    #     api_key: "os.environ/VLLM_API_KEY_HH"
+    #     weight: 2
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 8192
     # Apertus 70B model via AISG endpoint
     # - model_name: swiss-ai/apertus-70b-instruct
     #   litellm_params:
@@ -181,20 +219,26 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 16384
+        max_tokens: 64000
      # Apertus 70B model via ANU endpoint
-    - model_name: swiss-ai/apertus-70b-instruct-anu
-      litellm_params:
-        model: openai/swiss-ai/Apertus-70B-2509
-        api_base: https://apertus-02.nci.org.au/v1
-        api_key: "os.environ/VLLM_API_KEY_ANU"
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 16384
-    # SeaLion model
+    # - model_name: swiss-ai/apertus-70b-instruct-anu
+    #   litellm_params:
+    #     model: openai/swiss-ai/Apertus-70B-2509
+    #     api_base: https://apertus-02.nci.org.au/v1
+    #     api_key: "os.environ/VLLM_API_KEY_ANU"
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 16384
+    # SeaLion model (Gemma)
     - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:
         model: openai/aisingapore/Gemma-SEA-LION-v4-27B-IT
+        api_base: https://api.sea-lion.ai
+        api_key: "os.environ/SEALION_API_KEY"
+    # SeaLion model (Qwen)
+    - model_name: aisingapore/Qwen-SEA-LION-v4-32B-IT
+      litellm_params:
+        model: openai/aisingapore/Qwen-SEA-LION-v4-32B-IT
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
     # Spanish Models
@@ -243,6 +287,8 @@ secrets:
   vllmApiKeyCudo: ""
   vllmApiKeyHh: ""
   vllmApiKeyIntel: ""
+  cirrascaleApiKey: ""
+  parascaleApiKey: ""
 
 # Environment variables
 env:
@@ -257,10 +303,10 @@ router:
 # Autoscaling configuration
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 5
+  minReplicas: 1
+  maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60

@@ -36,7 +36,7 @@ data:
       extra_spend_tag_headers:
         - "x-openwebui-user-id"
         - "x-zuplo-user-id"
-    
+        
     model_list:
     {{- range .Values.config.models }}
     - model_name: {{ .model_name }}

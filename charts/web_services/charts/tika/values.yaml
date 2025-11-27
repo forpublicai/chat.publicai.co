@@ -30,10 +30,10 @@ tika:
 # Autoscaling configuration
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 6
-  targetCPUUtilizationPercentage: 70
-  targetMemoryUtilizationPercentage: 75
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60
