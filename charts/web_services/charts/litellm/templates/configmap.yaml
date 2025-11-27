@@ -51,6 +51,15 @@ data:
         {{- if .litellm_params.api_key }}
         api_key: {{ .litellm_params.api_key | quote }}
         {{- end }}
+      {{- if .model_info }}
+      model_info:
+        {{- if .model_info.input_cost_per_token }}
+        input_cost_per_token: {{ .model_info.input_cost_per_token }}
+        {{- end }}
+        {{- if .model_info.output_cost_per_token }}
+        output_cost_per_token: {{ .model_info.output_cost_per_token }}
+        {{- end }}
+      {{- end }}
     {{- end }}
     
     {{- if .Values.config.guardrails }}
