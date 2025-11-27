@@ -39,16 +39,23 @@ config:
       litellm_params:
         model: bedrock/eu.meta.llama3-2-3b-instruct-v1:0
         aws_region_name: eu-central-1
+      model_info:
+        input_cost_per_token: 0.00000015  # $0.15 per 1M tokens (estimated)
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens (estimated)
     # Embedding model (ON_DEMAND - no inference profile needed)
     - model_name: Cohere/Cohere-embed-multilingual-v3.0
       litellm_params:
         model: bedrock/cohere.embed-multilingual-v3
         aws_region_name: eu-central-1
+      model_info:
+        input_cost_per_token: 0.0000001  # $0.10 per 1M tokens
     # Reranking model (ON_DEMAND - no inference profile needed)
     - model_name: Cohere/rerank-v3.5
       litellm_params:
         model: bedrock/cohere.rerank-v3-5:0
         aws_region_name: eu-central-1
+      model_info:
+        input_cost_per_token: 0.000001  # $1.00 per 1M tokens (query-based pricing)
     # Salamandra 7B models 
     # - model_name: BSC-LT/salamandra-7b-instruct
     #   litellm_params:
@@ -94,6 +101,9 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 8192
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Olmo 7B model think via parascale endpoint
     - model_name: allenai/Olmo-3-7B-Instruct
       litellm_params:
@@ -104,6 +114,9 @@ config:
         temperature: 0.6
         top_p: 0.95
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens (parasail-olmo-3-7b-instruct)
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # # Olmo 7B model think via parascale endpoint
     # - model_name: allenai/Olmo-3-7B-Think
     #   litellm_params:
@@ -122,6 +135,9 @@ config:
         temperature: 0.6
         top_p: 0.95
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000030  # $0.30 per 1M tokens (parasail-olmo-3-32b-think)
+        output_cost_per_token: 0.00000055  # $0.55 per 1M tokens
     # Olmo 7B model think via cirrascale endpoint
     - model_name: allenai/Olmo-3-7B-Think
       litellm_params:
@@ -132,6 +148,9 @@ config:
         temperature: 0.6
         top_p: 0.95
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000007  # $0.07 per 1M tokens (cirrascale)
+        output_cost_per_token: 0.00000015  # $0.15 per 1M tokens
     # Olmo 7B model instruct via intel endpoint
     - model_name: allenai/Olmo-3-7B-Instruct
       litellm_params:
@@ -141,6 +160,9 @@ config:
         temperature: 0.6
         top_p: 0.95
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 8B model via intel endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
@@ -151,6 +173,9 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 8B model via AISG endpoint
     # - model_name: swiss-ai/apertus-8b-instruct
     #   litellm_params:
@@ -220,6 +245,9 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 64000
+      model_info:
+        input_cost_per_token: 0.00000030  # $0.30 per 1M tokens
+        output_cost_per_token: 0.00000060  # $0.60 per 1M tokens
      # Apertus 70B model via ANU endpoint
     # - model_name: swiss-ai/apertus-70b-instruct-anu
     #   litellm_params:
@@ -235,12 +263,18 @@ config:
         model: openai/aisingapore/Gemma-SEA-LION-v4-27B-IT
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
+      model_info:
+        input_cost_per_token: 0.00000020  # $0.20 per 1M tokens (estimated for 27B model)
+        output_cost_per_token: 0.00000040  # $0.40 per 1M tokens
     # SeaLion model (Qwen)
     - model_name: aisingapore/Qwen-SEA-LION-v4-32B-IT
       litellm_params:
         model: openai/aisingapore/Qwen-SEA-LION-v4-32B-IT
         api_base: https://api.sea-lion.ai
         api_key: "os.environ/SEALION_API_KEY"
+      model_info:
+        input_cost_per_token: 0.00000025  # $0.25 per 1M tokens (estimated for 32B model)
+        output_cost_per_token: 0.00000050  # $0.50 per 1M tokens
     # Spanish Models
     - model_name: BSC-LT/ALIA-40b-instruct_Q8_0
       litellm_params:
@@ -250,6 +284,9 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000025  # $0.25 per 1M tokens (estimated for 40B model)
+        output_cost_per_token: 0.00000050  # $0.50 per 1M tokens
     - model_name: BSC-LT/salamandra-7b-instruct-tools-16k
       litellm_params:
         model: openai/BSC-LT/salamandra-7b-instruct-tools-16k
@@ -258,6 +295,9 @@ config:
         temperature: 0.8
         top_p: 0.9
         max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens (estimated for 7B model)
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
 
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
