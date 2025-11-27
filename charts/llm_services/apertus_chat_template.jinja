@@ -97,38 +97,81 @@
 
 {%- macro render_tools(tools) -%}
     {%- for tool in tools %}
-        {{- "// " + tool.function.description + "\n" }}
-        {{- "type "+ tool.function.name + " = " }}
-        {%- if tool.function and tool.function.parameters and tool.function.parameters.properties %}
-            {{- "(_: {\n" }}
-            {%- for param_name, param_spec in tool.function.parameters.properties.items() %}
-                {%- if param_spec.description %}
-                    {{- "// " + param_spec.description + "\n" }}
-                {%- endif %}
-                {{- param_name }}
-                {%- if param_name not in (tool.function.parameters.required or []) -%}
-                    {{- "?" }}
-                {%- endif -%}
-                {{- ": " }}
-                {{- render_typescript_type(param_spec, tool.function.parameters.required or []) }}
-                {%- if param_spec.default is defined -%}
-                    {%- if param_spec.enum %}
-                        {{- ", // default: " + param_spec.default }}
-                    {%- elif param_spec.oneOf %}
-                        {{- "// default: " + param_spec.default }}
-                    {%- else %}
-                        {{- ", // default: " + param_spec.default|tojson }}
+        {%- if tool.function is defined -%}
+            {#- Chat Completions format: {"type": "function", "function": {...}} #}
+            {%- set func = tool.function -%}
+            {%- if func.description is defined -%}
+                {{- "// " + func.description + "\n" }}
+            {%- endif -%}
+            {{- "type "+ func.name + " = " }}
+            {%- if func.parameters and func.parameters.properties %}
+                {{- "(_: {\n" }}
+                {%- for param_name, param_spec in func.parameters.properties.items() %}
+                    {%- if param_spec.description is defined %}
+                        {{- "// " + param_spec.description + "\n" }}
+                    {%- endif %}
+                    {{- param_name }}
+                    {%- if param_name not in (func.parameters.required or []) -%}
+                        {{- "?" }}
                     {%- endif -%}
-                {%- endif -%}
-                {%- if not loop.last %}
-                    {{- ",\n" }}
-                {%- else %}
-                    {{- "\n" }}
-                {%- endif -%}
-            {%- endfor %}
-            {{- "}) => any;" }}
+                    {{- ": " }}
+                    {{- render_typescript_type(param_spec, func.parameters.required or []) }}
+                    {%- if param_spec.default is defined -%}
+                        {%- if param_spec.enum %}
+                            {{- ", // default: " + param_spec.default }}
+                        {%- elif param_spec.oneOf %}
+                            {{- "// default: " + param_spec.default }}
+                        {%- else %}
+                            {{- ", // default: " + param_spec.default|tojson }}
+                        {%- endif -%}
+                    {%- endif -%}
+                    {%- if not loop.last %}
+                        {{- ",\n" }}
+                    {%- else %}
+                        {{- "\n" }}
+                    {%- endif -%}
+                {%- endfor %}
+                {{- "}) => any;" }}
+            {%- else -%}
+                {{- "() => any;" }}
+            {%- endif -%}
         {%- else -%}
-            {{- "() => any;" }}
+            {#- Responses format: {"type": "function", "name": "...", ...} #}
+            {%- if tool.description is defined -%}
+                {{- "// " + tool.description + "\n" }}
+            {%- endif -%}
+            {{- "type "+ tool.name + " = " }}
+            {%- if tool.parameters and tool.parameters.properties %}
+                {{- "(_: {\n" }}
+                {%- for param_name, param_spec in tool.parameters.properties.items() %}
+                    {%- if param_spec.description is defined %}
+                        {{- "// " + param_spec.description + "\n" }}
+                    {%- endif %}
+                    {{- param_name }}
+                    {%- if param_name not in (tool.parameters.required or []) -%}
+                        {{- "?" }}
+                    {%- endif -%}
+                    {{- ": " }}
+                    {{- render_typescript_type(param_spec, tool.parameters.required or []) }}
+                    {%- if param_spec.default is defined -%}
+                        {%- if param_spec.enum %}
+                            {{- ", // default: " + param_spec.default }}
+                        {%- elif param_spec.oneOf %}
+                            {{- "// default: " + param_spec.default }}
+                        {%- else %}
+                            {{- ", // default: " + param_spec.default|tojson }}
+                        {%- endif -%}
+                    {%- endif -%}
+                    {%- if not loop.last %}
+                        {{- ",\n" }}
+                    {%- else %}
+                        {{- "\n" }}
+                    {%- endif -%}
+                {%- endfor %}
+                {{- "}) => any;" }}
+            {%- else -%}
+                {{- "() => any;" }}
+            {%- endif -%}
         {%- endif -%}
         {%- if not loop.last -%}
             {{- "\n" }}
@@ -294,7 +337,7 @@
             {%- for tool_call in message.tool_calls -%}
                 {%- if tool_call.type == 'function' -%}
                     {%- set function = tool_call.function -%}
-                    {{- '{"' + function.name + '": ' + (function.arguments|string) + '}' }}
+                    {{- '{"' + function.name + '": ' + function.arguments + '}' }}
                     {%- if not loop.last -%}
                         {{- ", " }}
                     {%- endif -%}

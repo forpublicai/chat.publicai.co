@@ -99,6 +99,16 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: vllm_api_key_intel
+            - name: CIRRASCALE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: cirrascale_api_key
+            - name: PARASCALE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: parascale_api_key
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml

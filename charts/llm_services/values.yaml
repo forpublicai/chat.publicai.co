@@ -75,10 +75,10 @@ vllm-stack:
           - "--tool-parser-plugin"
           - "/opt/apertus_tool_parser.py"
           - "--tool-call-parser"
-          - "apertus_json"
+          - "apertus"
           - "--chat-template"
           - "/opt/apertus_chat_template.jinja"
-      
+
       extraVolumes:
         - name: s3-storage
           persistentVolumeClaim:
@@ -98,30 +98,30 @@ vllm-stack:
           mountPath: /opt/apertus_chat_template.jinja
           subPath: apertus_chat_template.jinja
 
-    # Small model: 8B for testing (currently disabled)
-    - name: "apertus-8b-instruct"
-      repository: "vllm/vllm-openai"
-      tag: "v0.10.2"
-      modelURL: "/models/Apertus-8B-sft-mixture-8e-aligned"
-      replicaCount: 0               # Disabled (set to 1 to enable)
+    # # Small model: 8B for testing (currently disabled)
+    # - name: "apertus-8b-instruct"
+    #   repository: "vllm/vllm-openai"
+    #   tag: "v0.10.2"
+    #   modelURL: "/models/Apertus-8B-sft-mixture-8e-aligned"
+    #   replicaCount: 0               # Disabled (set to 1 to enable)
 
-      requestCPU: 16                # CPU cores per instance
-      requestMemory: "64Gi"         # RAM per instance
-      requestGPU: 8                 # GPUs per instance
+    #   requestCPU: 16                # CPU cores per instance
+    #   requestMemory: "64Gi"         # RAM per instance
+    #   requestGPU: 8                 # GPUs per instance
 
-      vllmConfig:
-        tensorParallelSize: 8
+    #   vllmConfig:
+    #     tensorParallelSize: 8
 
-        extraArgs:
-          - "--served-model-name"
-          - "apertus-8b-instruct"
-          - "--enable-auto-tool-choice"
-          - "--tool-parser-plugin"
-          - "/opt/apertus_tool_parser.py"
-          - "--tool-call-parser"
-          - "apertus_json"
-          - "--chat-template"
-          - "/opt/apertus_chat_template.jinja"
+    #     extraArgs:
+    #       - "--served-model-name"
+    #       - "apertus-8b-instruct"
+    #       - "--enable-auto-tool-choice"
+    #       - "--tool-parser-plugin"
+    #       - "/opt/apertus_tool_parser.py"
+    #       - "--tool-call-parser"
+    #       - "apertus"
+    #       - "--chat-template"
+    #       - "/opt/apertus_chat_template.jinja"
       
       extraVolumes:
         - name: s3-storage
@@ -144,4 +144,4 @@ vllm-stack:
 
 # Observability stack (optional)
 observability:
-  enabled: true  # Set to true to enable Prometheus/Grafana stack
+  enabled: false  # Set to true to enable Prometheus/Grafana stack
