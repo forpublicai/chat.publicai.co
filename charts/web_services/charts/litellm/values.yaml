@@ -298,7 +298,17 @@ config:
       model_info:
         input_cost_per_token: 0.00000010  # $0.10 per 1M tokens (estimated for 7B model)
         output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
-
+    - model_name: mistralai/mistral-small-3-1
+      litellm_params:
+        model: openai/mistral-small-3-1
+        api_base: https://api.compactif.ai/v1
+        api_key: "os.environ/MULTIVERSE_API_KEY"
+        temperature: 0.15
+        top_p: 0.85
+        max_tokens: 32000
+      model_info:
+        input_cost_per_token: 0.00000011  # $0.11 per 1M tokens 
+        output_cost_per_token: 0.00000017  # $0.17 per 1M tokens
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
   #     litellm_params:
@@ -329,7 +339,7 @@ secrets:
   vllmApiKeyIntel: ""
   cirrascaleApiKey: ""
   parascaleApiKey: ""
-
+  multiverseApiKey: ""
 # Environment variables
 env:
   aws_region: "eu-central-1"

@@ -109,6 +109,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: parascale_api_key
+            - name: MULTIVERSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: multiverse_api_key
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml

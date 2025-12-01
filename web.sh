@@ -57,6 +57,7 @@ validate_env() {
         "VLLM_API_KEY_INTEL"
         "CIRRASCALE_API_KEY"
         "PARASCALE_API_KEY"
+        "MULTIVERSE_API_KEY"
         "EXPECTED_KUBE_CONTEXT"
     )
     
@@ -115,8 +116,9 @@ deploy_services() {
         --set litellm.secrets.vllmApiKeyHh="$VLLM_API_KEY_HH" \
         --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
         --set litellm.secrets.cirrascaleApiKey="$CIRRASCALE_API_KEY" \
-        --set litellm.secrets.parascaleApiKey="$PARASCALE_API_KEY" 
-    
+        --set litellm.secrets.parascaleApiKey="$PARASCALE_API_KEY" \
+        --set litellm.secrets.multiverseApiKey="$MULTIVERSE_API_KEY"
+
     echo "✅ Web services deployment complete!"
 }
 
