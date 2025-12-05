@@ -114,6 +114,19 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: multiverse_api_key
+            {{- if .Values.lago.enabled }}
+            - name: LAGO_API_BASE
+              value: "http://web-services-api-svc.web-services.svc.cluster.local:3000"
+            - name: LAGO_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: lago_api_key
+            - name: LAGO_API_EVENT_CODE
+              value: "{{ .Values.lago.eventCode }}"
+            - name: LAGO_API_CHARGE_BY
+              value: "{{ .Values.lago.chargeBy }}"
+            {{- end }}
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml
@@ -122,6 +135,10 @@ spec:
             - name: custom-auth-volume
               mountPath: /app/custom_auth.py
               subPath: custom_auth.py
+              readOnly: true
+            - name: custom-lago-callback-volume
+              mountPath: /app/custom_lago_callback.py
+              subPath: custom_lago_callback.py
               readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
@@ -134,3 +151,6 @@ spec:
         - name: custom-auth-volume
           configMap:
             name: {{ .Values.app.name }}-custom-auth
+        - name: custom-lago-callback-volume
+          configMap:
+            name: {{ .Values.app.name }}-custom-lago-callback

@@ -58,6 +58,14 @@ validate_env() {
         "CIRRASCALE_API_KEY"
         "PARASCALE_API_KEY"
         "MULTIVERSE_API_KEY"
+        "LAGO_DATABASE_URL"
+        "LAGO_REDIS_URL"
+        "LAGO_SECRET_KEY_BASE"
+        "LAGO_ENCRYPTION_PRIMARY_KEY"
+        "LAGO_ENCRYPTION_DETERMINISTIC_KEY"
+        "LAGO_ENCRYPTION_KEY_DERIVATION_SALT"
+        "LAGO_RSA_PRIVATE_KEY"
+        "LAGO_API_KEY"
         "EXPECTED_KUBE_CONTEXT"
     )
     
@@ -89,8 +97,8 @@ set_kube_context() {
 deploy_services() {
     echo "🔧 Building web services dependencies..."
     helm dependency build charts/web_services/
-    
-    echo "📦 Deploying web services..."
+
+    echo "📦 Deploying web services with Lago billing..."
     helm upgrade --install web-services charts/web_services/ \
         -n web-services \
         --create-namespace \
@@ -102,6 +110,7 @@ deploy_services() {
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
         --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set litellm.enabled=true \
         --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
         --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
         --set litellm.secrets.databaseUrl="$LITELLM_DATABASE_URL" \
@@ -117,7 +126,12 @@ deploy_services() {
         --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
         --set litellm.secrets.cirrascaleApiKey="$CIRRASCALE_API_KEY" \
         --set litellm.secrets.parascaleApiKey="$PARASCALE_API_KEY" \
-        --set litellm.secrets.multiverseApiKey="$MULTIVERSE_API_KEY"
+        --set litellm.secrets.multiverseApiKey="$MULTIVERSE_API_KEY" \
+        --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
+        --set litellm.lago.enabled=true \
+        --set lago.enabled=true \
+        --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
+        --set lago.global.redisUrl="$LAGO_REDIS_URL"
 
     echo "✅ Web services deployment complete!"
 }

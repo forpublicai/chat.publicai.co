@@ -10,7 +10,7 @@ dependencies:
     version: "0.1.0"
     repository: "file://./charts/open-webui"
   - name: searxng
-    version: "0.1.0" 
+    version: "0.1.0"
     repository: "file://./charts/searxng"
     condition: searxng.enabled
   - name: tika
@@ -20,6 +20,10 @@ dependencies:
     version: "0.1.0"
     repository: "file://./charts/litellm"
     condition: litellm.enabled
+  - name: lago
+    version: "1.27.1"
+    repository: "https://getlago.github.io/lago-helm-charts"
+    condition: lago.enabled
 
 keywords:
   - ai

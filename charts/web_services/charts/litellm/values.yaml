@@ -11,10 +11,10 @@ app:
 
   resources:
     requests:
-      memory: "768Mi"
+      memory: "2Gi"
       cpu: "300m"
     limits:
-      memory: "2Gi"
+      memory: "4Gi"
       cpu: "1000m"
 
 # Service configuration
@@ -56,54 +56,6 @@ config:
         aws_region_name: eu-central-1
       model_info:
         input_cost_per_token: 0.000001  # $1.00 per 1M tokens (query-based pricing)
-    # Salamandra 7B models 
-    # - model_name: BSC-LT/salamandra-7b-instruct
-    #   litellm_params:
-    #     model: openai/BSC-LT/salamandra-7b-instruct
-    #     api_base: https://api-internal-exoscale-2.publicai.co/v1
-    #     api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
-    #     weight: 20
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192    
-    # Apertus 8B models
-    # - model_name: swiss-ai/apertus-8b-instruct
-    #   litellm_params:
-    #     model: openai/apertus-8b-instruct
-    #     api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
-    #     api_key: "os.environ/VLLM_API_KEY"
-    #     weight: 2
-    # - model_name: swiss-ai/apertus-8b-instruct
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-8B-Instruct-2509
-    #     api_base: https://api-internal-exoscale.publicai.co/v1
-    #     api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
-    #     weight: 1
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192
-    # - model_name: swiss-ai/apertus-8b-instruct
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-8B-Instruct-2509
-    #     api_base: https://api-internal-exoscale-2.publicai.co/v1
-    #     api_key: "os.environ/VLLM_API_KEY_EXOSCALE"
-    #     weight: 20
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192
-    # Apertus 8B model via CSCS endpoint
-    - model_name: swiss-ai/apertus-8b-instruct
-      litellm_params:
-        model: openai/Apertus-8B-Instruct-2509
-        api_base: https://llm-proxy.svc.cscs.ch/v1
-        api_key: "os.environ/VLLM_API_KEY_CSCS"
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 8192
-      model_info:
-        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
-        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Olmo 7B model think via parascale endpoint
     - model_name: allenai/Olmo-3-7B-Instruct
       litellm_params:
@@ -176,65 +128,19 @@ config:
       model_info:
         input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
         output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
-    # Apertus 8B model via AISG endpoint
-    # - model_name: swiss-ai/apertus-8b-instruct
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-8B-Instruct-2509
-    #     api_base: https://api.sea-lion.ai/v1
-    #     api_key: "os.environ/SEALION_API_KEY"
-    #     weight: 1
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192
-    # Apertus 8B model via ANU endpoint
-    # - model_name: swiss-ai/apertus-8b-instruct-anu
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-8B-2509
-    #     api_base: https://apertus-01.nci.org.au/v1
-    #     api_key: "os.environ/VLLM_API_KEY_ANU"
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192
-    # Apertus 8B model via HH endpoint
-    # - model_name: swiss-ai/apertus-8b-instruct-hh
-    #   litellm_params:
-    #     model: openai/alias-apertus
-    #     api_base: http://134.94.199.27:8080/v1
-    #     api_key: "os.environ/VLLM_API_KEY_HH"
-    #     weight: 2
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 8192
-    # Apertus 70B model via AISG endpoint
-    # - model_name: swiss-ai/apertus-70b-instruct
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-70B-Instruct-2509
-    #     api_base: https://api.sea-lion.ai/v1
-    #     api_key: "os.environ/SEALION_API_KEY"
-    #     weight: 1
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 16384
-    # # Apertus 70B model via vLLM router service
-    # - model_name: swiss-ai/apertus-70b-instruct
-    #   litellm_params:
-    #     model: openai/apertus-70b-instruct
-    #     api_base: http://llm-services-router-service.llm-services.svc.cluster.local/v1
-    #     api_key: "os.environ/VLLM_API_KEY"
-    #     weight: 20
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 16384
-    # # Apertus 70B model via CUDO endpoint
-    # - model_name: swiss-ai/apertus-70b-instruct
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-70B-Instruct-2509
-    #     api_base: https://api-internal-cudo.publicai.co/v1
-    #     api_key: "os.environ/VLLM_API_KEY_CUDO"
-    #     weight: 20
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 16384
+    # Apertus 8B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-8b-instruct
+      litellm_params:
+        model: openai/Apertus-8B-Instruct-2509
+        api_base: https://llm-proxy.svc.cscs.ch/v1
+        api_key: "os.environ/VLLM_API_KEY_CSCS"
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 8192
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 70B model via CSCS endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -244,19 +150,10 @@ config:
         weight: 20
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 64000
+        max_tokens: 16384
       model_info:
         input_cost_per_token: 0.00000030  # $0.30 per 1M tokens
         output_cost_per_token: 0.00000060  # $0.60 per 1M tokens
-     # Apertus 70B model via ANU endpoint
-    # - model_name: swiss-ai/apertus-70b-instruct-anu
-    #   litellm_params:
-    #     model: openai/swiss-ai/Apertus-70B-2509
-    #     api_base: https://apertus-02.nci.org.au/v1
-    #     api_key: "os.environ/VLLM_API_KEY_ANU"
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 16384
     # SeaLion model (Gemma)
     - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:
@@ -340,6 +237,8 @@ secrets:
   cirrascaleApiKey: ""
   parascaleApiKey: ""
   multiverseApiKey: ""
+  lagoApiKey: ""  # Lago API key for billing integration
+
 # Environment variables
 env:
   aws_region: "eu-central-1"
@@ -355,7 +254,7 @@ autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 3
-  targetCPUUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 75
   targetMemoryUtilizationPercentage: 85
   behavior:
     scaleUp:
@@ -370,3 +269,10 @@ autoscaling:
       - type: Percent
         value: 10
         periodSeconds: 60
+
+# Lago billing integration
+lago:
+  enabled: true  # Set to true to enable Lago billing
+  eventCode: "public_ai_models"  # Event code in Lago for billing metrics
+  chargeBy: "end_user_id"  # Charge by: user_id, team_id, or end_user_id (uses the 'user' parameter from API calls)
+  apiBase: "https://lago-api.publicai.co"  # Lago API base URL. Not being used as Litellm communicates internally to Lago.

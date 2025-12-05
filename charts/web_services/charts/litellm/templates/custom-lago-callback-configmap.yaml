@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-custom-lago-callback
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+data:
+  custom_lago_callback.py: |
+{{ .Files.Get "custom_lago_callback.py" | indent 4 }}
