@@ -22,19 +22,25 @@ data:
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
         mode: "auto"
-    
+
     router_settings:
       routing_strategy: "{{ .Values.router.routingStrategy }}"
       # Redis disabled - using simple-shuffle strategy doesn't require persistent state
       # redis_host: "{{ .Values.secrets.redisHost }}"
       # redis_port: {{ .Values.env.litellmRedisPort }}
       # redis_url: "{{ .Values.secrets.redisUrl }}"
-    
+
     litellm_settings:
       cache: false
       drop_params: true
+      {{- if .Values.lago.enabled }}
+      # Custom Lago billing integration with separate input/output events
+      callbacks: ["custom_lago_callback.lago_callback"]
+      {{- end }}
       extra_spend_tag_headers:
         - "x-openwebui-user-id"
+        - "x-openwebui-user-email"
+        - "x-openwebui-user-name"
         - "x-zuplo-user-id"
         
     model_list:
@@ -50,6 +56,18 @@ data:
         {{- end }}
         {{- if .litellm_params.api_key }}
         api_key: {{ .litellm_params.api_key | quote }}
+        {{- end }}
+        {{- if .litellm_params.weight }}
+        weight: {{ .litellm_params.weight }}
+        {{- end }}
+        {{- if .litellm_params.temperature }}
+        temperature: {{ .litellm_params.temperature }}
+        {{- end }}
+        {{- if .litellm_params.top_p }}
+        top_p: {{ .litellm_params.top_p }}
+        {{- end }}
+        {{- if .litellm_params.max_tokens }}
+        max_tokens: {{ .litellm_params.max_tokens }}
         {{- end }}
       {{- if .model_info }}
       model_info:

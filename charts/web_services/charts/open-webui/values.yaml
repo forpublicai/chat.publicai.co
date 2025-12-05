@@ -77,10 +77,10 @@ app:
   # Resource configuration - minimal defaults
   resources:
     requests:
-      memory: "1Gi"
-      cpu: "500m"
-    limits:
       memory: "2Gi"
+      cpu: "300m"
+    limits:
+      memory: "4Gi"
       cpu: "1000m"
 
 service:
@@ -92,10 +92,10 @@ service:
 
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 5
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 85
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60

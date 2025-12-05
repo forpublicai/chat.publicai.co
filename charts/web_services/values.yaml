@@ -29,17 +29,17 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "768Mi"
+        memory: "2Gi"
         cpu: "300m"
       limits:
-        memory: "2Gi"
+        memory: "4Gi"
         cpu: "1000m"
 
   # Autoscaling for high load
   autoscaling:
     enabled: true
     minReplicas: 1
-    maxReplicas: 5
+    maxReplicas: 3
     targetCPUUtilizationPercentage: 75
     targetMemoryUtilizationPercentage: 85
 
@@ -94,3 +94,80 @@ litellm:
   enabled: true
   secrets:
     litellmMasterKey: ""
+  lago:
+    enabled: true  # Set to true to enable Lago billing integration
+
+# Lago billing platform configuration (official chart)
+lago:
+  enabled: true
+
+  # Required URLs
+  apiUrl: "https://lago-api.publicai.co"
+  frontUrl: "https://lago.publicai.co"
+
+  # Use existing external database and Redis
+  global:
+    databaseUrl: ""  # Set via --set from web.sh
+    redisUrl: ""  # Set via --set from web.sh
+
+    # Disable signup
+    signup:
+      enabled: true
+
+    # Enable S3 storage
+    s3:
+      enabled: true
+      bucket: "publicai-bucket"
+      region: "eu-central-2"
+      endpoint: "https://s3.eu-central-2.amazonaws.com"
+
+    # SMTP configuration
+    smtp:
+      enabled: false
+      fromEmail: "support@publicai.co"
+
+    # Disable PDF generation for now
+    pdf:
+      enabled: true
+
+    # Disable ingress (we're using our own)
+    ingress:
+      enabled: false
+
+  # Disable internal PostgreSQL and Redis (using external)
+  postgresql:
+    enabled: false
+
+  redis:
+    enabled: false
+
+  # Resource configuration
+  front:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+  api:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  worker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"

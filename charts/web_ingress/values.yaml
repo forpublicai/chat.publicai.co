@@ -11,7 +11,6 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
-      alb.ingress.kubernetes.io/security-groups: "sg-002fe9601c42fc291"
     targetService:
       name: openwebui-service  # Actual service name from OpenWebUI stack
       port: 8080               # Default OpenWebUI port
@@ -28,10 +27,39 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
-      alb.ingress.kubernetes.io/security-groups: "sg-0ea7fbf4d422dcff2"
     targetService:
       name: litellm-service
       port: 4000
+
+  # Lago billing platform frontend ingress (official chart)
+  - enabled: true
+    name: lago-public-ingress
+    host: lago.publicai.co
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+    targetService:
+      name: web-services-front-svc  # Official chart service name
+      port: 80
+
+  # Lago billing platform API ingress (official chart)
+  - enabled: true
+    name: lago-api-ingress
+    host: lago-api.publicai.co
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+    targetService:
+      name: web-services-api-svc  # Official chart service name
+      port: 3000
 
 # Certificate ARN (passed from command line)
 certificateArn: ""
