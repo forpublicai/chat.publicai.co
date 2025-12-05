@@ -67,6 +67,7 @@ validate_env() {
         "LAGO_RSA_PRIVATE_KEY"
         "LAGO_API_KEY"
         "EXPECTED_KUBE_CONTEXT"
+        "DICTA_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -131,7 +132,8 @@ deploy_services() {
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
-        --set lago.global.redisUrl="$LAGO_REDIS_URL"
+        --set lago.global.redisUrl="$LAGO_REDIS_URL" \
+        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY"
 
     echo "✅ Web services deployment complete!"
 }

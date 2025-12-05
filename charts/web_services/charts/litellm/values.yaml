@@ -206,6 +206,17 @@ config:
       model_info:
         input_cost_per_token: 0.00000011  # $0.11 per 1M tokens 
         output_cost_per_token: 0.00000017  # $0.17 per 1M tokens
+    - model_name: dicta-il/DictaLM-3.0-24B-Thinking
+      litellm_params:
+        model: openai/DictaLM-3.0-24B-Thinking
+        api_base: https://dictalm3-0-api-backend.loadbalancer3.dicta.org.il/v1
+        api_key: "os.environ/DICTA_API_KEY"
+        temperature: 0.15
+        top_p: 0.85
+        max_tokens: 16000
+      model_info:
+        input_cost_per_token: 0.00000020  # $0.20 per 1M tokens 
+        output_cost_per_token: 0.00000040  # $0.40 per 1M tokens
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
   #     litellm_params:
@@ -238,6 +249,7 @@ secrets:
   parascaleApiKey: ""
   multiverseApiKey: ""
   lagoApiKey: ""  # Lago API key for billing integration
+  dictaApiKey: ""
 
 # Environment variables
 env:

@@ -74,7 +74,7 @@ searxng:
       memory: "1Gi" 
       cpu: "1000m"
 
-# Tika configuration  
+# Tika configuration
 tika:
   enabled: true
   service:
@@ -83,8 +83,8 @@ tika:
   javaOpts: "-Xms256m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
   resources:
     requests:
-      memory: "256Mi"    # Reserve less, but enough for normal ops
-      cpu: "100m"
+      memory: "768Mi"    # Match actual memory request
+      cpu: "250m"        # Match actual CPU request
     limits:
       memory: "2Gi"      # Keep high for OCR/large PDFs!
       cpu: "1000m"
@@ -163,6 +163,67 @@ lago:
         cpu: "1000m"
 
   worker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  # All worker types (billing, clock, events, payment, pdf, webhook)
+  billingWorker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  clockWorker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  eventsWorker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  paymentWorker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  pdfWorker:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  webhookWorker:
     replicaCount: 1
     resources:
       requests:
