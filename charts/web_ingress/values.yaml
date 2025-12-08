@@ -57,6 +57,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/healthcheck-path: /health
     targetService:
       name: web-services-api-svc  # Official chart service name
       port: 3000

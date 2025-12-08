@@ -101,6 +101,10 @@ litellm:
 lago:
   enabled: true
 
+  # Service Account configuration for IRSA (IAM Roles for Service Accounts)
+  serviceAccount:
+    roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
+
   # Required URLs
   apiUrl: "https://lago-api.publicai.co"
   frontUrl: "https://lago.publicai.co"
@@ -156,10 +160,10 @@ lago:
     replicaCount: 1
     resources:
       requests:
-        memory: "512Mi"
+        memory: "1536Mi"
         cpu: "200m"
       limits:
-        memory: "1Gi"
+        memory: "2Gi"
         cpu: "1000m"
 
   worker:
@@ -192,6 +196,17 @@ lago:
       limits:
         memory: "1Gi"
         cpu: "1000m"
+
+  # PDF service (Gotenberg)
+  pdf:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
 
   eventsWorker:
     replicaCount: 1
