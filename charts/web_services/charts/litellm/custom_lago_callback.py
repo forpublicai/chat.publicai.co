@@ -129,6 +129,9 @@ class LagoCustomCallback(CustomLogger):
 
             # Mistral
             "mistral-small-3-1": "mistralai/mistral-small-3-1",
+
+            # Dicta
+            "DictaLM-3.0-24B-Thinking": "dicta-il/DictaLM-3.0-24B-Thinking",
         }
 
         # Try direct mapping first
