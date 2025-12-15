@@ -2,8 +2,10 @@
 app:
   name: litellm
   image:
-    repository: ghcr.io/berriai/litellm-database
-    tag: "main-stable"
+    # repository: ghcr.io/berriai/litellm-database
+    # tag: "main-stable"
+    repository: ghcr.io/forpublicai/litellm-database
+    tag: spend_logs_patch 
     pullPolicy: Always
   
   replicas: 1
