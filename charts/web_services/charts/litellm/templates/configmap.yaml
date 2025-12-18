@@ -31,7 +31,25 @@ data:
       # redis_url: "{{ .Values.secrets.redisUrl }}"
 
     litellm_settings:
+      {{- if .Values.config.litellm_settings }}
+      {{- if hasKey .Values.config.litellm_settings "cache" }}
+      cache: {{ .Values.config.litellm_settings.cache }}
+      {{- if .Values.config.litellm_settings.cache_params }}
+      cache_params:
+        type: {{ .Values.config.litellm_settings.cache_params.type }}
+        {{- if .Values.config.litellm_settings.cache_params.namespace }}
+        namespace: {{ .Values.config.litellm_settings.cache_params.namespace | quote }}
+        {{- end }}
+        {{- if .Values.config.litellm_settings.cache_params.ttl }}
+        ttl: {{ .Values.config.litellm_settings.cache_params.ttl }}
+        {{- end }}
+      {{- end }}
+      {{- else }}
       cache: false
+      {{- end }}
+      {{- else }}
+      cache: false
+      {{- end }}
       drop_params: true
       {{- if .Values.lago.enabled }}
       # Custom Lago billing integration with separate input/output events
