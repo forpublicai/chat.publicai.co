@@ -6,7 +6,7 @@ app:
   replicas: 2
   image:
     repository: ghcr.io/forpublicai/open-webui
-    tag: latest-cognito-patch # cognito-patch-6c0c999b9-20250929-193806 (last working stable)
+    tag: cognito-patch-8265abf73-20251221-034242 # cognito-patch-8265abf73-20251221-034242 (last working) cognito-patch-6c0c999b9-20250929-193806 (2nd last working)
   port: 8080
   webuiUrl: "https://chat.publicai.co"
   vectorDb: pgvector

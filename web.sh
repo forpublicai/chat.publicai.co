@@ -68,6 +68,7 @@ validate_env() {
         "LAGO_API_KEY"
         "EXPECTED_KUBE_CONTEXT"
         "DICTA_API_KEY"
+        "INFOMANIAK_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -129,11 +130,13 @@ deploy_services() {
         --set litellm.secrets.parascaleApiKey="$PARASCALE_API_KEY" \
         --set litellm.secrets.multiverseApiKey="$MULTIVERSE_API_KEY" \
         --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
+        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
+        --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
-        --set lago.global.redisUrl="$LAGO_REDIS_URL" \
-        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY"
+        --set lago.global.redisUrl="$LAGO_REDIS_URL" 
+        
 
     echo "✅ Web services deployment complete!"
 }

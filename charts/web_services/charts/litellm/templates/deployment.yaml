@@ -137,6 +137,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: dicta_api_key
+            - name: INFOMANIAK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: infomaniak_api_key
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml
