@@ -13,7 +13,7 @@ app:
 
   resources:
     requests:
-      memory: "2Gi"
+      memory: "3Gi"
       cpu: "300m"
     limits:
       memory: "4Gi"
@@ -66,29 +66,30 @@ config:
         aws_region_name: eu-central-1
       model_info:
         input_cost_per_token: 0.000001  # $1.00 per 1M tokens (query-based pricing)
-    # Olmo 7B model think via parascale endpoint
-    - model_name: allenai/Olmo-3-7B-Instruct
-      litellm_params:
-        model: openai/allenai/Olmo-3-7B-Instruct
-        api_base: https://api.parasail.io/v1
-        api_key: "os.environ/PARASCALE_API_KEY"
-        weight: 1
-        temperature: 0.6
-        top_p: 0.95
-        max_tokens: 16384
-      model_info:
-        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens (parasail-olmo-3-7b-instruct)
-        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # # Olmo 7B model think via parascale endpoint
-    # - model_name: allenai/Olmo-3-7B-Think
+    # - model_name: allenai/Olmo-3-7B-Instruct
     #   litellm_params:
-    #     model: openai/Olmo-3-7B-Think
+    #     model: openai/allenai/Olmo-3-7B-Instruct
     #     api_base: https://api.parasail.io/v1
     #     api_key: "os.environ/PARASCALE_API_KEY"
+    #     weight: 1
     #     temperature: 0.6
     #     top_p: 0.95
     #     max_tokens: 16384
-    # Olmo 32B model think via parascale endpoint
+    #   model_info:
+    #     input_cost_per_token: 0.00000010  # $0.10 per 1M tokens (parasail-olmo-3-7b-instruct)
+    #     output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+    # Olmo 7B model think via parascale endpoint
+    - model_name: allenai/Molmo2-8B
+      litellm_params:
+        model: openai/allenai/Molmo2-8B
+        api_base: https://api.parasail.io/v1
+        api_key: "os.environ/PARASCALE_API_KEY"
+        supports_vision: true  
+        temperature: 0.6
+        top_p: 0.95
+        max_tokens: 16384
+    # # Olmo 32B model think via parascale endpoint
     - model_name: allenai/Olmo-3.1-32B-Think
       litellm_params:
         model: openai/allenai/Olmo-3.1-32B-Think
@@ -98,40 +99,54 @@ config:
         top_p: 0.95
         max_tokens: 32768
       model_info:
-        input_cost_per_token: 0.00000030  # $0.30 per 1M tokens (parasail-olmo-3.1-32b-think)
-        output_cost_per_token: 0.00000055  # $0.55 per 1M tokens
+        input_cost_per_token: 0.00000015  # $0.15 per 1M tokens (parasail-olmo-3.1-32b-think)
+        output_cost_per_token: 0.00000050  # $0.50 per 1M tokens
     # Olmo 32B model instruct via cirrascale endpoint
+    # - model_name: allenai/Olmo-3.1-32B-Instruct
+    #   litellm_params:
+    #     model: openai/Olmo-3.1-32B-Instruct
+    #     api_base: https://ai2endpoints.cirrascale.ai/api
+    #     api_key: "os.environ/CIRRASCALE_API_KEY"
+    #     weight: 1
+    #     temperature: 0.6
+    #     top_p: 0.95
+    #     max_tokens: 32768
+    #   model_info:
+    #     input_cost_per_token: 0.00000005  # $0.05 per 1M tokens (cirrascale)
+    #     output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+    # Olmo 32B model instruct via deepinfra endpoint
     - model_name: allenai/Olmo-3.1-32B-Instruct
       litellm_params:
-        model: openai/Olmo-3.1-32B-Instruct
-        api_base: https://ai2endpoints.cirrascale.ai/api
-        api_key: "os.environ/CIRRASCALE_API_KEY"
+        model: openai/allenai/Olmo-3.1-32B-Instruct
+        api_base: https://api.deepinfra.com/v1/openai
+        api_key: "os.environ/DEEPINFRA_API_KEY"
         weight: 1
         temperature: 0.6
         top_p: 0.95
         max_tokens: 32768
       model_info:
-        input_cost_per_token: 0.00000005  # $0.05 per 1M tokens (cirrascale)
-        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
-    # Olmo 7B model think via cirrascale endpoint
-    - model_name: allenai/Olmo-3-7B-Think
-      litellm_params:
-        model: openai/Olmo-3-7B-Think
-        api_base: https://ai2endpoints.cirrascale.ai/api
-        api_key: "os.environ/CIRRASCALE_API_KEY"
-        weight: 1
-        temperature: 0.6
-        top_p: 0.95
-        max_tokens: 16384
-      model_info:
-        input_cost_per_token: 0.00000007  # $0.07 per 1M tokens (cirrascale)
-        output_cost_per_token: 0.00000015  # $0.15 per 1M tokens
+        input_cost_per_token: 0.00000020  # $0.20 per 1M tokens (cirrascale)
+        output_cost_per_token: 0.00000060  # $0.60 per 1M tokens
+    # # Olmo 7B model think via cirrascale endpoint
+    # - model_name: allenai/Olmo-3-7B-Think
+    #   litellm_params:
+    #     model: openai/Olmo-3-7B-Think
+    #     api_base: https://ai2endpoints.cirrascale.ai/api
+    #     api_key: "os.environ/CIRRASCALE_API_KEY"
+    #     weight: 1
+    #     temperature: 0.6
+    #     top_p: 0.95
+    #     max_tokens: 16384
+    #   model_info:
+    #     input_cost_per_token: 0.00000007  # $0.07 per 1M tokens (cirrascale)
+    #     output_cost_per_token: 0.00000015  # $0.15 per 1M tokens
     # EuroLLM 22B model instruct via intel endpoint
     - model_name: utter-project/EuroLLM-22B-Instruct-2512
       litellm_params:
         model: openai/utter-project/EuroLLM-22B-Instruct-2512
         api_base: https://api-internal-intel.publicai.co/eurollm/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
+        ssl_verify: false
         weight: 1
         temperature: 0.6
         top_p: 0.95
@@ -145,6 +160,7 @@ config:
         model: openai/allenai/Olmo-3-7B-Instruct
         api_base: https://api-internal-intel.publicai.co/olmo/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
+        ssl_verify: false
         weight: 1
         temperature: 0.6
         top_p: 0.95
@@ -158,7 +174,8 @@ config:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
         api_base: https://api-internal-intel.publicai.co/apertus/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
-        supports_vision: true  
+        ssl_verify: false
+        supports_vision: true
         weight: 20
         temperature: 0.8
         top_p: 0.9
@@ -183,14 +200,14 @@ config:
     # Apertus 70B model via Infomaniak endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
-        model: openai/Apertus-70B-Instruct-2509
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
         api_base: https://api.infomaniak.com/2/ai/106744/openai/v1
         api_key: "os.environ/INFOMANIAK_API_KEY"
         supports_vision: true  
-        weight: 20
+        weight: 1
         temperature: 0.8
         top_p: 0.9
-        max_tokens: 16384
+        max_tokens: 8192
       model_info:
         input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
         output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
@@ -206,8 +223,8 @@ config:
         top_p: 0.9
         max_tokens: 16384
       model_info:
-        input_cost_per_token: 0.00000030  # $0.30 per 1M tokens
-        output_cost_per_token: 0.00000060  # $0.60 per 1M tokens
+        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
     # SeaLion model (Gemma)
     - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:

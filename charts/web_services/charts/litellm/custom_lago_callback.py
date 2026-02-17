@@ -10,7 +10,7 @@ Based on https://github.com/BerriAI/litellm/blob/main/litellm/integrations/lago.
 import json
 import os
 from litellm._uuid import uuid
-from typing import Literal, Optional
+from typing import Optional
 import httpx
 import litellm
 from litellm._logging import verbose_logger
@@ -60,35 +60,27 @@ class LagoCustomCallback(CustomLogger):
         if len(missing_keys) > 0:
             raise Exception("Missing keys={} in environment.".format(missing_keys))
 
-    def _get_customer_id(self, kwargs: dict) -> Optional[str]:
-        """Extract customer ID based on LAGO_API_CHARGE_BY setting"""
+    def _get_subscription_id(self, kwargs: dict) -> Optional[str]:
+        """Extract subscription ID from request headers or metadata"""
         litellm_params = kwargs.get("litellm_params", {}) or {}
         proxy_server_request = litellm_params.get("proxy_server_request") or {}
-        end_user_id = proxy_server_request.get("body", {}).get("user", None)
-        user_id = litellm_params.get("metadata", {}).get("user_api_key_user_id", None)
-        team_id = litellm_params.get("metadata", {}).get("user_api_key_team_id", None)
 
-        charge_by: Literal["end_user_id", "team_id", "user_id"] = "end_user_id"
-        external_customer_id: Optional[str] = None
+        # Try to get subscription ID from custom header first
+        headers = proxy_server_request.get("headers", {}) or {}
+        subscription_id = headers.get("x-zuplo-subscription-id", None)
 
-        if os.getenv("LAGO_API_CHARGE_BY", None) is not None and isinstance(
-            os.environ["LAGO_API_CHARGE_BY"], str
-        ):
-            if os.environ["LAGO_API_CHARGE_BY"] in [
-                "end_user_id",
-                "user_id",
-                "team_id",
-            ]:
-                charge_by = os.environ["LAGO_API_CHARGE_BY"]  # type: ignore
+        if subscription_id:
+            verbose_logger.debug(f"Found subscription ID in headers: {subscription_id}")
+            return subscription_id
 
-        if charge_by == "end_user_id":
-            external_customer_id = end_user_id
-        elif charge_by == "team_id":
-            external_customer_id = team_id
-        elif charge_by == "user_id":
-            external_customer_id = user_id
+        # Fallback: try to get from metadata
+        subscription_id = litellm_params.get("metadata", {}).get("subscription_id", None)
+        if subscription_id:
+            verbose_logger.debug(f"Found subscription ID in metadata: {subscription_id}")
+            return subscription_id
 
-        return external_customer_id
+        verbose_logger.debug("No subscription ID found in headers or metadata")
+        return None
 
     def _normalize_model_name(self, model: str) -> str:
         """
@@ -144,7 +136,7 @@ class LagoCustomCallback(CustomLogger):
         # If it's already in the correct format (org/model), return as-is
         return model
 
-    def _create_event(self, customer_id: str, model: str, tokens: int, event_type: str) -> dict:
+    def _create_event(self, subscription_id: str, model: str, tokens: int, event_type: str) -> dict:
         """Create a single Lago event"""
         # Normalize the model name to match Lago billing codes
         normalized_model = self._normalize_model_name(model)
@@ -152,7 +144,7 @@ class LagoCustomCallback(CustomLogger):
         return {
             "event": {
                 "transaction_id": str(uuid.uuid4()),
-                "external_subscription_id": customer_id,
+                "external_subscription_id": subscription_id,
                 "code": os.getenv("LAGO_API_EVENT_CODE", "public_ai_models"),
                 "timestamp": int(get_utc_datetime().timestamp()),
                 "properties": {
@@ -168,10 +160,10 @@ class LagoCustomCallback(CustomLogger):
         try:
             print("🔍 Lago sync callback triggered")
 
-            # Get customer ID
-            customer_id = self._get_customer_id(kwargs)
-            if not customer_id:
-                verbose_logger.debug("⚠️ No customer ID found, skipping Lago events")
+            # Get subscription ID
+            subscription_id = self._get_subscription_id(kwargs)
+            if not subscription_id:
+                verbose_logger.debug("⚠️ No subscription ID found, skipping Lago events")
                 return
 
             # Extract model and usage
@@ -193,7 +185,7 @@ class LagoCustomCallback(CustomLogger):
                 verbose_logger.debug("⚠️ No tokens found in response")
                 return
 
-            print(f"📊 Sending Lago events for customer: {customer_id}, prompt:{prompt_tokens}, completion:{completion_tokens}")
+            print(f"📊 Sending Lago events for subscription: {subscription_id}, prompt:{prompt_tokens}, completion:{completion_tokens}")
 
             # Setup URL and headers
             _url = os.getenv("LAGO_API_BASE")
@@ -210,7 +202,7 @@ class LagoCustomCallback(CustomLogger):
 
             # Send input tokens event
             if prompt_tokens > 0:
-                input_event = self._create_event(customer_id, model, prompt_tokens, "input")
+                input_event = self._create_event(subscription_id, model, prompt_tokens, "input")
                 response = self.sync_http_handler.post(
                     url=_url,
                     data=json.dumps(input_event),
@@ -221,7 +213,7 @@ class LagoCustomCallback(CustomLogger):
 
             # Send output tokens event
             if completion_tokens > 0:
-                output_event = self._create_event(customer_id, model, completion_tokens, "output")
+                output_event = self._create_event(subscription_id, model, completion_tokens, "output")
                 response = self.sync_http_handler.post(
                     url=_url,
                     data=json.dumps(output_event),
@@ -239,10 +231,10 @@ class LagoCustomCallback(CustomLogger):
         try:
             print("🔍 Lago async callback triggered")
 
-            # Get customer ID
-            customer_id = self._get_customer_id(kwargs)
-            if not customer_id:
-                verbose_logger.debug("⚠️ No customer ID found, skipping Lago events")
+            # Get subscription ID
+            subscription_id = self._get_subscription_id(kwargs)
+            if not subscription_id:
+                verbose_logger.debug("⚠️ No subscription ID found, skipping Lago events")
                 return
 
             # Extract model and usage
@@ -264,7 +256,7 @@ class LagoCustomCallback(CustomLogger):
                 verbose_logger.debug("⚠️ No tokens found in response")
                 return
 
-            print(f"📊 Sending Lago events for customer: {customer_id}, prompt:{prompt_tokens}, completion:{completion_tokens}")
+            print(f"📊 Sending Lago events for subscription: {subscription_id}, prompt:{prompt_tokens}, completion:{completion_tokens}")
 
             # Setup URL and headers
             _url = os.getenv("LAGO_API_BASE")
@@ -281,7 +273,7 @@ class LagoCustomCallback(CustomLogger):
 
             # Send input tokens event
             if prompt_tokens > 0:
-                input_event = self._create_event(customer_id, model, prompt_tokens, "input")
+                input_event = self._create_event(subscription_id, model, prompt_tokens, "input")
                 response = await self.async_http_handler.post(
                     url=_url,
                     data=json.dumps(input_event),
@@ -292,7 +284,7 @@ class LagoCustomCallback(CustomLogger):
 
             # Send output tokens event
             if completion_tokens > 0:
-                output_event = self._create_event(customer_id, model, completion_tokens, "output")
+                output_event = self._create_event(subscription_id, model, completion_tokens, "output")
                 response = await self.async_http_handler.post(
                     url=_url,
                     data=json.dumps(output_event),

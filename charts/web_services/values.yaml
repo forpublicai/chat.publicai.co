@@ -16,7 +16,7 @@ open-webui:
   # Production-specific overrides
   app:
     webuiUrl: "https://chat.publicai.co"
-    replicas: 2  
+    replicas: 1
     
     # Production storage configuration
     storage:

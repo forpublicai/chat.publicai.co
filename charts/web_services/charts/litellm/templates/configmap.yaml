@@ -51,6 +51,7 @@ data:
       cache: false
       {{- end }}
       drop_params: true
+      ssl_verify: false
       {{- if .Values.lago.enabled }}
       # Custom Lago billing integration with separate input/output events
       callbacks: ["custom_lago_callback.lago_callback"]
@@ -74,6 +75,12 @@ data:
         {{- end }}
         {{- if .litellm_params.api_key }}
         api_key: {{ .litellm_params.api_key | quote }}
+        {{- end }}
+        {{- if eq .litellm_params.ssl_verify false }}
+        ssl_verify: false
+        {{- end }}
+        {{- if .litellm_params.supports_vision }}
+        supports_vision: {{ .litellm_params.supports_vision }}
         {{- end }}
         {{- if .litellm_params.weight }}
         weight: {{ .litellm_params.weight }}
