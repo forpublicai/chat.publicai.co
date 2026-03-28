@@ -6,12 +6,12 @@ app:
   replicas: 2
   image:
     repository: ghcr.io/forpublicai/open-webui
-    tag: latest-cognito-patch # cognito-patch-8265abf73-20251221-034242 (last working) cognito-patch-6c0c999b9-20250929-193806 (2nd last working)
+    tag: cognito-patch-3b58c9716-20260312-222608 # cognito-patch-8265abf73-20251221-034242 (last working) cognito-patch-6c0c999b9-20250929-193806 (2nd last working)
   port: 8080
   webuiUrl: "https://chat.publicai.co"
   vectorDb: pgvector
   enableVersionUpdateCheck: "false"
-  enablePersistentConfig: "false"
+  enablePersistentConfig: "true"
   
   # Affinity settings for production
   affinity:

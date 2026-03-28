@@ -50,6 +50,15 @@ data:
       {{- else }}
       cache: false
       {{- end }}
+      {{- if .Values.config.litellm_settings.num_retries }}
+      num_retries: {{ .Values.config.litellm_settings.num_retries }}
+      {{- end }}
+      {{- if .Values.config.litellm_settings.allowed_fails }}
+      allowed_fails: {{ .Values.config.litellm_settings.allowed_fails }}
+      {{- end }}
+      {{- if .Values.config.litellm_settings.cooldown_time }}
+      cooldown_time: {{ .Values.config.litellm_settings.cooldown_time }}
+      {{- end }}
       drop_params: true
       ssl_verify: false
       {{- if .Values.lago.enabled }}

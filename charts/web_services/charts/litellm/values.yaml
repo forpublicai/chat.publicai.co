@@ -36,6 +36,9 @@ serviceAccount:
 # ConfigMap for model configuration
 config:
   litellm_settings:
+    num_retries: 3
+    allowed_fails: 1
+    cooldown_time: 60
     cache: true
     cache_params:
       type: redis
@@ -80,15 +83,15 @@ config:
     #     input_cost_per_token: 0.00000010  # $0.10 per 1M tokens (parasail-olmo-3-7b-instruct)
     #     output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Olmo 7B model think via parascale endpoint
-    - model_name: allenai/Molmo2-8B
-      litellm_params:
-        model: openai/allenai/Molmo2-8B
-        api_base: https://api.parasail.io/v1
-        api_key: "os.environ/PARASCALE_API_KEY"
-        supports_vision: true  
-        temperature: 0.6
-        top_p: 0.95
-        max_tokens: 16384
+    # - model_name: allenai/Molmo2-8B
+    #   litellm_params:
+    #     model: openai/allenai/Molmo2-8B
+    #     api_base: https://api.parasail.io/v1
+    #     api_key: "os.environ/PARASCALE_API_KEY"
+    #     supports_vision: true  
+    #     temperature: 0.6
+    #     top_p: 0.95
+    #     max_tokens: 16384
     # # Olmo 32B model think via parascale endpoint
     - model_name: allenai/Olmo-3.1-32B-Think
       litellm_params:
