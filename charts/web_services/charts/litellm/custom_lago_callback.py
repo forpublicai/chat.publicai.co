@@ -111,6 +111,7 @@ class LagoCustomCallback(CustomLogger):
             "Olmo-3-32B-Think": "allenai/Olmo-3-32B-Think",
             "Olmo-3-32B-Instruct": "allenai/Olmo-3.1-32B-Instruct",
             "Olmo-3.1-32B-Instruct": "allenai/Olmo-3.1-32B-Instruct",
+            "Olmo-3.1-32B-Think": "allenai/Olmo-3.1-32B-Think",
 
 
             # SeaLion models
