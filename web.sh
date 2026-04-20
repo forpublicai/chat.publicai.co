@@ -70,6 +70,7 @@ validate_env() {
         "DICTA_API_KEY"
         "INFOMANIAK_API_KEY"
         "DEEPINFRA_API_KEY"
+        "PHOENIQS_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -134,6 +135,7 @@ deploy_services() {
         --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.deepinfraApiKey="$DEEPINFRA_API_KEY" \
+        --set litellm.secrets.phoeniqsApiKey="$PHOENIQS_API_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
