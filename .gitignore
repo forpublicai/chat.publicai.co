@@ -23,3 +23,5 @@ charts/*/charts/*.tgz
 # Backup files
 *.bak
 *.backup
+
+developer/errors.log

@@ -16,7 +16,7 @@ Working in ``charts/web_services/charts/litellm/values.yaml``
 
 ```yaml
   models:
-    - model_name: swiss-ai/apertus-8b-instruct
+    - model_name: new-provider/apertus-8b-instruct
       litellm_params:
         model: openai/inference-apertus-8b
         api_base: https://api.newprovider.com/v1
@@ -68,3 +68,31 @@ deploy_services() {
         ...
         --set open-webui.secrets.newProviderApiKey="$NEW_PROVIDER_API_KEY"
 ```
+
+## Configure the callback to Lago billing engine
+Working in ``charts/web_services/charts/litellm/custom_lago_callback.py``
+```bash
+    def _normalize_model_name(self, model: str) -> str:
+        """
+        Normalize model names to match Lago billing codes.
+        Maps internal LiteLLM model names to user-facing model names.
+        """
+        # Model name mapping: litellm model -> lago billing name
+        model_mapping = {
+            # Apertus models (various endpoints with version suffixes)
+            "Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
+            "swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
+            "apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
+            
+            "NewProvider-8B-Instruct-2509": "new-provider/apertus-8b-instruct",
+```
+
+## Configure OpenWebUI
+
+Go to the OpenWebUI admin panel and configure.
+![openwebui-admin.png](openwebui-admin.png)
+
+## Check Lagos configuration
+Cofirm Lagos has detected the model and pricing.
+
+![lagos-admin.png](lagos-admin.png)
