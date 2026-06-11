@@ -1,0 +1,31 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Lago Database",
+      "Group": "PublicAI Services",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "lago",
+      "Username": "lago",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "LiteLLM Database",
+      "Group": "PublicAI Services",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "litellm",
+      "Username": "llmproxy",
+      "SSLMode": "prefer"
+    },
+    "3": {
+      "Name": "OpenWebUI Database",
+      "Group": "PublicAI Services",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "openwebui",
+      "Username": "openwebui",
+      "SSLMode": "prefer"
+    }
+  }
+}

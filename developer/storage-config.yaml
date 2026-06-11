@@ -1,0 +1,6 @@
+classes:
+  - name: local-storage          # ← name of your StorageClass
+    hostDir: /k0sdisk  # ← IMPORTANT: this directory MUST exist on EVERY node
+    storageClass: true           # ← this was missing!
+    volumeMode: Filesystem
+    # fsType: ext4               # optional, uncomment if you use ext4
