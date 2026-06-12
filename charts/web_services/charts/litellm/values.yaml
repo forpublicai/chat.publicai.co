@@ -334,6 +334,17 @@ config:
       model_info:
         input_cost_per_token: 0.00000020  # $0.20 per 1M tokens 
         output_cost_per_token: 0.00000040  # $0.40 per 1M tokens
+    - model_name: speakleash/Bielik-11B-v3.0-Instruct
+      litellm_params:
+        model: openai/speakleash/Bielik-11B-v3.0-Instruct
+        api_base:  https://llmlab.plgrid.pl/api/v1
+        api_key: "os.environ/BIELIK_API_KEY"
+#        temperature: 0.15
+#        top_p: 0.85
+#        max_tokens: 16000
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
   #     litellm_params:

@@ -66,7 +66,7 @@ deploy_services() {
         --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
         ...
-        --set open-webui.secrets.newProviderApiKey="$NEW_PROVIDER_API_KEY"
+        --set litellm.secrets.newProviderApiKey="$NEW_PROVIDER_API_KEY"
 ```
 
 ## Configure the callback to Lago billing engine

@@ -71,6 +71,7 @@ validate_env() {
         "INFOMANIAK_API_KEY"
         "DEEPINFRA_API_KEY"
         "PHOENIQS_API_KEY"
+        "BIELIK_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -136,6 +137,7 @@ deploy_services() {
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.deepinfraApiKey="$DEEPINFRA_API_KEY" \
         --set litellm.secrets.phoeniqsApiKey="$PHOENIQS_API_KEY" \
+        --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
