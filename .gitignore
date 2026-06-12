@@ -25,3 +25,4 @@ charts/*/charts/*.tgz
 *.backup
 
 developer/errors.log
+terraform_import
