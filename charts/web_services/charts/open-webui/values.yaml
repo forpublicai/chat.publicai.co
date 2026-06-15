@@ -8,7 +8,7 @@ app:
     repository: ghcr.io/forpublicai/open-webui
     tag: cognito-patch-3b58c9716-20260312-222608 # cognito-patch-8265abf73-20251221-034242 (last working) cognito-patch-6c0c999b9-20250929-193806 (2nd last working)
   port: 8080
-  webuiUrl: "https://chat.publicai.co"
+  webuiUrl: "https://chat.aipotluck.org"
   vectorDb: pgvector
   enableVersionUpdateCheck: "false"
   enablePersistentConfig: "true"
@@ -57,8 +57,8 @@ app:
     enableOauthGroupManagement: "false"
     openidProviderUrl: ""
     enableForwardUserInfoHeaders: "true"
-    signoutRedirectUrl: "https://chat.publicai.co/" 
-    oauthProviderName: "Public AI"
+    signoutRedirectUrl: "https://chat.aipotluck.org/"
+    oauthProviderName: "Current AI"
     defaultUserRole: "user"
     enableAdminChatAccess: "false"
     userPermissionsChatControls: "false"

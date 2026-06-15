@@ -15,13 +15,13 @@ open-webui:
   
   # Production-specific overrides
   app:
-    webuiUrl: "https://chat.publicai.co"
+    webuiUrl: "https://chat.aipotluck.org"
     replicas: 1
     
     # Production storage configuration
     storage:
       s3:
-        bucketName: publicai-bucket
+        bucketName: aipotluck-bucket
         region: eu-central-2
         keyPrefix: uploads/
         endpointUrl: 	https://s3.eu-central-2.amazonaws.com
@@ -106,8 +106,8 @@ lago:
     roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
 
   # Required URLs
-  apiUrl: "https://lago-api.publicai.co"
-  frontUrl: "https://lago.publicai.co"
+  apiUrl: "https://lago-api.aipotluck.org"
+  frontUrl: "https://lago.aipotluck.org"
 
   # Use existing external database and Redis
   global:
@@ -121,14 +121,14 @@ lago:
     # Enable S3 storage
     s3:
       enabled: true
-      bucket: "publicai-bucket"
+      bucket: "aipotluck-bucket"
       region: "eu-central-2"
       endpoint: "https://s3.eu-central-2.amazonaws.com"
 
     # SMTP configuration
     smtp:
       enabled: false
-      fromEmail: "support@publicai.co"
+      fromEmail: "support@aipotluck.org"
 
     # Disable PDF generation for now
     pdf:

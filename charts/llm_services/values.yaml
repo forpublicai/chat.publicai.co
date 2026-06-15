@@ -5,7 +5,7 @@ global:
   # AWS configuration
   aws:
     region: eu-central-2
-    bucketName: publicai-bucket
+    bucketName: aipotluck-bucket
     bucketPrefix: models/
 
 # Karpenter GPU node pool configuration
@@ -39,7 +39,7 @@ s3Storage:
     mountOptions:
       region: eu-central-2  # Will use global.aws.region if not specified
       prefix: models/      # Will use global.aws.bucketPrefix if not specified
-    bucketName: publicai-bucket  # Will use global.aws.bucketName if not specified
+    bucketName: aipotluck-bucket  # Will use global.aws.bucketName if not specified
   
   persistentVolumeClaim:
     name: s3-pvc

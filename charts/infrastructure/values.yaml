@@ -1,7 +1,7 @@
 # Infrastructure chart values - ALB controller only
 
 aws-load-balancer-controller:
-  clusterName: publicai-eks
+  clusterName: current-ai
   region: eu-central-2
   
   # Workaround for https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/3695

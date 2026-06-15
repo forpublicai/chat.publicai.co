@@ -136,10 +136,9 @@ deploy_services() {
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.deepinfraApiKey="$DEEPINFRA_API_KEY" \
         --set litellm.secrets.phoeniqsApiKey="$PHOENIQS_API_KEY" \
-        --set litellm.lago.enabled=true \
-        --set lago.enabled=true \
-        --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
-        --set lago.global.redisUrl="$LAGO_REDIS_URL" 
+        --set litellm.lago.enabled=false \
+        --set lago.enabled=false
+
         
 
     echo "✅ Web services deployment complete!"

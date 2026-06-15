@@ -160,7 +160,7 @@ config:
     - model_name: utter-project/EuroLLM-22B-Instruct-2512
       litellm_params:
         model: openai/utter-project/EuroLLM-22B-Instruct-2512
-        api_base: https://api-internal-intel.publicai.co/eurollm/v1
+        api_base: https://api-internal-intel.aipotluck.org/eurollm/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
         ssl_verify: false
         weight: 1
@@ -174,7 +174,7 @@ config:
     - model_name: allenai/Olmo-3-7B-Instruct
       litellm_params:
         model: openai/allenai/Olmo-3-7B-Instruct
-        api_base: https://api-internal-intel.publicai.co/olmo/v1
+        api_base: https://api-internal-intel.aipotluck.org/olmo/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
         ssl_verify: false
         weight: 1
@@ -188,7 +188,7 @@ config:
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-8B-Instruct-2509
-        api_base: https://api-internal-intel.publicai.co/apertus/v1
+        api_base: https://api-internal-intel.aipotluck.org/apertus/v1
         api_key: "os.environ/VLLM_API_KEY_INTEL"
         ssl_verify: false
         supports_vision: true
@@ -293,7 +293,7 @@ config:
     # - model_name: BSC-LT/ALIA-40b-instruct_Q8_0
     #   litellm_params:
     #     model: openai//root/.cache/huggingface/ALIA-40b-instruct_Q8_0/ALIA-40b-instruct_bos_Q8_0.gguf
-    #     api_base: https://api-internal-cudo.publicai.co/alia/v1
+    #     api_base: https://api-internal-cudo.aipotluck.org/alia/v1
     #     api_key: "os.environ/VLLM_API_KEY_CUDO"
     #     temperature: 0.8
     #     top_p: 0.9
@@ -304,7 +304,7 @@ config:
     # - model_name: BSC-LT/salamandra-7b-instruct-tools-16k
     #   litellm_params:
     #     model: openai/BSC-LT/salamandra-7b-instruct-tools-16k
-    #     api_base: https://api-internal-cudo.publicai.co/salamandra/v1
+    #     api_base: https://api-internal-cudo.aipotluck.org/salamandra/v1
     #     api_key: "os.environ/VLLM_API_KEY_CUDO"
     #     temperature: 0.8
     #     top_p: 0.9
@@ -405,4 +405,4 @@ lago:
   enabled: true  # Set to true to enable Lago billing
   eventCode: "public_ai_models"  # Event code in Lago for billing metrics
   chargeBy: "end_user_id"  # Charge by: user_id, team_id, or end_user_id (uses the 'user' parameter from API calls)
-  apiBase: "https://lago-api.publicai.co"  # Lago API base URL. Not being used as Litellm communicates internally to Lago.
+  apiBase: "https://lago-api.aipotluck.org"  # Lago API base URL. Not being used as Litellm communicates internally to Lago.

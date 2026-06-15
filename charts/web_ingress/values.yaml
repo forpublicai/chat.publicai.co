@@ -3,7 +3,7 @@ ingresses:
   # Main web app ingress
   - enabled: true
     name: web-public-ingress
-    host: chat.publicai.co  # Configure your domain
+    host: chat.aipotluck.org  # Configure your domain
     annotations:
       kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
@@ -16,10 +16,10 @@ ingresses:
       port: 8080               # Default OpenWebUI port
   
   # LiteLLM API ingress - disabled for now (internal VPC communication only)
-  # Enable this when you want to expose LiteLLM as api.publicai.company
+  # Enable this when you want to expose LiteLLM as api.aipotluck.orgmpany
   - enabled: true
     name: litellm-public-ingress
-    host: api-internal.publicai.co
+    host: api-internal.aipotluck.org
     annotations:
       kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
@@ -34,7 +34,7 @@ ingresses:
   # Lago billing platform frontend ingress (official chart)
   - enabled: true
     name: lago-public-ingress
-    host: lago.publicai.co
+    host: lago.aipotluck.org
     annotations:
       kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
@@ -49,7 +49,7 @@ ingresses:
   # Lago billing platform API ingress (official chart)
   - enabled: true
     name: lago-api-ingress
-    host: lago-api.publicai.co
+    host: lago-api.aipotluck.org
     annotations:
       kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
