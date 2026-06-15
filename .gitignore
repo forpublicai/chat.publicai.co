@@ -26,3 +26,5 @@ charts/*/charts/*.tgz
 
 developer/errors.log
 terraform_import
+
+terraform.tfstate

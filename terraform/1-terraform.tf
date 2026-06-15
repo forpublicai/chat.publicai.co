@@ -7,6 +7,15 @@ terraform {
   }
 
   required_version = ">= 1.2"
+
+  # remote state configuration here
+  backend "s3" {
+    bucket         = "staging-terraform-state-publicai" # update this to bucket name from terraform-remote-state
+    key            = "infra/terraform.tfstate"
+    region         = "us-east-1" # update this to match region in 0-locals.tf
+    dynamodb_table = "terraform-state"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
