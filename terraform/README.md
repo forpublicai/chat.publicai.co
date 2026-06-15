@@ -32,6 +32,24 @@ After provider is added, add an IAM role, assign it to the github organisation, 
 
 Create a role with trust policy - branch only
 
+the trust policy must have repo formatted like below
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            ...
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": [
+                        "repo:forpublicai/chat.publicai.co:ref:refs/tags/v*"
+                    ]
+                }
+            }
+        }
+    ]
+}
+```
+
 dd permissions for VPC, S3 CLuster etc..
 
 ## Create S3 bucket for terraform state
