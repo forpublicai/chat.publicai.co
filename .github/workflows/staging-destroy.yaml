@@ -1,0 +1,49 @@
+# TODO: Solution: Make sure to uninstall/delete your Helm releases (or Kubernetes Ingresses/Services
+# of type LoadBalancer) before running this destroy workflow. This gives the AWS Load Balancer
+# Controller time to clean up the AWS load balancers and security groups.
+
+name: Destroy Staging
+
+on:
+  workflow_dispatch:
+    # TODO: To enable a confirmation check, uncomment the inputs and step below:
+    # inputs:
+    #   confirm:
+    #     description: 'Type "destroy" to confirm you want to destroy the staging environment'
+    #     required: true
+    #     default: 'no'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    # environment: staging
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      # - name: Verify Confirmation
+      #   run: |
+      #     if [ "${{ github.event.inputs.confirm }}" != "destroy" ]; then
+      #       echo "Confirmation failed. Expected 'destroy', got '${{ github.event.inputs.confirm }}'."
+      #       exit 1
+      #     fi
+
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - run: terraform destroy -auto-approve
