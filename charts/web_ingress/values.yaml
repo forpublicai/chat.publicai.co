@@ -32,7 +32,7 @@ ingresses:
       port: 4000
 
   # Lago billing platform frontend ingress (official chart)
-  - enabled: true
+  - enabled: false
     name: lago-public-ingress
     host: lago.aipotluck.org
     annotations:
@@ -47,7 +47,7 @@ ingresses:
       port: 80
 
   # Lago billing platform API ingress (official chart)
-  - enabled: true
+  - enabled: false
     name: lago-api-ingress
     host: lago-api.aipotluck.org
     annotations:

@@ -73,7 +73,7 @@ deploy() {
     
     # Verify IngressClasses
     echo "📋 Verifying IngressClasses..."
-    kubectl get ingressclass alb-web alb-llm
+    kubectl get ingressclass alb-web
     echo "✅ Infrastructure deployment complete!"
 }
 
