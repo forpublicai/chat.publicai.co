@@ -13,7 +13,9 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
-#    environment: prod
+    defaults:
+      run:
+        working-directory: terraform
 
     steps:
       - name: Checkout
@@ -23,7 +25,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: eu-east-1
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
