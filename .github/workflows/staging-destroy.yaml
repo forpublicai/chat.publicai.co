@@ -5,9 +5,7 @@
 name: Destroy Staging
 
 on:
-  push:
-    branches:
-      - dev
+  workflow_dispatch:
     # TODO: To enable a confirmation check, uncomment the inputs and step below:
     # inputs:
     #   confirm:
