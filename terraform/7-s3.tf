@@ -1,6 +1,7 @@
 
 resource "aws_s3_bucket" "bucket" {
-  bucket = "${local.env}-${local.org}-bucket" #bucket names need to be unique across all of AWS
+  bucket        = "${local.env}-${local.org}-bucket" #bucket names need to be unique across all of AWS
+  force_destroy = local.env != "prod"                # destroy ucket on staging
 
   tags = {}
 }
