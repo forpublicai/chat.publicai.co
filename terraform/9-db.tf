@@ -159,11 +159,15 @@ resource "aws_rds_cluster_instance" "instance_2" {
 
 
 
+data "aws_secretsmanager_secret_version" "db_password" {
+  secret_id = aws_rds_cluster.this.master_user_secret[0].secret_arn
+}
+
 provider "postgresql" {
   host     = aws_rds_cluster.this.endpoint
   port     = 5432
   username = aws_rds_cluster.this.master_username
-  password = aws_rds_cluster.this.master_user_secret # Or retrieve from AWS Secrets Manager
+  password = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
   sslmode  = "require"
 }
 
