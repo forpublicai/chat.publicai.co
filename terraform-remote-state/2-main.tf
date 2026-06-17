@@ -52,3 +52,8 @@ output "dynamodb_table_name" {
   value       = aws_dynamodb_table.terraform_state.name
   description = "The name of the DynamoDB table"
 }
+
+
+resource "aws_route53_zone" "this" {
+  name = local.domain
+}
