@@ -50,6 +50,25 @@ the trust policy must have repo formatted like below
 }
 ```
 
+# Google Auth Credentials
+
+Go to console.cloud.google.com
+Create a new project if needed
+Go to Google Auth PLatform
+Click "Get started" / Create a new app
+Fill in details and finish
+Next, create an OAuth client
+Select "Web application"
+
+Add an Authorized redirect URIs ``https://auth.yourdomain.com/oauth2/idpresponse``
+
+In your GH repo add the google client id and google client secret as secrets.
+```
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+
+
 dd permissions for VPC, S3 CLuster etc..
 
 ## Create S3 bucket for terraform state
@@ -65,18 +84,37 @@ terraform plan
 terraform apply
 ```
 
-Then copy the bucket name into ``terraform/1-terraform.tf``, and update the region.
+This will create an output:
+```
+Outputs:
+
+dynamodb_table_name = "terraform-state"
+name_servers = tolist([
+  "ns-000.awsdns-00.org",
+  "ns-000.awsdns-00.co.uk",
+  "ns-000.awsdns-00.com",
+  "ns-000.awsdns-00.net",
+])
+s3_bucket_arn = "arn:aws:s3:::staging-terraform-state-aichat"
+```
+Next steps:
+1. Copy the bucket name (``arn:aws:s3:::staging-terraform-state-XXXX``) into ``terraform/1-terraform.tf``, and update the region.
+2. Add the ``name_servers`` to your domain registrar DNS 
+3. Wait for the DNS settings to take effect.
+
 
 ```yaml
   # remote state configuration here
   backend "s3" {
-    bucket         = "staging-terraform-state-publicai" # update this to bucket name from terraform-remote-state
+    bucket         = "staging-terraform-state-XXXX" # update this to bucket name from terraform-remote-state
     key            = "infra/terraform.tfstate"
     region         = "us-east-1" # update this to match region in 0-locals.tf
     dynamodb_table = "terraform-state"
     encrypt        = true
   }
 ```
+
+
 
 
 
