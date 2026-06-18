@@ -1,6 +1,7 @@
 locals {
   org         = "aichat"
   domain      = "ai-staging.chat"
+  alert_email = "sean@publicai.co"
   env         = "staging"    # must be set to "prod" to enable prod resources like rds deletion protection
   region      = "us-east-1"  # "eu-central-2"
   zone1       = "us-east-1a" # "eu-central-2a"
