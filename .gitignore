@@ -28,4 +28,8 @@ developer/errors.log
 terraform_import
 terraform_cognito
 
-terraform.tfstate
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
