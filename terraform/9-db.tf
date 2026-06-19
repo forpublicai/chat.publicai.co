@@ -131,7 +131,6 @@ resource "aws_rds_cluster_instance" "instance_1" {
   performance_insights_enabled          = true
   performance_insights_kms_key_id       = aws_kms_key.db.arn
   performance_insights_retention_period = 7
-  preferred_backup_window               = "03:33-04:03"
   preferred_maintenance_window          = "sat:04:57-sat:05:27"
   promotion_tier                        = 1
 }
@@ -152,7 +151,6 @@ resource "aws_rds_cluster_instance" "instance_2" {
   performance_insights_enabled          = true
   performance_insights_kms_key_id       = aws_kms_key.db.arn
   performance_insights_retention_period = 7
-  preferred_backup_window               = "03:33-04:03"
   preferred_maintenance_window          = "fri:07:19-fri:07:49"
   promotion_tier                        = 1
 }
@@ -163,25 +161,25 @@ data "aws_secretsmanager_secret_version" "db_password" {
   secret_id = aws_rds_cluster.this.master_user_secret[0].secret_arn
 }
 
-provider "postgresql" {
-  host     = aws_rds_cluster.this.endpoint
-  port     = 5432
-  username = aws_rds_cluster.this.master_username
-  password = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
-  sslmode  = "require"
-}
+# provider "postgresql" {
+#   host     = aws_rds_cluster.this.endpoint
+#   port     = 5432
+#   username = aws_rds_cluster.this.master_username
+#   password = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
+#   sslmode  = "require"
+# }
 
-# OpenWebUI User & DB
-resource "postgresql_role" "openwebui" {
-  name     = "openwebui"
-  login    = true
-  password = "password" # Use a secure secret/variable here
-}
+# # OpenWebUI User & DB
+# resource "postgresql_role" "openwebui" {
+#   name     = "openwebui"
+#   login    = true
+#   password = "password" # Use a secure secret/variable here
+# }
 
-resource "postgresql_database" "openwebui" {
-  name  = "openwebui"
-  owner = postgresql_role.openwebui.name
-}
+# resource "postgresql_database" "openwebui" {
+#   name  = "openwebui"
+#   owner = postgresql_role.openwebui.name
+# }
 
 # resource "postgresql_role" "litellm" {
 #   name     = "llmproxy"
