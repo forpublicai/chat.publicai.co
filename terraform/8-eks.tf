@@ -60,7 +60,7 @@ resource "aws_eks_cluster" "eks" {
   compute_config {
     enabled       = true
     node_pools    = ["general-purpose", "system"]
-    node_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AmazonEKSAutoNodeRole" # Or create a resource-managed role
+    node_role_arn = aws_iam_role.eks_auto_node_role.arn # Or create a resource-managed role
   }
 
   kubernetes_network_config {
@@ -106,6 +106,10 @@ resource "aws_eks_cluster" "eks" {
     aws_iam_role_policy_attachment.eks_block_storage,
     aws_iam_role_policy_attachment.eks_load_balancing,
     aws_iam_role_policy_attachment.eks_networking,
+    aws_iam_role_policy_attachment.eks_auto_node_role_AmazonEC2FullAccess,
+    aws_iam_role_policy_attachment.eks_auto_node_role_AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.eks_auto_node_role_AmazonEKSWorkerNodeMinimalPolicy,
+    aws_iam_role_policy_attachment.eks_auto_node_role_AmazonEC2ContainerRegistryPullOnly
   ]
 }
 

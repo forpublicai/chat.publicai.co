@@ -155,6 +155,47 @@ resource "aws_iam_role_policy_attachment" "s3_csi_driver_s3" {
   policy_arn = aws_iam_policy.apertus_s3_csi.arn
 }
 
+# 6. AmazonEKSAutoNodeRole
+resource "aws_iam_role" "eks_auto_node_role" {
+  name = "AmazonEKSAutoNodeRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  description          = "Allows EKS nodes to connect to EKS Auto Mode clusters and to pull container images from ECR."
+  max_session_duration = 3600
+}
+
+resource "aws_iam_role_policy_attachment" "eks_auto_node_role_AmazonEC2FullAccess" {
+  role       = aws_iam_role.eks_auto_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_auto_node_role_AmazonEKSWorkerNodePolicy" {
+  role       = aws_iam_role.eks_auto_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_auto_node_role_AmazonEKSWorkerNodeMinimalPolicy" {
+  role       = aws_iam_role.eks_auto_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodeMinimalPolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_auto_node_role_AmazonEC2ContainerRegistryPullOnly" {
+  role       = aws_iam_role.eks_auto_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+}
+
 # Customer Managed Policies used by the roles
 resource "aws_iam_policy" "apertus_bedrock" {
   name        = "ApertusBedrockPolicy"

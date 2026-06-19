@@ -8,7 +8,7 @@ terraform {
       source  = "cyrilgdn/postgresql"
       version = "~> 1.26.0"
     }
-        time = {
+    time = {
       source  = "hashicorp/time"
       version = "~> 0.11"
     }
