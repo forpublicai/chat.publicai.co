@@ -2,3 +2,19 @@ image:
   repository: nginx
   tag: latest
   pullPolicy: IfNotPresent
+
+
+resources:
+  requests:
+    cpu: "300m"
+    memory: "512Mi"    
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
