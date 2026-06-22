@@ -11,6 +11,7 @@ resource "helm_release" "argocd" {
   chart      = "argo-cd"
   version    = "9.5.22"
   namespace  = kubernetes_namespace_v1.argocd.metadata[0].name
+  timeout    = 900
 
   set = [
     {
@@ -37,6 +38,7 @@ resource "helm_release" "external_secrets" {
   chart      = "external-secrets"
   version    = "2.6.0"
   namespace  = kubernetes_namespace_v1.external_secrets.metadata[0].name
+  timeout    = 900
 
   set = [{
     name  = "installCRDs"
