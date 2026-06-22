@@ -45,3 +45,9 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --region us-east-1 --name staging-main-cluster
+
+      - name: Apply ArgoCD Root App
+        run: kubectl apply -f argo/bootstrap/root-app.yaml
