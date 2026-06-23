@@ -105,7 +105,7 @@ deploy_services() {
 
     echo "📦 Deploying web services with Lago billing..."
     helm upgrade --install web-services charts/web_services/ \
-        -n web-services \
+        -n web-services --timeout 15m --debug \
         --create-namespace \
         --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
         --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \

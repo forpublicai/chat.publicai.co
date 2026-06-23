@@ -155,7 +155,7 @@ spec:
             - name: BIELIK_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: { { .Values.secrets.name } }
+                  name: {{ .Values.secrets.name }}
                   key: bielik_api_key
           volumeMounts:
             - name: config-volume
