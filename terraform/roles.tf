@@ -176,6 +176,11 @@ resource "aws_iam_role" "eks_auto_node_role" {
   max_session_duration = 3600
 }
 
+resource "aws_iam_instance_profile" "eks_auto_node_profile" {
+  name = "AmazonEKSAutoNodeRole"
+  role = aws_iam_role.eks_auto_node_role.name
+}
+
 resource "aws_iam_role_policy_attachment" "eks_auto_node_role_AmazonEC2FullAccess" {
   role       = aws_iam_role.eks_auto_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"

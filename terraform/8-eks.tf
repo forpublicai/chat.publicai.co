@@ -60,7 +60,7 @@ resource "aws_eks_cluster" "eks" {
   compute_config {
     enabled       = true
     node_pools    = ["general-purpose", "system"]
-    node_role_arn = aws_iam_role.eks_auto_node_role.arn # Or create a resource-managed role
+    node_role_arn = aws_iam_role.eks_auto_node_role.arn
   }
 
   kubernetes_network_config {

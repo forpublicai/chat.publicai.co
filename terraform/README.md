@@ -117,4 +117,64 @@ Next steps:
 
 
 
+You need to request a quota increase from AWS for your EC2 limits. 
+1. Go to the **AWS Console > Service Quotas > AWS Services > Amazon Elastic Compute Cloud (Amazon EC2)**.
+2. Search for **"Running On-Demand Standard (A, C, D, H, I, M, R, T, Z) instances"**.
+3. Select it and click **Request quota increase**. 
+4. Request an increase to something like **32 or 64 vCPUs**. 
 
+
+### 1. Spot Instance Quotas
+* **Quota Name:** `All Standard (A, C, D, H, I, M, R, T, Z) Spot Instance Requests`
+* **Current Limit:** 5 vCPUs
+* **Recommended Increase:** 32 or 64 vCPUs
+
+### 2. GPU Instance Quotas
+* **Quota Name:** `Running On-Demand G and VT instances`
+* **Current Limit:** 0 vCPUs
+* **Recommended Increase:** 16 vCPUs (enough to run a couple of `g4dn.xlarge` instances)
+
+### 3. Elastic IPs 
+* **Quota Name:** `EC2-VPC Elastic IPs`
+* **Current Limit:** 5
+* **Recommended Increase:** 10
+
+
+
+
+# Kubectl
+
+### 1. Verify AWS credentials
+
+```bash
+aws sts get-caller-identity
+```
+
+
+
+### 2. List EKS clusters (optional)
+
+```bash
+aws eks list-clusters --region us-east-1
+```
+
+
+### 3. Update your kubeconfig
+
+```bash
+aws eks update-kubeconfig \
+  --region us-east-1 \
+  --name staging-main-cluster
+```
+
+This will:
+
+* Create `~/.kube/config` if it doesn't exist.
+* Add the EKS cluster configuration.
+* Configure authentication through the AWS CLI.
+
+### 4. Test access
+
+```bash
+kubectl cluster-info
+```
