@@ -37,13 +37,13 @@ class Filter:
                 "❄️ Powered by liquid-cooled compute infrastructure in Austria, provided by Exoscale",
             ],
             "National Computational Infrastructure": [
-                "⚡ Powered by soverign compute infrastructure in Canberra, courtesy of NCI Australia ",
+                "⚡ Powered by sovereign compute infrastructure in Canberra, courtesy of NCI Australia ",
             ],
             "Cudo Compute": [
                 "⚡ Powered by compute infrastructure in Europe, provided by Cudo Compute",
             ],
             "Swiss National Supercomputing Centre": [
-                "⚡ Powered by soverign compute infrastructure in Lugano, courtesy of Swiss National Supercomputing Centre",
+                "⚡ Powered by sovereign compute infrastructure in Lugano, courtesy of Swiss National Supercomputing Centre",
             ],
             "Academic Computer Centre Cyfronet AGH" : [
                 "⚡ Powered by sovereign compute infrastructure in Cracow, courtesy of the Academic Computer Centre Cyfronet AGH"
