@@ -50,4 +50,5 @@ jobs:
         run: aws eks update-kubeconfig --region us-east-1 --name staging-main-cluster
 
       - name: Apply ArgoCD Root App
+        working-directory: .
         run: kubectl apply -f argo/bootstrap/root-app.yaml
