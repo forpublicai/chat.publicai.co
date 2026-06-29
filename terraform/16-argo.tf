@@ -23,6 +23,22 @@ resource "helm_release" "argocd" {
     {
       name  = "configs.params.server.insecure"
       value = "true"
+    },
+    {
+      name  = "global.tolerations[0].key"
+      value = "eks.amazonaws.com/compute-type"
+    },
+    {
+      name  = "global.tolerations[0].operator"
+      value = "Equal"
+    },
+    {
+      name  = "global.tolerations[0].value"
+      value = "auto"
+    },
+    {
+      name  = "global.tolerations[0].effect"
+      value = "NoSchedule"
     }
   ]
 }
