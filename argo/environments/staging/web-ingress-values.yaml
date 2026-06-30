@@ -1,0 +1,59 @@
+certificateArn: arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d
+
+ingresses:
+  - enabled: true
+    name: web-public-ingress
+    host: chat.ai-staging.chat
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+    targetService:
+      name: openwebui-service
+      port: 8080
+
+  - enabled: true
+    name: litellm-public-ingress
+    host: api-internal.ai-staging.chat
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+    targetService:
+      name: litellm-service
+      port: 4000
+
+  - enabled: true
+    name: lago-public-ingress
+    host: lago.ai-staging.chat
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+    targetService:
+      name: web-services-front-svc
+      port: 80
+
+  - enabled: true
+    name: lago-api-ingress
+    host: lago-api.ai-staging.chat
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+      alb.ingress.kubernetes.io/healthcheck-path: /health
+    targetService:
+      name: web-services-api-svc
+      port: 3000
