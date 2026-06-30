@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-services-staging
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/forpublicai/chat.publicai.co'
+    targetRevision: dev
+    path: charts/web_services
+    helm:
+      valueFiles:
+        - values.yaml
+        - ../../argo/environments/staging/web-services-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: web-services
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
