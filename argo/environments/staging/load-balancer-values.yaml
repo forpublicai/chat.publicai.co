@@ -1,5 +1,8 @@
 aws-load-balancer-controller:
   clusterName: staging-main-cluster
   region: us-east-1
+  ingressClass: alb-web
+  createIngressClassResource: false
   serviceAccount:
-    annotations: {}
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::818561370924:role/AmazonEKSLoadBalancerControllerRole
