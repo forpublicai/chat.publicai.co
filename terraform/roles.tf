@@ -68,18 +68,22 @@ resource "aws_iam_role" "eks_lb_controller" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn
+          Service = "pods.eks.amazonaws.com"
         }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:web-services:aws-load-balancer-controller"
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud" = "sts.amazonaws.com"
-          }
-        }
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
       }
     ]
   })
+}
+
+resource "aws_eks_pod_identity_association" "eks_lb_controller" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "kube-system"
+  service_account = "aws-load-balancer-controller"
+  role_arn        = aws_iam_role.eks_lb_controller.arn
 }
 
 resource "aws_iam_role_policy_attachment" "eks_lb_controller_elbfull" {

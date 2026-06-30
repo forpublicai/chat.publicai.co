@@ -44,24 +44,24 @@ resource "helm_release" "argocd" {
 }
 
 # Install External Secrets Operator (ESO)
-# resource "kubernetes_namespace_v1" "external_secrets" {
-#   metadata {
-#     name = "external-secrets"
-#   }
-# }
+resource "kubernetes_namespace_v1" "external_secrets" {
+  metadata {
+    name = "external-secrets"
+  }
+}
 
-# resource "helm_release" "external_secrets" {
-#   name       = "external-secrets"
-#   repository = "https://charts.external-secrets.io"
-#   chart      = "external-secrets"
-#   version    = "2.6.0"
-#   namespace  = kubernetes_namespace_v1.external_secrets.metadata[0].name
-#   timeout    = 200
-#   replace          = true
-#   cleanup_on_fail  = true
+resource "helm_release" "external_secrets" {
+  name       = "external-secrets"
+  repository = "https://charts.external-secrets.io"
+  chart      = "external-secrets"
+  version    = "2.6.0"
+  namespace  = kubernetes_namespace_v1.external_secrets.metadata[0].name
+  timeout    = 200
+  replace          = true
+  cleanup_on_fail  = true
 
-#   set = [{
-#     name  = "installCRDs"
-#     value = "true"
-#   }]
-# }
+  set = [{
+    name  = "installCRDs"
+    value = "true"
+  }]
+}
