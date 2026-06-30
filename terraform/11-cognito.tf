@@ -199,10 +199,6 @@ resource "time_sleep" "wait_for_dns_propagation" {
 }
 
 
-data "aws_secretsmanager_secret_version" "manual_secrets" {
-  secret_id = aws_secretsmanager_secret.open_webui_manual.id
-}
-
 # --- Cognito Identity Provider (Google) ---
 resource "aws_cognito_identity_provider" "google" {
   user_pool_id  = aws_cognito_user_pool.this.id
@@ -220,8 +216,8 @@ resource "aws_cognito_identity_provider" "google" {
     attributes_url_add_attributes = "true"
     authorize_scopes              = "openid email profile"
     authorize_url                 = "https://accounts.google.com/o/oauth2/v2/auth"
-    client_id                     = jsondecode(data.aws_secretsmanager_secret_version.manual_secrets.secret_string)["GOOGLE_CLIENT_ID"]
-    client_secret                 = jsondecode(data.aws_secretsmanager_secret_version.manual_secrets.secret_string)["GOOGLE_CLIENT_SECRET"]
+    client_id                     = var.google_client_id
+    client_secret                 = var.google_client_secret
     oidc_issuer                   = "https://accounts.google.com"
     token_request_method          = "POST"
     token_url                     = "https://www.googleapis.com/oauth2/v4/token"
