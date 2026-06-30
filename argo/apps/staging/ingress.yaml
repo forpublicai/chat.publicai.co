@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: web-ingress-staging
+  name: ingress-staging
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
@@ -10,11 +10,11 @@ spec:
   source:
     repoURL: 'https://github.com/forpublicai/chat.publicai.co'
     targetRevision: dev
-    path: charts/web_ingress
+    path: charts/ingress
     helm:
       valueFiles:
         - values.yaml
-        - ../../argo/environments/staging/web-ingress-values.yaml
+        - ../../argo/environments/staging/ingress-values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: web-services

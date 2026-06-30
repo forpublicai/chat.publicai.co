@@ -1,0 +1,2 @@
+domain: ai-staging.chat
+certificateArn: arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d

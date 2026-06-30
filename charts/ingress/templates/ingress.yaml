@@ -17,7 +17,7 @@ spec:
   ingressClassName: alb-web
   rules:
   {{- if .host }}
-  - host: {{ .host }}
+  - host: {{ tpl .host $ }}
     http:
   {{- else }}
   - http:

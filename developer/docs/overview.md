@@ -24,7 +24,7 @@ We've split our infrastructure into four logical domains to cleanly isolate conc
 This chart handles the foundational, cluster-wide networking components.
 * **AWS Load Balancer Controller**: Listens to our Kubernetes `Ingress` objects and automatically provisions AWS Application Load Balancers (ALBs). It is configured to run on `hostNetwork` to bypass certain networking constraints and uses IRSA (`AmazonEKSLoadBalancerControllerRole`) to communicate securely with the AWS API.
 
-### 2. `web_ingress`
+### 2. `ingress`
 Instead of scattering Ingress definitions across every microservice, we centralize our public routing layer here.
 * Uses the `alb-web` ingress class.
 * Connects hostnames to their respective backend services using **IP-mode routing** (traffic routes straight from the ALB to the Pod IP, bypassing `kube-proxy` for lower latency).

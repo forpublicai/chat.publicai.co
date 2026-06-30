@@ -147,15 +147,15 @@ deploy_services() {
     echo "✅ Web services deployment complete!"
 }
 
-# Function to deploy web ingress
+# Function to deploy ingress
 deploy_ingress() {
-    echo "📦 Deploying web ingress..."
-    helm upgrade --install web-ingress ../charts/web_ingress/ \
+    echo "📦 Deploying ingress..."
+    helm upgrade --install ingress ../charts/ingress/ \
         -n web-services \
         --create-namespace \
         --set certificateArn="$CERTIFICATE_ARN"
     
-    echo "✅ Web ingress deployment complete!"
+    echo "✅ Ingress deployment complete!"
 }
 
 # Function to deploy everything (ingress first, then services)
@@ -172,7 +172,7 @@ deploy_all() {
 show_ingress_info() {
     echo ""
     echo "🌐 Web services access:"
-    kubectl get ingress -n web-services 2>/dev/null || echo "  No web ingress found"
+    kubectl get ingress -n web-services 2>/dev/null || echo "  No ingress found"
 }
 
 # Cleanup functions
@@ -183,9 +183,9 @@ cleanup_services() {
 }
 
 cleanup_ingress() {
-    echo "🧹 Cleaning up web ingress..."
-    helm uninstall web-ingress -n web-services --ignore-not-found || true
-    echo "✅ Web ingress cleanup complete!"
+    echo "🧹 Cleaning up ingress..."
+    helm uninstall ingress -n web-services --ignore-not-found || true
+    echo "✅ Ingress cleanup complete!"
 }
 
 cleanup_all() {

@@ -6,4 +6,4 @@ metadata:
     app.kubernetes.io/name: LoadBalancerController
   name: alb-web
 spec:
-  controller: ingress.k8s.aws/alb
+  controller: eks.amazonaws.com/alb

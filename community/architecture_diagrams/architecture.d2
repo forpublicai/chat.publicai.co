@@ -14,8 +14,8 @@ aws_eks: {
   style.fill: "#dbeafe"
   style.stroke: "#3b82f6"
 
-  # Web Ingress
-  web_ingress: {
+  # Ingress
+  ingress: {
     label: "Ingress Layer"
     style.fill: "#e8f5e8"
     style.stroke: "#4caf50"
@@ -114,8 +114,8 @@ aws_eks: {
   }
 
   # Connections within cluster
-  web_ingress.web_public_ingress -> web_services.services_container.openwebui_service
-  web_ingress.litellm_internal_ingress -> web_services.services_container.litellm_service
+  ingress.web_public_ingress -> web_services.services_container.openwebui_service
+  ingress.litellm_internal_ingress -> web_services.services_container.litellm_service
 }
 
 # External Services & Dependencies
@@ -327,7 +327,7 @@ bare_metal_partners: {
 users -> vercel: "Browse Landing Page"
 users -> identity_providers.aws_cognito: "Login to\nchat.publicai.co"
 users -> identity_providers.auth0: "Login to\nplatform.publicai.co"
-identity_providers.aws_cognito -> aws_eks.web_ingress.web_public_ingress: "Authenticated Users"
+identity_providers.aws_cognito -> aws_eks.ingress.web_public_ingress: "Authenticated Users"
 identity_providers.auth0 -> zuplo.developer_portal: "Authenticated Developers"
 users -> zuplo.api_gateway.api_gateway_label: "API Requests"
 
@@ -346,7 +346,7 @@ aws_eks.web_services.services_container.openwebui_service -> aws_eks.web_service
 aws_eks.web_services.services_container.openwebui_service -> aws_eks.web_services.services_container.litellm_service: "AI Inference Requests\nX-OpenWebUI-User-* headers"
 
 # Zuplo API Gateway to Internal API Ingress
-zuplo.api_gateway.api_gateway_label -> aws_eks.web_ingress.litellm_internal_ingress: "Authenticated & Rate Limited\napi-internal.publicai.co"
+zuplo.api_gateway.api_gateway_label -> aws_eks.ingress.litellm_internal_ingress: "Authenticated & Rate Limited\napi-internal.publicai.co"
 
 # LiteLLM Dependencies
 aws_eks.web_services.services_container.litellm_service -> aws_data_layer.postgres: "User Budgets\nAPI Keys"

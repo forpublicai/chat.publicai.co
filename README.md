@@ -36,7 +36,7 @@ For technically-minded contributors, the `charts/` folder contains Helm charts f
 
 - **`load-balancer/`**: Core infrastructure components (databases, networking)
 - **`llm_services/`**: AI model serving infrastructure
-- **`web_ingress/`**: Load balancing and SSL termination
+- **`ingress/`**: Load balancing and SSL termination
 - **`web_services/`**: Application services and monitoring
 
 **How to contribute to infrastructure:**
@@ -72,7 +72,7 @@ We believe the best infrastructure is built by and for the communities it serves
 ├── charts/                 # Kubernetes Helm charts
 │   ├── load-balancer/      # Core infrastructure
 │   ├── llm_services/      # AI model services
-│   ├── web_ingress/       # Load balancers & SSL
+│   ├── ingress/           # Load balancers & SSL
 │   └── web_services/      # Application services
 ```
 
