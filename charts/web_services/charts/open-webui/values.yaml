@@ -88,7 +88,7 @@ service:
   port: 8080
   type: ClusterIP
 
-# Ingress removed - now handled by infrastructure chart
+# Ingress removed - now handled by load-balancer chart
 
 autoscaling:
   enabled: true

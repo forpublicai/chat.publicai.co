@@ -11,6 +11,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+      alb.ingress.kubernetes.io/group.name: public-group
     targetService:
       name: openwebui-service
       port: 8080
@@ -25,6 +26,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+      alb.ingress.kubernetes.io/group.name: api-group
     targetService:
       name: litellm-service
       port: 4000
@@ -39,6 +41,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
+      alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
       name: web-services-front-svc
       port: 80
@@ -54,6 +57,7 @@ ingresses:
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:818561370924:certificate/85bbc44a-8e3c-4d81-87c3-a6bebe3b778d"
       alb.ingress.kubernetes.io/healthcheck-path: /health
+      alb.ingress.kubernetes.io/group.name: api-group
     targetService:
       name: web-services-api-svc
       port: 3000

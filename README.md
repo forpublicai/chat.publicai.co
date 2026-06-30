@@ -34,7 +34,7 @@ The `community/` folder contains user-contributed enhancements that make the pla
 
 For technically-minded contributors, the `charts/` folder contains Helm charts for Kubernetes deployment:
 
-- **`infrastructure/`**: Core infrastructure components (databases, networking)
+- **`load-balancer/`**: Core infrastructure components (databases, networking)
 - **`llm_services/`**: AI model serving infrastructure
 - **`web_ingress/`**: Load balancing and SSL termination
 - **`web_services/`**: Application services and monitoring
@@ -70,7 +70,7 @@ We believe the best infrastructure is built by and for the communities it serves
 │   ├── owui_functions/     # Custom Open WebUI functions
 │   └── system_prompts/     # Region-specific prompts
 ├── charts/                 # Kubernetes Helm charts
-│   ├── infrastructure/     # Core infrastructure
+│   ├── load-balancer/      # Core infrastructure
 │   ├── llm_services/      # AI model services
 │   ├── web_ingress/       # Load balancers & SSL
 │   └── web_services/      # Application services

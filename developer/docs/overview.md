@@ -20,7 +20,7 @@ Before diving into the specific charts, here are the foundational concepts and t
 
 We've split our infrastructure into four logical domains to cleanly isolate concerns.
 
-### 1. `infrastructure`
+### 1. `load-balancer`
 This chart handles the foundational, cluster-wide networking components.
 * **AWS Load Balancer Controller**: Listens to our Kubernetes `Ingress` objects and automatically provisions AWS Application Load Balancers (ALBs). It is configured to run on `hostNetwork` to bypass certain networking constraints and uses IRSA (`AmazonEKSLoadBalancerControllerRole`) to communicate securely with the AWS API.
 

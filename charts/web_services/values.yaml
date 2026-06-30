@@ -7,7 +7,7 @@ global:
   aws:
     region: eu-central-2
     
-  # Ingress now handled by infrastructure chart
+  # Ingress now handled by load-balancer chart
 
 # OpenWebUI configuration - only environment-specific overrides
 open-webui:
