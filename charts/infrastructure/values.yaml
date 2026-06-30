@@ -1,8 +1,8 @@
 # Infrastructure chart values - ALB controller only
 
 aws-load-balancer-controller:
-  clusterName: publicai-eks
-  region: eu-central-2
+  clusterName: ""
+  region: ""
   
   # Workaround for https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/3695
   hostNetwork: true
@@ -13,8 +13,7 @@ aws-load-balancer-controller:
   serviceAccount:
     create: true
     name: aws-load-balancer-controller
-    annotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::901779868336:role/AmazonEKSLoadBalancerControllerRole
+    annotations: {}
   
   # Basic resource management
   replicaCount: 2
