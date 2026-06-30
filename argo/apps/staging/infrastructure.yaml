@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/forpublicai/chat.publicai.co'
     targetRevision: dev
-    path: argo/apps/empty
+    path: argo/apps/cleanup
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
