@@ -1,0 +1,32 @@
+global:
+  aws:
+    region: eu-central-2
+
+open-webui:
+  app:
+    webuiUrl: "https://chat.publicai.co"
+    storage:
+      s3:
+        bucketName: "prod-aichat-bucket"
+        region: "eu-central-2"
+        endpointUrl: "https://s3.eu-central-2.amazonaws.com"
+  serviceAccount:
+    roleArn: "arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role"
+  secrets:
+    manualSecretsName: "prod/aichat/open-webui/manual-secrets"
+    managedSecretsName: "prod/aichat/open-webui/managed-secrets"
+
+lago:
+  serviceAccount:
+    roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
+  apiUrl: "https://lago-api.publicai.co"
+  frontUrl: "https://lago.publicai.co"
+  global:
+    s3:
+      enabled: true
+      bucket: "prod-aichat-bucket"
+      region: "eu-central-2"
+      endpoint: "https://s3.eu-central-2.amazonaws.com"
+    smtp:
+      enabled: false
+      fromEmail: "support@publicai.co"

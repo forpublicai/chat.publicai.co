@@ -5,7 +5,7 @@ global:
   
   # AWS configuration
   aws:
-    region: eu-central-2
+    region: ""
     
   # Ingress now handled by load-balancer chart
 
@@ -13,18 +13,18 @@ global:
 open-webui:
   enabled: true
   
-  # Production-specific overrides
+  # Application overrides
   app:
-    webuiUrl: "https://chat.publicai.co"
+    webuiUrl: ""
     replicas: 1
     
-    # Production storage configuration
+    # Storage configuration
     storage:
       s3:
-        bucketName: publicai-bucket
-        region: eu-central-2
+        bucketName: ""
+        region: ""
         keyPrefix: uploads/
-        endpointUrl: 	https://s3.eu-central-2.amazonaws.com
+        endpointUrl: ""
     
     # Production resource allocation for 5k concurrent users
     resources:
@@ -44,21 +44,13 @@ open-webui:
     targetMemoryUtilizationPercentage: 85
 
   serviceAccount:
-    roleArn: arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role
+    roleArn: ""
 
   # Secrets configuration
   secrets:
     name: web-services-secrets
-    licenseKey: ""
-    webuiSecretKey: ""
-    databaseUrl: ""
-    redisUrl: ""
-    # googleClientId: ""
-    # googleClientSecret: ""
-    oauthClientId: ""
-    oauthClientSecret: ""
-    openidProviderUrl: ""
-    openidRedirectUri: ""
+    manualSecretsName: ""
+    managedSecretsName: ""
 
 # SearXNG configuration
 searxng:
@@ -103,11 +95,11 @@ lago:
 
   # Service Account configuration for IRSA (IAM Roles for Service Accounts)
   serviceAccount:
-    roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
+    roleArn: ""
 
   # Required URLs
-  apiUrl: "https://lago-api.publicai.co"
-  frontUrl: "https://lago.publicai.co"
+  apiUrl: ""
+  frontUrl: ""
 
   # Use existing external database and Redis
   global:
@@ -121,14 +113,14 @@ lago:
     # Enable S3 storage
     s3:
       enabled: true
-      bucket: "publicai-bucket"
-      region: "eu-central-2"
-      endpoint: "https://s3.eu-central-2.amazonaws.com"
+      bucket: ""
+      region: ""
+      endpoint: ""
 
     # SMTP configuration
     smtp:
       enabled: false
-      fromEmail: "support@publicai.co"
+      fromEmail: ""
 
     # Disable PDF generation for now
     pdf:

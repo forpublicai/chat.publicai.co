@@ -8,7 +8,7 @@ app:
     repository: ghcr.io/forpublicai/open-webui
     tag: cognito-patch-3b58c9716-20260312-222608 # cognito-patch-8265abf73-20251221-034242 (last working) cognito-patch-6c0c999b9-20250929-193806 (2nd last working)
   port: 8080
-  webuiUrl: "https://chat.publicai.co"
+  webuiUrl: "http://localhost:8080" # Base local default. Override in env-specific values.yaml (e.g. staging/prod)
   vectorDb: pgvector
   enableVersionUpdateCheck: "false"
   enablePersistentConfig: "true"
@@ -28,8 +28,8 @@ app:
   storage:
     provider: s3
     s3:
-      bucketName: my-bucket
-      region: us-west-2
+      bucketName: "" # Default empty. Override in env-specific values.yaml
+      region: ""     # Default empty. Override in env-specific values.yaml
       keyPrefix: uploads/
   
   # Websocket configuration
@@ -57,7 +57,7 @@ app:
     enableOauthGroupManagement: "false"
     openidProviderUrl: ""
     enableForwardUserInfoHeaders: "true"
-    signoutRedirectUrl: "https://chat.publicai.co/" 
+    signoutRedirectUrl: "http://localhost:8080/" # Default local redirect. Override in env-specific values.yaml
     oauthProviderName: "Public AI"
     defaultUserRole: "user"
     enableAdminChatAccess: "false"

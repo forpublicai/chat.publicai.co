@@ -1,0 +1,35 @@
+global:
+  aws:
+    region: us-east-1
+
+open-webui:
+  app:
+    webuiUrl: "https://chat.ai-staging.chat"
+    auth:
+      signoutRedirectUrl: "https://chat.ai-staging.chat/"
+    storage:
+      s3:
+        bucketName: "staging-aichat-bucket"
+        region: "us-east-1"
+        endpointUrl: "https://s3.us-east-1.amazonaws.com"
+  serviceAccount:
+    roleArn: "arn:aws:iam::818561370924:role/OpenWebUI-IRSA-Role"
+  secrets:
+    manualSecretsName: "staging/aichat/open-webui/manual-secrets"
+    managedSecretsName: "staging/aichat/open-webui/managed-secrets"
+
+lago:
+  serviceAccount:
+    roleArn: "arn:aws:iam::818561370924:role/Lago-IRSA-Role"
+  apiUrl: "https://lago-api.ai-staging.chat"
+  frontUrl: "https://lago.ai-staging.chat"
+  global:
+    existingSecret: web-services-secrets
+    s3:
+      enabled: true
+      bucket: "staging-aichat-bucket"
+      region: "us-east-1"
+      endpoint: "https://s3.us-east-1.amazonaws.com"
+    smtp:
+      enabled: false
+      fromEmail: "support@ai-staging.chat"
