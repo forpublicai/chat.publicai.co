@@ -1,7 +1,7 @@
 # Environment and secrets
 .env
 *.env
-**/secrets.yaml
+
 **/*secret*
 **/*key*
 
