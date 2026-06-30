@@ -60,8 +60,14 @@ resource "helm_release" "external_secrets" {
   replace          = true
   cleanup_on_fail  = true
 
-  set = [{
-    name  = "installCRDs"
-    value = "true"
-  }]
+  set = [
+    {
+      name  = "installCRDs"
+      value = "true"
+    },
+    {
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = aws_iam_role.external_secrets_irsa.arn
+    }
+  ]
 }

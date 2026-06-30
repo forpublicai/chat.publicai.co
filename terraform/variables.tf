@@ -1,10 +1,2 @@
-variable "google_client_id" {
-  type        = string
-  description = "Google OAuth Client ID for Cognito Identity Provider"
-}
-
-variable "google_client_secret" {
-  type        = string
-  description = "Google OAuth Client Secret for Cognito Identity Provider"
-  sensitive   = true
-}
+# Variables are now resolved dynamically from AWS Secrets Manager.
+# Previously defined google_client_id and google_client_secret variables have been removed.
