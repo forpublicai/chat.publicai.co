@@ -1,0 +1,5 @@
+aws-load-balancer-controller:
+  clusterName: staging-main-cluster
+  region: us-east-1
+  serviceAccount:
+    annotations: {}
