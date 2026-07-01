@@ -139,6 +139,10 @@ resource "aws_cognito_user_pool" "this" {
     source_arn            = aws_ses_domain_identity.this.arn
   }
 
+  lambda_config {
+    pre_sign_up = aws_lambda_function.pre_signup.arn
+  }
+
   password_policy {
     minimum_length                   = 8
     password_history_size            = 0
@@ -270,8 +274,6 @@ resource "aws_cognito_user_pool_client" "publicai_app" {
   enable_propagate_additional_user_context_data = false
   enable_token_revocation                       = true
   prevent_user_existence_errors                 = "ENABLED"
-  read_attributes                               = []
-  write_attributes                              = []
   supported_identity_providers                  = ["COGNITO", "Google"]
 
   token_validity_units {
@@ -300,4 +302,71 @@ resource "aws_cognito_user_group" "google" {
   precedence   = 0
   role_arn     = null
   user_pool_id = aws_cognito_user_pool.this.id
+}
+
+# --- Cognito Pre Sign-Up Lambda Trigger ---
+data "archive_file" "pre_signup_zip" {
+  type        = "zip"
+  output_path = "${path.module}/pre_signup.zip"
+
+  source {
+    content  = <<EOF
+exports.handler = async (event) => {
+    const email = event.request.userAttributes.email;
+    if (!email) {
+        throw new Error("Email is required.");
+    }
+    const domain = email.split('@')[1].toLowerCase();
+    const allowedDomains = ["publicai.co", "currentai.org"];
+    
+    if (allowedDomains.includes(domain)) {
+        event.response.autoConfirmUser = true;
+        event.response.autoVerifyEmail = true;
+        return event;
+    } else {
+        throw new Error("Registration is restricted to authorized domains in staging.");
+    }
+};
+EOF
+    filename = "index.js"
+  }
+}
+
+resource "aws_lambda_function" "pre_signup" {
+  filename         = data.archive_file.pre_signup_zip.output_path
+  source_code_hash = data.archive_file.pre_signup_zip.output_base64sha256
+  function_name    = "${local.env}-${local.org}-cognito-pre-signup"
+  role             = aws_iam_role.pre_signup_lambda_role.arn
+  handler          = "index.handler"
+  runtime          = "nodejs18.x"
+}
+
+resource "aws_iam_role" "pre_signup_lambda_role" {
+  name = "${local.env}-${local.org}-pre-signup-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "pre_signup_lambda_logs" {
+  role       = aws_iam_role.pre_signup_lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_lambda_permission" "cognito_pre_signup" {
+  statement_id  = "AllowExecutionFromCognito"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.pre_signup.function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.this.arn
 }
