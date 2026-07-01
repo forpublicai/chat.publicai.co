@@ -72,6 +72,35 @@ resource "aws_ses_domain_identity_verification" "this" {
   depends_on = [aws_route53_record.ses_verification]
 }
 
+resource "aws_ses_identity_policy" "cognito" {
+  identity = aws_ses_domain_identity.this.domain
+  name     = "CognitoSendingPolicy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCognitoToSend"
+        Effect = "Allow"
+        Principal = {
+          Service = "cognito-idp.amazonaws.com"
+        }
+        Action = [
+          "SES:SendEmail",
+          "SES:SendRawEmail"
+        ]
+        Resource = aws_ses_domain_identity.this.arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceArn" = aws_cognito_user_pool.this.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
+
 # --- Cognito User Pool ---
 resource "aws_cognito_user_pool" "this" {
   name             = "${local.env}-${local.org}-openwebui"

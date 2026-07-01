@@ -18,7 +18,7 @@ resource "helm_release" "argocd" {
   set = [
     {
       name  = "server.service.type"
-      value = "ClusterIP" # Don't need access to dashboard keep internal only
+      value = "ClusterIP"
     },
     {
       name  = "configs.params.server.insecure"
@@ -51,14 +51,14 @@ resource "kubernetes_namespace_v1" "external_secrets" {
 }
 
 resource "helm_release" "external_secrets" {
-  name       = "external-secrets"
-  repository = "https://charts.external-secrets.io"
-  chart      = "external-secrets"
-  version    = "2.6.0"
-  namespace  = kubernetes_namespace_v1.external_secrets.metadata[0].name
-  timeout    = 200
-  replace          = true
-  cleanup_on_fail  = true
+  name            = "external-secrets"
+  repository      = "https://charts.external-secrets.io"
+  chart           = "external-secrets"
+  version         = "2.6.0"
+  namespace       = kubernetes_namespace_v1.external_secrets.metadata[0].name
+  timeout         = 200
+  replace         = true
+  cleanup_on_fail = true
 
   set = [
     {
