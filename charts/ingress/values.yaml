@@ -63,3 +63,19 @@ ingresses:
     targetService:
       name: web-services-api-svc
       port: 3000
+
+  - enabled: true
+    name: argo-ingress
+    namespace: argocd
+    host: argo.{{ .Values.domain }}
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/group.name: admin-group
+    targetService:
+      name: argocd-server
+      port: 80
