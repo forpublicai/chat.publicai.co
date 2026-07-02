@@ -21,7 +21,7 @@ resource "helm_release" "argocd" {
       value = "ClusterIP"
     },
     {
-      name  = "configs.params.server.insecure"
+      name  = "configs.params.server\\.insecure"
       value = "true"
     },
     {
