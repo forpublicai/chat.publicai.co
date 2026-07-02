@@ -1,0 +1,136 @@
+# TODO: Solution: Make sure to uninstall/delete your Helm releases (or Kubernetes Ingresses/Services
+# of type LoadBalancer) before running this destroy workflow. This gives the AWS Load Balancer
+# Controller time to clean up the AWS load balancers and security groups.
+
+name: Force Destroy Staging
+
+on:
+  workflow_dispatch:
+    # TODO: To enable a confirmation check, uncomment the inputs and step below:
+    # inputs:
+    #   confirm:
+    #     description: 'Type "destroy" to confirm you want to destroy the staging environment'
+    #     required: true
+    #     default: 'no'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    # environment: staging
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    env:
+      TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+      TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+    steps:
+      # - name: Verify Confirmation
+      #   run: |
+      #     if [ "${{ github.event.inputs.confirm }}" != "destroy" ]; then
+      #       echo "Confirmation failed. Expected 'destroy', got '${{ github.event.inputs.confirm }}'."
+      #       exit 1
+      #     fi
+
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - name: Clean Kubernetes state if EKS is gone
+        run: |
+          CLUSTER_STATUS=$(aws eks describe-cluster --name staging-main-cluster --region us-east-1 --query "cluster.status" --output text 2>/dev/null || echo "NOT_FOUND")
+          echo "EKS Cluster status: $CLUSTER_STATUS"
+          if [ "$CLUSTER_STATUS" = "NOT_FOUND" ] || [ "$CLUSTER_STATUS" = "DELETING" ]; then
+            echo "EKS Cluster is not running. Removing kubernetes/helm resources from state..."
+            terraform state list | grep -E '^(kubernetes_|helm_)' | xargs -r terraform state rm
+          fi
+
+      - name: Clean up Kubernetes Load Balancers
+        run: |
+          CLUSTER_STATUS=$(aws eks describe-cluster --name staging-main-cluster --region us-east-1 --query "cluster.status" --output text 2>/dev/null || echo "NOT_FOUND")
+          echo "EKS Cluster status: $CLUSTER_STATUS"
+          if [ "$CLUSTER_STATUS" = "ACTIVE" ]; then
+            echo "Configuring kubeconfig..."
+            aws eks update-kubeconfig --name staging-main-cluster --region us-east-1
+            
+            echo "Scaling down Argo CD to prevent resource recreation..."
+            kubectl scale deployment -n argocd --all --replicas=0 --timeout=30s || true
+            kubectl scale statefulset -n argocd --all --replicas=0 --timeout=30s || true
+            
+            echo "Deleting Kubernetes Ingresses..."
+            kubectl delete ingress --all --all-namespaces --timeout=60s || true
+            
+            echo "Deleting Kubernetes Services of type LoadBalancer..."
+            kubectl delete service --all --all-namespaces --field-selector type=LoadBalancer --timeout=60s || true
+            
+            echo "Waiting 90 seconds for AWS Load Balancer Controller to delete AWS resources..."
+            sleep 90
+          else
+            echo "EKS Cluster is not active. Skipping Kubernetes cleanup."
+          fi
+
+      - name: Terraform Destroy with fallback for leftover resources
+        run: |
+          terraform destroy -auto-approve || {
+            echo "Terraform destroy failed. Cleaning up leftover AWS resources..."
+            
+            # Find and delete Load Balancers
+            ELB_ARNS=$(aws resourcegroupstaggingapi get-resources --region us-east-1 \
+              --tag-filters Key=elbv2.k8s.aws/cluster,Values=staging-main-cluster \
+              --resource-type-filters elasticloadbalancing:loadbalancer \
+              --query "ResourceTagMappingList[*].ResourceARN" --output text 2>/dev/null || true)
+            for arn in $ELB_ARNS; do
+              if [ -n "$arn" ]; then
+                echo "Deleting Load Balancer $arn..."
+                aws elbv2 delete-load-balancer --region us-east-1 --load-balancer-arn "$arn" || true
+              fi
+            done
+            
+            # Find and delete Target Groups
+            TG_ARNS=$(aws resourcegroupstaggingapi get-resources --region us-east-1 \
+              --tag-filters Key=elbv2.k8s.aws/cluster,Values=staging-main-cluster \
+              --resource-type-filters elasticloadbalancing:targetgroup \
+              --query "ResourceTagMappingList[*].ResourceARN" --output text 2>/dev/null || true)
+            for arn in $TG_ARNS; do
+              if [ -n "$arn" ]; then
+                echo "Deleting Target Group $arn..."
+                aws elbv2 delete-target-group --region us-east-1 --target-group-arn "$arn" || true
+              fi
+            done
+            
+            # Find and delete Security Groups
+            SG_IDS=$(aws ec2 describe-security-groups --region us-east-1 \
+              --filters "Name=tag:elbv2.k8s.aws/cluster,Values=staging-main-cluster" \
+              --query "SecurityGroups[*].GroupId" --output text 2>/dev/null || true)
+            for sg in $SG_IDS; do
+              if [ -n "$sg" ]; then
+                echo "Cleaning rules for security group $sg..."
+                aws ec2 revoke-security-group-ingress --region us-east-1 --group-id "$sg" --ip-permissions "$(aws ec2 describe-security-groups --region us-east-1 --group-ids "$sg" --query "SecurityGroups[0].IpPermissions" --output json)" 2>/dev/null || true
+                aws ec2 revoke-security-group-egress --region us-east-1 --group-id "$sg" --ip-permissions "$(aws ec2 describe-security-groups --region us-east-1 --group-ids "$sg" --query "SecurityGroups[0].IpPermissionsEgress" --output json)" 2>/dev/null || true
+              fi
+            done
+            
+            for sg in $SG_IDS; do
+              if [ -n "$sg" ]; then
+                echo "Deleting security group $sg..."
+                aws ec2 delete-security-group --region us-east-1 --group-id "$sg" || true
+              fi
+            done
+            
+            echo "Retrying terraform destroy..."
+            terraform destroy -auto-approve
+          }
