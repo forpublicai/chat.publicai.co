@@ -50,4 +50,13 @@ jobs:
 
       - run: terraform init
 
+      - name: Clean Kubernetes state if EKS is gone
+        run: |
+          CLUSTER_STATUS=$(aws eks describe-cluster --name staging-main-cluster --region us-east-1 --query "cluster.status" --output text 2>/dev/null || echo "NOT_FOUND")
+          echo "EKS Cluster status: $CLUSTER_STATUS"
+          if [ "$CLUSTER_STATUS" = "NOT_FOUND" ] || [ "$CLUSTER_STATUS" = "DELETING" ]; then
+            echo "EKS Cluster is not running. Removing kubernetes/helm resources from state..."
+            terraform state list | grep -E '^(kubernetes_|helm_)' | xargs -r terraform state rm
+          fi
+
       - run: terraform destroy -auto-approve
