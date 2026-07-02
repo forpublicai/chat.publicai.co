@@ -3,16 +3,6 @@ data "aws_route53_zone" "this" {
   private_zone = false
 }
 
-# --- Cognito ACM Certificate (Must be in us-east-1 for custom domains) ---
-resource "aws_acm_certificate" "cognito" {
-  provider          = aws.us_east_1
-  domain_name       = "auth.${local.domain}"
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
 
 resource "aws_route53_record" "cognito_acm_validation" {
   for_each = {
