@@ -4,29 +4,6 @@ data "aws_route53_zone" "this" {
 }
 
 
-resource "aws_route53_record" "cognito_acm_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.cognito.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = data.aws_route53_zone.this.zone_id
-}
-
-resource "aws_acm_certificate_validation" "cognito" {
-  provider                = aws.us_east_1
-  certificate_arn         = aws_acm_certificate.cognito.arn
-  validation_record_fqdns = [for record in aws_route53_record.cognito_acm_validation : record.fqdn]
-}
-
 # --- Wildcard ACM Certificate for EKS Ingresses (Must be in us-east-1 for ALB) ---
 resource "aws_acm_certificate" "wildcard" {
   provider                  = aws.us_east_1
@@ -220,7 +197,7 @@ resource "aws_cognito_user_pool" "this" {
 # --- Cognito Custom Domain ---
 resource "aws_cognito_user_pool_domain" "this" {
   domain                = "auth.${local.domain}"
-  certificate_arn       = aws_acm_certificate_validation.cognito.certificate_arn
+  certificate_arn       = aws_acm_certificate_validation.wildcard.certificate_arn
   managed_login_version = 2
   user_pool_id          = aws_cognito_user_pool.this.id
 
