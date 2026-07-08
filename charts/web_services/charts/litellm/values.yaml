@@ -241,6 +241,24 @@ config:
       model_info:
         input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
         output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+    ##
+    ##
+    # This is temporary addition until monday
+    ##
+    ##
+    - model_name: swiss-ai/apertus-70b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        api_base: https://apertus-70b-google-104424268352975107254.sea-lion-inference.com/v1
+        api_key: "os.environ/AISINGAPORE_API_KEY"
+        supports_vision: true
+        weight: 1
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 8192
+      model_info:
+        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
     # # Apertus 8B model via PHOENIQS endpoint
     # - model_name: swiss-ai/apertus-8b-instruct
     #   litellm_params:
@@ -379,6 +397,8 @@ secrets:
   lagoApiKey: ""  # Lago API key for billing integration
   dictaApiKey: ""
   phoeniqsApiKey: ""
+  bielikApiKey: ""
+  aisingaporeApiKey: ""
 
 # Environment variables
 env:

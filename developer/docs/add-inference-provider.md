@@ -40,6 +40,18 @@ secrets:
   new_provider_api_key: ""
 ```
 
+In ``charts/web_services/charts/litellm/templates/secrets.yaml``
+Add the secret
+
+```yaml
+...
+  infomaniak_api_key: {{ .Values.secrets.infomaniakApiKey | quote }}
+  deepinfra_api_key: {{ .Values.secrets.deepinfraApiKey | quote }}
+  phoeniqs_api_key: {{ .Values.secrets.phoeniqsApiKey | quote }}
+  bielik_api_key: {{ .Values.secrets.bielikApiKey | quote }}
+...
+```
+
 ## Add the API key to the deployment script
 
 ``web.sh``
@@ -96,3 +108,12 @@ Go to the OpenWebUI admin panel and configure.
 Cofirm Lagos has detected the model and pricing.
 
 ![lagos-admin.png](lagos-admin.png)
+
+kubectl config current-context
+
+aws sts get-caller-identity
+aws eks list-clusters --region eu-central-2
+
+aws eks update-kubeconfig \
+  --region eu-central-2 \
+  --name publicai-eks

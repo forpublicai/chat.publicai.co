@@ -72,6 +72,7 @@ validate_env() {
         "DEEPINFRA_API_KEY"
         "PHOENIQS_API_KEY"
         "BIELIK_API_KEY"
+        "AISINGAPORE_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do

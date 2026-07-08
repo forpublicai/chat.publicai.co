@@ -157,6 +157,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: bielik_api_key
+            - name: AISINGAPORE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: aisingapore_api_key
+
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml
