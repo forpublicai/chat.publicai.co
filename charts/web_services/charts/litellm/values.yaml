@@ -202,7 +202,7 @@ config:
     # Apertus 8B model via CSCS endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
-        model: openai/Apertus-8B-Instruct-2509
+        model: openai/swiss-ai/Apertus-8B-Instruct-2509
         api_base: https://llm-proxy.svc.cscs.ch/v1
         api_key: "os.environ/VLLM_API_KEY_CSCS"
         supports_vision: true  
@@ -230,7 +230,7 @@ config:
     # Apertus 70B model via CSCS endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
-        model: openai/Apertus-70B-Instruct-2509
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
         api_base: https://llm-proxy.svc.cscs.ch/v1
         api_key: "os.environ/VLLM_API_KEY_CSCS"
         supports_vision: true  
