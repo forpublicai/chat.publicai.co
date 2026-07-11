@@ -206,7 +206,7 @@ config:
         api_base: https://llm-proxy.svc.cscs.ch/v1
         api_key: "os.environ/VLLM_API_KEY_CSCS"
         supports_vision: true  
-        weight: 20
+        weight: 0
         temperature: 0.8
         top_p: 0.9
         max_tokens: 16384
@@ -234,7 +234,7 @@ config:
         api_base: https://llm-proxy.svc.cscs.ch/v1
         api_key: "os.environ/VLLM_API_KEY_CSCS"
         supports_vision: true  
-        weight: 20
+        weight: 0
         temperature: 0.8
         top_p: 0.9
         max_tokens: 16384
