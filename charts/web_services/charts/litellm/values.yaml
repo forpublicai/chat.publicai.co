@@ -5,7 +5,7 @@ app:
     # repository: ghcr.io/berriai/litellm-database
     # tag: "main-stable"
     repository: ghcr.io/forpublicai/litellm-database
-    tag: spend_logs_patch 
+    tag: spend_logs_patch
     pullPolicy: Always
   
   replicas: 1
@@ -45,6 +45,9 @@ config:
       namespace: "litellm.caching"
       ttl: 600  # 10 minutes default TTL
       # Redis SSL is configured via REDIS_URL environment variable
+
+  fallbacks:
+    - swiss-ai/apertus-70b-instruct: ["aisingapore/Qwen-SEA-LION-v4-32B-IT"]
 
   models:
     # Task model - Chat completions (using inference profile)
@@ -200,26 +203,26 @@ config:
         input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
         output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 8B model via CSCS endpoint
-    - model_name: swiss-ai/apertus-8b-instruct
-      litellm_params:
-        model: openai/Apertus-8B-Instruct-2509
-        api_base: https://llm-proxy.svc.cscs.ch/v1
-        api_key: "os.environ/VLLM_API_KEY_CSCS"
-        supports_vision: true  
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 16384
-      model_info:
-        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
-        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+    # - model_name: swiss-ai/apertus-8b-instruct
+    #   litellm_params:
+    #     model: openai/Apertus-8B-Instruct-2509
+    #     api_base: https://llm-proxy.svc.cscs.ch/v1
+    #     api_key: "os.environ/VLLM_API_KEY_CSCS"
+    #     supports_vision: true  
+    #     weight: 20 
+    #     temperature: 0.8
+    #     top_p: 0.9
+    #     max_tokens: 16384
+    #   model_info:
+    #     input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+    #     output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 70B model via Infomaniak endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
         model: openai/swiss-ai/Apertus-70B-Instruct-2509
         api_base: https://api.infomaniak.com/2/ai/106744/openai/v1
         api_key: "os.environ/INFOMANIAK_API_KEY"
-        supports_vision: true  
+        supports_vision: true
         weight: 1
         temperature: 0.8
         top_p: 0.9
@@ -227,20 +230,20 @@ config:
       model_info:
         input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
         output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
-    # Apertus 70B model via CSCS endpoint
-    - model_name: swiss-ai/apertus-70b-instruct
-      litellm_params:
-        model: openai/Apertus-70B-Instruct-2509
-        api_base: https://llm-proxy.svc.cscs.ch/v1
-        api_key: "os.environ/VLLM_API_KEY_CSCS"
-        supports_vision: true  
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 16384
-      model_info:
-        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
-        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+    #Apertus 70B model via CSCS endpoint
+#    - model_name: swiss-ai/apertus-70b-instruct
+#      litellm_params:
+#        model: openai/swiss-ai/apertus-70b-instruct
+#        api_base: https://llm-proxy.svc.cscs.ch/v1
+#        api_key: "os.environ/VLLM_API_KEY_CSCS"
+#        supports_vision: true
+#        weight: 20
+#        temperature: 0.8
+#        top_p: 0.9
+#        max_tokens: 16384
+#      model_info:
+#        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+#        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
     ##
     ##
     # This is temporary addition until monday
@@ -252,13 +255,42 @@ config:
         api_base: https://apertus-70b-google-104424268352975107254.sea-lion-inference.com/v1
         api_key: "os.environ/AISINGAPORE_API_KEY"
         supports_vision: true
-        weight: 1
+        weight: 5
         temperature: 0.8
         top_p: 0.9
         max_tokens: 8192
       model_info:
         input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
         output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+        #    - model_name: swiss-ai/apertus-70b-instruct
+        #      litellm_params:
+        #        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        #        api_base: http://185.216.23.198/v1
+        #        api_key: "os.environ/HYPERSTACK_API_KEY"
+        #        supports_vision: true
+        #        weight: 5
+        #        temperature: 0.8
+        #        top_p: 0.9
+        #        max_tokens: 16384
+        #      model_info:
+        #        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        #        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+        #    - model_name: swiss-ai/apertus-70b-instruct
+        #      litellm_params:
+        #        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        #        api_base: http://185.216.23.72/v1
+        #        api_key: "os.environ/HYPERSTACK_API_KEY"
+        #        supports_vision: true
+        #        weight: 5
+        #        temperature: 0.8
+        #        top_p: 0.9
+        #        max_tokens: 16384
+        #      model_info:
+        #        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        #        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+        #######
+        #######
+        ######
     # # Apertus 8B model via PHOENIQS endpoint
     # - model_name: swiss-ai/apertus-8b-instruct
     #   litellm_params:
@@ -355,11 +387,11 @@ config:
     - model_name: speakleash/Bielik-11B-v3.0-Instruct
       litellm_params:
         model: openai/speakleash/Bielik-11B-v3.0-Instruct
-        api_base:  https://llmlab.plgrid.pl/api/v1
+        api_base: https://llmlab.plgrid.pl/api/v1
         api_key: "os.environ/BIELIK_API_KEY"
-#        temperature: 0.15
-#        top_p: 0.85
-#        max_tokens: 16000
+      #        temperature: 0.15
+      #        top_p: 0.85
+      #        max_tokens: 16000
       model_info:
         input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
         output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
@@ -396,6 +428,8 @@ secrets:
   multiverseApiKey: ""
   lagoApiKey: ""  # Lago API key for billing integration
   dictaApiKey: ""
+  infomaniakApiKey: ""
+  deepinfraApiKey: ""
   phoeniqsApiKey: ""
   bielikApiKey: ""
   aisingaporeApiKey: ""
@@ -421,15 +455,15 @@ autoscaling:
     scaleUp:
       stabilizationWindowSeconds: 60
       policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 15
+        - type: Percent
+          value: 100
+          periodSeconds: 15
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
-      - type: Percent
-        value: 10
-        periodSeconds: 60
+        - type: Percent
+          value: 10
+          periodSeconds: 60
 
 # Lago billing integration
 lago:

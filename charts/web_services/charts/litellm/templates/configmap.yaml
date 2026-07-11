@@ -132,3 +132,8 @@ data:
         {{- end }}
     {{- end }}
     {{- end }}
+    
+    {{- if .Values.config.fallbacks }}
+    fallbacks:
+      {{- toYaml .Values.config.fallbacks | nindent 6 }}
+    {{- end }}

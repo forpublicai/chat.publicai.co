@@ -157,7 +157,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: bielik_api_key
-            - name: AISINGAPORE_KEY
+            - name: AISINGAPORE_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
