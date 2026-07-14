@@ -7,6 +7,7 @@ import json
 import argparse
 import urllib.request
 import urllib.error
+import concurrent.futures
 
 def load_env(env_path):
     """Load environment variables from a .env file."""
@@ -136,6 +137,7 @@ def main():
     parser = argparse.ArgumentParser(description="Test LiteLLM endpoints on api-internal.publicai.co")
     parser.add_argument("--insecure", action="store_true", help="Bypass SSL verification")
     parser.add_argument("--url", default="https://api-internal.publicai.co", help="Base URL of LiteLLM proxy")
+    parser.add_argument("--workers", type=int, default=10, help="Number of parallel workers to use")
     args = parser.parse_args()
 
     # Find project root and load .env
@@ -170,23 +172,39 @@ def main():
         sys.exit(0)
         
     print(f"Found {len(models)} models: {', '.join(models)}")
+    print(f"Testing {len(models)} models in parallel using {args.workers} workers...")
     print("-" * 120)
     
-    results = []
-    for idx, model in enumerate(models, 1):
-        print(f"[{idx}/{len(models)}] Testing model: {model} ...", end="", flush=True)
+    results = [None] * len(models)
+    
+    def test_single_model(idx, model):
         success, ttft, error = measure_ttft(args.url, model, api_key, ssl_verify=ssl_verify)
         if success:
-            print(f" SUCCESS (TTFT: {ttft:.3f}s)")
+            print(f"[{idx}/{len(models)}] {model}: SUCCESS (TTFT: {ttft:.3f}s)")
         else:
-            print(f" FAILED (Error: {error})")
-            
-        results.append({
+            print(f"[{idx}/{len(models)}] {model}: FAILED (Error: {error})")
+        return {
             'model': model,
             'success': success,
             'ttft': ttft,
             'error': error
-        })
+        }
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
+        futures = {executor.submit(test_single_model, idx, model): idx - 1 for idx, model in enumerate(models, 1)}
+        for future in concurrent.futures.as_completed(futures):
+            idx_zero = futures[future]
+            try:
+                results[idx_zero] = future.result()
+            except Exception as e:
+                model = models[idx_zero]
+                print(f"[{idx_zero+1}/{len(models)}] {model}: FAILED (Exception: {e})")
+                results[idx_zero] = {
+                    'model': model,
+                    'success': False,
+                    'ttft': None,
+                    'error': f"Thread Exception: {e}"
+                }
         
     print("\n" + "=" * 120)
     print(f"{'Model Name':<50} | {'Status':<12} | {'TTFT (s)':<10}")
