@@ -46,18 +46,8 @@ validate_env() {
         "LITELLM_SALT_KEY"
         "LITELLM_DATABASE_URL"
         "LITELLM_REDIS_URL"
-        "TOGETHER_API_KEY"
         "SEALION_API_KEY"
-        "VLLM_API_KEY"
-        "VLLM_API_KEY_EXOSCALE"
-        "VLLM_API_KEY_ANU"
-        "VLLM_API_KEY_CSCS"
-        "VLLM_API_KEY_CUDO"
-        "VLLM_API_KEY_HH"
         "VLLM_API_KEY_INTEL"
-        "CIRRASCALE_API_KEY"
-        "PARASCALE_API_KEY"
-        "MULTIVERSE_API_KEY"
         "LAGO_DATABASE_URL"
         "LAGO_REDIS_URL"
         "LAGO_SECRET_KEY_BASE"
@@ -69,10 +59,7 @@ validate_env() {
         "EXPECTED_KUBE_CONTEXT"
         "DICTA_API_KEY"
         "INFOMANIAK_API_KEY"
-        "DEEPINFRA_API_KEY"
-        "PHOENIQS_API_KEY"
         "BIELIK_API_KEY"
-        "AISINGAPORE_API_KEY"
         "GRAFANA_ADMIN_USER"
         "GRAFANA_ADMIN_PASSWORD"
         "PROMETHEUS_ADMIN_USER"
@@ -125,25 +112,12 @@ deploy_services() {
         --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
         --set litellm.secrets.databaseUrl="$LITELLM_DATABASE_URL" \
         --set litellm.secrets.redisUrl="$LITELLM_REDIS_URL" \
-        --set litellm.secrets.togetherApiKey="$TOGETHER_API_KEY" \
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
-        --set litellm.secrets.vllmApiKey="$VLLM_API_KEY" \
-        --set litellm.secrets.vllmApiKeyExoscale="$VLLM_API_KEY_EXOSCALE" \
-        --set litellm.secrets.vllmApiKeyAnu="$VLLM_API_KEY_ANU" \
-        --set litellm.secrets.vllmApiKeyCscs="$VLLM_API_KEY_CSCS" \
-        --set litellm.secrets.vllmApiKeyCudo="$VLLM_API_KEY_CUDO" \
-        --set litellm.secrets.vllmApiKeyHh="$VLLM_API_KEY_HH" \
         --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
-        --set litellm.secrets.cirrascaleApiKey="$CIRRASCALE_API_KEY" \
-        --set litellm.secrets.parascaleApiKey="$PARASCALE_API_KEY" \
-        --set litellm.secrets.multiverseApiKey="$MULTIVERSE_API_KEY" \
         --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
         --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
-        --set litellm.secrets.deepinfraApiKey="$DEEPINFRA_API_KEY" \
-        --set litellm.secrets.phoeniqsApiKey="$PHOENIQS_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
-        --set litellm.secrets.aisingaporeApiKey="$AISINGAPORE_API_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
