@@ -73,6 +73,10 @@ validate_env() {
         "PHOENIQS_API_KEY"
         "BIELIK_API_KEY"
         "AISINGAPORE_API_KEY"
+        "GRAFANA_ADMIN_USER"
+        "GRAFANA_ADMIN_PASSWORD"
+        "PROMETHEUS_ADMIN_USER"
+        "PROMETHEUS_ADMIN_PASSWORD"
     )
     
     for var in "${required_vars[@]}"; do
@@ -143,7 +147,16 @@ deploy_services() {
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
-        --set lago.global.redisUrl="$LAGO_REDIS_URL" 
+        --set lago.global.redisUrl="$LAGO_REDIS_URL" \
+        --set prometheus.enabled=true \
+        --set prometheus.adminUser="$PROMETHEUS_ADMIN_USER" \
+        --set prometheus.adminPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set grafana.enabled=true \
+        --set grafana.adminUser="$GRAFANA_ADMIN_USER" \
+        --set grafana.adminPassword="$GRAFANA_ADMIN_PASSWORD" \
+        --set loki.enabled=true \
+        --set promtail.enabled=true \
+        --set litellm.prometheus.enabled=true 
         
 
     echo "✅ Web services deployment complete!"

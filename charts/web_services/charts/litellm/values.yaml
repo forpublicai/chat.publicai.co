@@ -5,7 +5,7 @@ app:
     # repository: ghcr.io/berriai/litellm-database
     # tag: "main-stable"
     repository: ghcr.io/forpublicai/litellm-database
-    tag: spend_logs_patch
+    tag: v1.92.0
     pullPolicy: Always
   
   replicas: 1
@@ -471,3 +471,6 @@ lago:
   eventCode: "public_ai_models"  # Event code in Lago for billing metrics
   chargeBy: "end_user_id"  # Charge by: user_id, team_id, or end_user_id (uses the 'user' parameter from API calls)
   apiBase: "https://lago-api.publicai.co"  # Lago API base URL. Not being used as Litellm communicates internally to Lago.
+
+prometheus:
+  enabled: false

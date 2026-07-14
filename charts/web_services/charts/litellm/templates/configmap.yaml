@@ -61,9 +61,14 @@ data:
       {{- end }}
       drop_params: true
       ssl_verify: false
-      {{- if .Values.lago.enabled }}
-      # Custom Lago billing integration with separate input/output events
-      callbacks: ["custom_lago_callback.lago_callback"]
+      {{- if or .Values.lago.enabled .Values.prometheus.enabled }}
+      callbacks:
+        {{- if .Values.lago.enabled }}
+        - "custom_lago_callback.lago_callback"
+        {{- end }}
+        {{- if .Values.prometheus.enabled }}
+        - "prometheus"
+        {{- end }}
       {{- end }}
       extra_spend_tag_headers:
         - "x-openwebui-user-id"

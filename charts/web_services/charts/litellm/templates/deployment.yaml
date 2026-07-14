@@ -12,6 +12,12 @@ spec:
     metadata:
       labels:
         app: {{ .Values.app.name }}
+      {{- if .Values.prometheus.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4000"
+        prometheus.io/path: "/metrics"
+      {{- end }}
     spec:
       {{- if .Values.serviceAccount.enabled }}
       serviceAccountName: {{ .Values.serviceAccount.name }}

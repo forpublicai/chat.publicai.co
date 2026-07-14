@@ -62,5 +62,37 @@ ingresses:
       name: web-services-api-svc  # Official chart service name
       port: 3000
 
+  # Grafana Dashboard UI
+  - enabled: true
+    name: grafana-ingress
+    host: grafana.publicai.co
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/group.name: monitoring-ingress-group
+    targetService:
+      name: web-services-grafana
+      port: 80
+
+  # Prometheus Server UI
+  - enabled: true
+    name: prometheus-ingress
+    host: prometheus.publicai.co
+    annotations:
+      kubernetes.io/ingress.class: alb-web
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/group.name: monitoring-ingress-group
+    targetService:
+      name: web-services-prometheus-server
+      port: 80
+
 # Certificate ARN (passed from command line)
 certificateArn: ""
