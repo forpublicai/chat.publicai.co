@@ -61,6 +61,11 @@ data:
       {{- end }}
       drop_params: true
       ssl_verify: false
+      {{- if hasKey .Values.config.litellm_settings "require_auth_for_metrics_endpoint" }}
+      require_auth_for_metrics_endpoint: {{ .Values.config.litellm_settings.require_auth_for_metrics_endpoint }}
+      {{- else }}
+      require_auth_for_metrics_endpoint: false
+      {{- end }}
       {{- if or .Values.lago.enabled .Values.prometheus.enabled }}
       callbacks:
         {{- if .Values.lago.enabled }}

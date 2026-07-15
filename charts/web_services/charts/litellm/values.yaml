@@ -40,6 +40,7 @@ config:
     allowed_fails: 1
     cooldown_time: 60
     cache: true
+    require_auth_for_metrics_endpoint: false
     cache_params:
       type: redis
       namespace: "litellm.caching"
