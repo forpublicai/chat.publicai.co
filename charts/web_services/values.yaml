@@ -299,6 +299,10 @@ grafana:
           access: proxy
           url: http://web-services-prometheus-server:80
           isDefault: true
+          basicAuth: true
+          basicAuthUser: ${PROMETHEUS_ADMIN_USER}
+          secureJsonData:
+            basicAuthPassword: ${PROMETHEUS_ADMIN_PASSWORD}
         - name: Loki
           type: loki
           access: proxy
@@ -317,8 +321,12 @@ grafana:
             path: /var/lib/grafana/dashboards/default
   dashboards:
     default:
-      litellm:
-        gnetId: 19816
+      litellm-spend:
+        gnetId: 24965
+        revision: 1
+        datasource: Prometheus
+      litellm-sre:
+        gnetId: 25541
         revision: 1
         datasource: Prometheus
 

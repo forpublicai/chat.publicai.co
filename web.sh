@@ -8,16 +8,22 @@ show_usage() {
     echo "Usage: $0 [COMMAND]"
     echo ""
     echo "Commands:"
-    echo "  --deploy        Deploy web services only"
-    echo "  --deploy-all    Deploy web services and ingress"
-    echo "  --cleanup       Remove web services only"
-    echo "  --cleanup-all   Remove web services and ingress"
+    echo "  --deploy            Deploy web services only"
+    echo "  --deploy-all        Deploy web services and ingress"
+    echo "  --cleanup           Remove web services only"
+    echo "  --cleanup-all       Remove web services and ingress"
+    echo "  --validate          Validate configurations and compile templates locally (offline)"
+    echo "  --dry-run [TARGET]  Validate environment and simulate deployment on cluster"
+    echo "                      (TARGET can be --deploy or --deploy-all. Defaults to --deploy-all)"
     echo ""
     echo "Examples:"
-    echo "  $0 --deploy     # Deploy services only"
-    echo "  $0 --deploy-all # Deploy services + ingress"
-    echo "  $0 --cleanup    # Remove services only"
-    echo "  $0 --cleanup-all # Remove services + ingress"
+    echo "  $0 --deploy         # Deploy services only"
+    echo "  $0 --deploy-all     # Deploy services + ingress"
+    echo "  $0 --cleanup        # Remove services only"
+    echo "  $0 --cleanup-all    # Remove services + ingress"
+    echo "  $0 --validate       # Run dry-run checks and offline lint/template compilation"
+    echo "  $0 --dry-run        # Simulate full deployment (ingress + services)"
+    echo "  $0 --dry-run --deploy # Simulate deploying services only"
     exit 1
 }
 
@@ -72,6 +78,9 @@ validate_env() {
             exit 1
         fi
     done
+
+    # Generate base64 auth token for Prometheus probes
+    export PROMETHEUS_AUTH_TOKEN=$(echo -n "${PROMETHEUS_ADMIN_USER}:${PROMETHEUS_ADMIN_PASSWORD}" | base64)
     
     echo "✅ Environment variables validated"
 }
@@ -125,9 +134,13 @@ deploy_services() {
         --set prometheus.enabled=true \
         --set prometheus.adminUser="$PROMETHEUS_ADMIN_USER" \
         --set prometheus.adminPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set-string "prometheus.server.probeHeaders[0].name=Authorization" \
+        --set-string "prometheus.server.probeHeaders[0].value=Basic ${PROMETHEUS_AUTH_TOKEN}" \
         --set grafana.enabled=true \
         --set grafana.adminUser="$GRAFANA_ADMIN_USER" \
         --set grafana.adminPassword="$GRAFANA_ADMIN_PASSWORD" \
+        --set grafana.env.PROMETHEUS_ADMIN_USER="$PROMETHEUS_ADMIN_USER" \
+        --set grafana.env.PROMETHEUS_ADMIN_PASSWORD="$PROMETHEUS_ADMIN_PASSWORD" \
         --set loki.enabled=true \
         --set promtail.enabled=true \
         --set litellm.prometheus.enabled=true 
@@ -164,6 +177,140 @@ show_ingress_info() {
     kubectl get ingress -n web-services 2>/dev/null || echo "  No web ingress found"
 }
 
+# Function to validate configurations and templates locally (offline)
+validate() {
+    echo "🔍 Validating environment variables..."
+    validate_env
+
+    echo "🔍 Running configuration alignment checks..."
+    python3 developer/test/code_check_endpoint.py
+
+    echo "🔧 Building web services dependencies..."
+    helm dependency build charts/web_services/
+
+    echo "🔍 Linting Helm charts..."
+    helm lint charts/web_services/
+    helm lint charts/web_ingress/
+
+    echo "🔍 Rendering templates locally (offline dry-run)..."
+    echo "   --- Testing charts/web_ingress/ ---"
+    helm template web-ingress charts/web_ingress/ \
+        --set certificateArn="$CERTIFICATE_ARN" > /dev/null
+
+    echo "   --- Testing charts/web_services/ ---"
+    helm template web-services charts/web_services/ \
+        --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
+        --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
+        --set open-webui.secrets.databaseUrl="$OWUI_DATABASE_URL" \
+        --set open-webui.secrets.redisUrl="$OWUI_REDIS_URL" \
+        --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
+        --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
+        --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set litellm.enabled=true \
+        --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
+        --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
+        --set litellm.secrets.databaseUrl="$LITELLM_DATABASE_URL" \
+        --set litellm.secrets.redisUrl="$LITELLM_REDIS_URL" \
+        --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
+        --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
+        --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
+        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
+        --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
+        --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
+        --set litellm.lago.enabled=true \
+        --set lago.enabled=true \
+        --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
+        --set lago.global.redisUrl="$LAGO_REDIS_URL" \
+        --set prometheus.enabled=true \
+        --set prometheus.adminUser="$PROMETHEUS_ADMIN_USER" \
+        --set prometheus.adminPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set-string "prometheus.server.probeHeaders[0].name=Authorization" \
+        --set-string "prometheus.server.probeHeaders[0].value=Basic ${PROMETHEUS_AUTH_TOKEN}" \
+        --set grafana.enabled=true \
+        --set grafana.adminUser="$GRAFANA_ADMIN_USER" \
+        --set grafana.adminPassword="$GRAFANA_ADMIN_PASSWORD" \
+        --set grafana.env.PROMETHEUS_ADMIN_USER="$PROMETHEUS_ADMIN_USER" \
+        --set grafana.env.PROMETHEUS_ADMIN_PASSWORD="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set loki.enabled=true \
+        --set promtail.enabled=true \
+        --set litellm.prometheus.enabled=true > /dev/null
+
+    echo "✅ Template validation and configuration checks passed successfully!"
+}
+
+# Function to simulate deployment on cluster (dry-run)
+dry_run() {
+    local target="all"
+    if [ "$1" = "--deploy" ]; then
+        target="services"
+    elif [ "$1" = "--deploy-all" ]; then
+        target="all"
+    elif [ -n "$1" ]; then
+        echo "❌ Unknown dry-run target: $1"
+        show_usage
+    fi
+
+    echo "🚀 Running validate step first..."
+    validate
+
+    echo "🔄 Checking Kubernetes context..."
+    set_kube_context
+
+    if [ "$target" = "all" ]; then
+        echo "📦 Simulating deployment of web ingress (dry-run)..."
+        helm upgrade --install web-ingress charts/web_ingress/ \
+            -n web-services \
+            --create-namespace \
+            --set certificateArn="$CERTIFICATE_ARN" \
+            --dry-run
+    fi
+
+    echo "📦 Simulating deployment of web services (dry-run)..."
+    helm upgrade --install web-services charts/web_services/ \
+        -n web-services --timeout 15m --debug \
+        --create-namespace \
+        --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
+        --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
+        --set open-webui.secrets.databaseUrl="$OWUI_DATABASE_URL" \
+        --set open-webui.secrets.redisUrl="$OWUI_REDIS_URL" \
+        --set open-webui.secrets.openidProviderUrl="$OPENID_PROVIDER_URL" \
+        --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
+        --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
+        --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set litellm.enabled=true \
+        --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
+        --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
+        --set litellm.secrets.databaseUrl="$LITELLM_DATABASE_URL" \
+        --set litellm.secrets.redisUrl="$LITELLM_REDIS_URL" \
+        --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
+        --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
+        --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
+        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
+        --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
+        --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
+        --set litellm.lago.enabled=true \
+        --set lago.enabled=true \
+        --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
+        --set lago.global.redisUrl="$LAGO_REDIS_URL" \
+        --set prometheus.enabled=true \
+        --set prometheus.adminUser="$PROMETHEUS_ADMIN_USER" \
+        --set prometheus.adminPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set-string "prometheus.server.probeHeaders[0].name=Authorization" \
+        --set-string "prometheus.server.probeHeaders[0].value=Basic ${PROMETHEUS_AUTH_TOKEN}" \
+        --set grafana.enabled=true \
+        --set grafana.adminUser="$GRAFANA_ADMIN_USER" \
+        --set grafana.adminPassword="$GRAFANA_ADMIN_PASSWORD" \
+        --set grafana.env.PROMETHEUS_ADMIN_USER="$PROMETHEUS_ADMIN_USER" \
+        --set grafana.env.PROMETHEUS_ADMIN_PASSWORD="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set loki.enabled=true \
+        --set promtail.enabled=true \
+        --set litellm.prometheus.enabled=true \
+        --dry-run
+
+    echo "✅ Cluster dry-run simulation completed successfully!"
+}
+
 # Cleanup functions
 cleanup_services() {
     echo "🧹 Cleaning up web services..."
@@ -198,6 +345,10 @@ elif [ "$1" = "--cleanup" ]; then
     cleanup_services
 elif [ "$1" = "--cleanup-all" ]; then
     cleanup_all
+elif [ "$1" = "--validate" ]; then
+    validate
+elif [ "$1" = "--dry-run" ]; then
+    dry_run "$2"
 else
     show_usage
 fi

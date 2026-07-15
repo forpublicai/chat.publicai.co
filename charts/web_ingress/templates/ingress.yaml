@@ -14,7 +14,7 @@ metadata:
   {{- end }}
 {{- end }}
 spec:
-  ingressClassName: alb-web
+  ingressClassName: {{ .ingressClassName | default "alb-web" }}
   rules:
   {{- if .host }}
   - host: {{ .host }}

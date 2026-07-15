@@ -197,7 +197,6 @@ secrets:
   redisUrl: ""
   sealionApiKey: ""
   vllmApiKeyIntel: ""
-  multiverseApiKey: ""
   lagoApiKey: ""  # Lago API key for billing integration
   dictaApiKey: ""
   infomaniakApiKey: ""
