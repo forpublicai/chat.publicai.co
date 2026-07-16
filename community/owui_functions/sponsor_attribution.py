@@ -23,6 +23,8 @@ class Filter:
             },
             {"name": "Cudo Compute", "location": "Oslo", "country": "Norway"},
             {"name": "Swiss National Supercomputing Centre", "location": "Lugano", "country": "Switzerland"},
+            {"name": "Academic Computer Centre Cyfronet AGH", "location": "Cracow", "country": "Poland"},
+            {"name": "Public AI", "location": "", "country": "Planet Earth"},
         ]
 
         # Attribution message variants for each sponsor (full messages with emojis)
@@ -35,13 +37,19 @@ class Filter:
                 "❄️ Powered by liquid-cooled compute infrastructure in Austria, provided by Exoscale",
             ],
             "National Computational Infrastructure": [
-                "⚡ Powered by soverign compute infrastructure in Canberra, courtesy of NCI Australia ",
+                "⚡ Powered by sovereign compute infrastructure in Canberra, courtesy of NCI Australia ",
             ],
             "Cudo Compute": [
                 "⚡ Powered by compute infrastructure in Europe, provided by Cudo Compute",
             ],
             "Swiss National Supercomputing Centre": [
-                "⚡ Powered by soverign compute infrastructure in Lugano, courtesy of Swiss National Supercomputing Centre",
+                "⚡ Powered by sovereign compute infrastructure in Lugano, courtesy of Swiss National Supercomputing Centre",
+            ],
+            "Academic Computer Centre Cyfronet AGH" : [
+                "⚡ Powered by sovereign compute infrastructure in Cracow, courtesy of the Academic Computer Centre Cyfronet AGH"
+            ],
+            "Public AI" : [
+                "❤️ Support open and accessible AI with Public AI"
             ],
         }
 
@@ -62,9 +70,11 @@ class Filter:
             ]
             weights = [1, 1, 1, 0.05]  # AI Singapore gets 5% weight compared to others
             sponsor = random.choices(sponsors_apertus, weights=weights)[0]
+        elif "bielik" in model_lower:
+            sponsor = next(s for s in self.sponsors if s["name"] == "Academic Computer Centre Cyfronet AGH")
         else:
-            # Default: random selection from all sponsors
-            sponsor = random.choice(self.sponsors)
+            # Default: Public AI
+            sponsor = next(s for s in self.sponsors if s["name"] == "Public AI")
 
         variants = self.attribution_variants[sponsor["name"]]
         attribution = random.choice(variants)

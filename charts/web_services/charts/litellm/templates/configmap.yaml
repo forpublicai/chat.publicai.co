@@ -61,9 +61,19 @@ data:
       {{- end }}
       drop_params: true
       ssl_verify: false
-      {{- if .Values.lago.enabled }}
-      # Custom Lago billing integration with separate input/output events
-      callbacks: ["custom_lago_callback.lago_callback"]
+      {{- if hasKey .Values.config.litellm_settings "require_auth_for_metrics_endpoint" }}
+      require_auth_for_metrics_endpoint: {{ .Values.config.litellm_settings.require_auth_for_metrics_endpoint }}
+      {{- else }}
+      require_auth_for_metrics_endpoint: false
+      {{- end }}
+      {{- if or .Values.lago.enabled .Values.prometheus.enabled }}
+      callbacks:
+        {{- if .Values.lago.enabled }}
+        - "custom_lago_callback.lago_callback"
+        {{- end }}
+        {{- if .Values.prometheus.enabled }}
+        - "prometheus"
+        {{- end }}
       {{- end }}
       extra_spend_tag_headers:
         - "x-openwebui-user-id"
@@ -131,4 +141,9 @@ data:
         default_on: {{ .litellm_params.default_on }}
         {{- end }}
     {{- end }}
+    {{- end }}
+    
+    {{- if .Values.config.fallbacks }}
+    fallbacks:
+      {{- toYaml .Values.config.fallbacks | nindent 6 }}
     {{- end }}

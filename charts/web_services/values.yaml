@@ -239,3 +239,126 @@ lago:
       limits:
         memory: "1Gi"
         cpu: "1000m"
+
+# Prometheus monitoring configuration
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: false
+  prometheus-pushgateway:
+    enabled: false
+  kube-state-metrics:
+    enabled: false
+  prometheus-node-exporter:
+    enabled: false
+  server:
+    persistentVolume:
+      enabled: false
+    extraFlags:
+      - "web.config.file=/etc/prometheus/web.config"
+    extraVolumes:
+      - name: web-config
+        secret:
+          secretName: prometheus-web-config
+    extraVolumeMounts:
+      - name: web-config
+        mountPath: /etc/prometheus
+        readOnly: true
+    adminUser: ""
+    adminPassword: ""
+  extraScrapeConfigs: |
+    - job_name: 'litellm'
+      static_configs:
+        - targets: ['litellm-service:4000']
+
+# Grafana visualization dashboard configuration
+grafana:
+  enabled: true
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
+  adminUser: ""
+  adminPassword: ""
+  persistence:
+    enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://web-services-prometheus-server:80
+          isDefault: true
+          basicAuth: true
+          basicAuthUser: ${PROMETHEUS_ADMIN_USER}
+          secureJsonData:
+            basicAuthPassword: ${PROMETHEUS_ADMIN_PASSWORD}
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://web-services-loki:3100
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      litellm-spend:
+        gnetId: 24965
+        revision: 1
+        datasource: Prometheus
+      litellm-sre:
+        gnetId: 25541
+        revision: 1
+        datasource: Prometheus
+
+# Loki log aggregation database configuration
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+  loki:
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+      bucketNames:
+        chunks: chunks
+    schemaConfig:
+      configs:
+        - from: 2024-01-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+    storage_config:
+      filesystem:
+        directory: /data/loki/chunks
+  singleBinary:
+    replicas: 1
+  gateway:
+    enabled: false
+  write:
+    replicas: 0
+  read:
+    replicas: 0
+  backend:
+    replicas: 0
+
+# Promtail daemonset log shipper configuration
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://web-services-loki:3100/loki/api/v1/push

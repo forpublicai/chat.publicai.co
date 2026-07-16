@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-web-config
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+type: Opaque
+stringData:
+  web.config: |
+    basic_auth_users:
+      {{ .Values.prometheus.adminUser | default "admin" }}: {{ .Values.prometheus.adminPassword | default "password" | bcrypt }}

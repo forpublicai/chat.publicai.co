@@ -128,6 +128,13 @@ class LagoCustomCallback(CustomLogger):
 
             # Dicta
             "DictaLM-3.0-24B-Thinking": "dicta-il/DictaLM-3.0-24B-Thinking",
+
+            # BIELIK.ai
+            "speakleash/Bielik-11B-v3.0-Instruct": "speakleash/Bielik-11B-v3.0-Instruct",
+
+            # EuroLLM
+            # "EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
+            "utter-project/EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
         }
 
         # Try direct mapping first
