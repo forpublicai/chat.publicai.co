@@ -2,7 +2,6 @@
 .env
 *.env
 
-**/*secret*
 **/*key*
 
 # Helm dependency artifacts
