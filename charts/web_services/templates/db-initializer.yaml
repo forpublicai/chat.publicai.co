@@ -25,7 +25,7 @@ spec:
         - -c
         - |
           echo "Initializing databases on RDS instance..."
-          psql "$MASTER_DATABASE_URL" -c "SELECT 'CREATE DATABASE openwebui' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'openwebui')\gexec"
-          psql "$MASTER_DATABASE_URL" -c "SELECT 'CREATE DATABASE litellm' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'litellm')\gexec"
-          psql "$MASTER_DATABASE_URL" -c "SELECT 'CREATE DATABASE lago' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'lago')\gexec"
+          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'openwebui'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE openwebui"
+          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'litellm'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE litellm"
+          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'lago'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE lago"
           echo "Database initialization complete."
