@@ -96,6 +96,11 @@ resource "aws_iam_role_policy_attachment" "eks_lb_controller_vpcfull" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonVPCFullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "eks_lb_controller_acm" {
+  role       = aws_iam_role.eks_lb_controller.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSCertificateManagerReadOnly"
+}
+
 # 4. AmazonEKS_LiteLLM_Role
 resource "aws_iam_role" "lite_llm" {
   name = "AmazonEKS_LiteLLM_Role"

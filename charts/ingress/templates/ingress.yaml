@@ -11,7 +11,10 @@ metadata:
   annotations:
 {{- range $key, $value := .annotations }}
   {{- if eq $key "alb.ingress.kubernetes.io/certificate-arn" }}
-    {{ $key }}: {{ tpl $value $ | quote }}
+    {{- $resolvedCert := tpl $value $ }}
+    {{- if $resolvedCert }}
+    {{ $key }}: {{ $resolvedCert | quote }}
+    {{- end }}
   {{- else }}
     {{ $key }}: {{ $value | quote }}
   {{- end }}
