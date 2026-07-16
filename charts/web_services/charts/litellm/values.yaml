@@ -191,17 +191,8 @@ config:
 # Secrets configuration
 secrets:
   name: litellm-secrets
-  litellmMasterKey: ""
-  litellmSaltKey: ""
-  databaseUrl: ""
-  redisHost: ""
-  redisUrl: ""
-  sealionApiKey: ""
-  vllmApiKeyIntel: ""
-  lagoApiKey: ""  # Lago API key for billing integration
-  dictaApiKey: ""
-  infomaniakApiKey: ""
-  bielikApiKey: ""
+  manualSecretsName: ""
+  managedSecretsName: ""
 
 
 # Environment variables

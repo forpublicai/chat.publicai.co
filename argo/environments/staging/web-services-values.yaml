@@ -2,6 +2,11 @@ global:
   aws:
     region: us-east-1
 
+litellm:
+  secrets:
+    manualSecretsName: "staging/aichat/litellm/manual-secrets"
+    managedSecretsName: "staging/aichat/open-webui/managed-secrets"
+
 open-webui:
   app:
     webuiUrl: "https://chat.ai-staging.chat"
