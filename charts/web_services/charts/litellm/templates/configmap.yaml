@@ -6,11 +6,11 @@ metadata:
 data:
   config.yaml: |
     general_settings:
-      database_url: "{{ .Values.secrets.databaseUrl }}"
+      database_url: "os.environ/DATABASE_URL"
       database_connection_pool_limit: 100
       database_connection_timeout: 60
       allow_requests_on_db_unavailable: true
-      master_key: "{{ .Values.secrets.litellmMasterKey }}"
+      master_key: "os.environ/LITELLM_MASTER_KEY"
       user_header_mappings:
         - header_name: X-OpenWebUI-User-Id
           litellm_user_role: customer
