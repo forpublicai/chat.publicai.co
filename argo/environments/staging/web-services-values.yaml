@@ -29,7 +29,7 @@ lago:
   apiUrl: "https://lago-api.ai-staging.chat"
   frontUrl: "https://lago.ai-staging.chat"
   global:
-    existingSecret: web-services-secrets
+    existingSecret: lago-db-secrets
     s3:
       enabled: true
       bucket: "staging-aichat-bucket"

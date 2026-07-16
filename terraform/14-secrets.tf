@@ -39,13 +39,18 @@ resource "aws_secretsmanager_secret" "open_webui_managed" {
 resource "aws_secretsmanager_secret_version" "open_webui_managed" {
   secret_id = aws_secretsmanager_secret.open_webui_managed.id
   secret_string = jsonencode({
-    DATABASE_URL        = "postgresql://postgres:${urlencode(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"])}@${aws_rds_cluster.this.endpoint}:5432/openwebui?sslmode=require"
-    REDIS_URL           = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}"
-    REDIS_HOST          = aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address
-    OAUTH_CLIENT_ID     = aws_cognito_user_pool_client.publicai_app.id
-    OAUTH_CLIENT_SECRET = aws_cognito_user_pool_client.publicai_app.client_secret
-    OPENID_PROVIDER_URL = "https://cognito-idp.${local.region}.amazonaws.com/${aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
-    OPENID_REDIRECT_URI = "https://chat.${local.domain}/oauth/oidc/callback"
+    DATABASE_URL         = "postgresql://postgres:${urlencode(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"])}@${aws_rds_cluster.this.endpoint}:5432/openwebui?sslmode=require"
+    OWUI_DATABASE_URL    = "postgresql://postgres:${urlencode(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"])}@${aws_rds_cluster.this.endpoint}:5432/openwebui?sslmode=require"
+    LITELLM_DATABASE_URL = "postgresql://postgres:${urlencode(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"])}@${aws_rds_cluster.this.endpoint}:5432/litellm?sslmode=require"
+    LAGO_DATABASE_URL    = "postgresql://postgres:${urlencode(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"])}@${aws_rds_cluster.this.endpoint}:5432/lago?sslmode=require"
+    MASTER_DATABASE_URL  = "postgresql://postgres:${urlencode(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"])}@${aws_rds_cluster.this.endpoint}:5432/postgres?sslmode=require"
+    REDIS_URL            = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}"
+    LAGO_REDIS_URL       = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}/0"
+    REDIS_HOST           = aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address
+    OAUTH_CLIENT_ID      = aws_cognito_user_pool_client.publicai_app.id
+    OAUTH_CLIENT_SECRET  = aws_cognito_user_pool_client.publicai_app.client_secret
+    OPENID_PROVIDER_URL  = "https://cognito-idp.${local.region}.amazonaws.com/${aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
+    OPENID_REDIRECT_URI  = "https://chat.${local.domain}/oauth/oidc/callback"
   })
 }
 
