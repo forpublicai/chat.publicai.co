@@ -26,7 +26,7 @@ This chart handles the foundational, cluster-wide networking components.
 
 ### 2. `ingress`
 Instead of scattering Ingress definitions across every microservice, we centralize our public routing layer here.
-* Uses the `alb-web` ingress class.
+* Uses the `alb` ingress class.
 * Connects hostnames to their respective backend services using **IP-mode routing** (traffic routes straight from the ALB to the Pod IP, bypassing `kube-proxy` for lower latency).
 * **Routes Managed**:
   * `chat.publicai.co` -> OpenWebUI

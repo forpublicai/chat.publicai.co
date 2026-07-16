@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki-staging
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: 'https://grafana.github.io/helm-charts'
+      chart: loki
+      targetRevision: 7.0.0
+      helm:
+        valueFiles:
+          - $values/argo/environments/staging/loki-values.yaml
+    - repoURL: 'https://github.com/forpublicai/chat.publicai.co'
+      targetRevision: dev
+      ref: values
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: web-services
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,9 +1,0 @@
-{{/* Web IngressClass - Only one needed for web services */}}
-apiVersion: networking.k8s.io/v1
-kind: IngressClass
-metadata:
-  labels:
-    app.kubernetes.io/name: LoadBalancerController
-  name: alb-web
-spec:
-  controller: eks.amazonaws.com/alb

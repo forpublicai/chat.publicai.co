@@ -1,0 +1,31 @@
+# Staging overrides for standalone Prometheus community chart
+alertmanager:
+  enabled: false
+
+pushgateway:
+  enabled: false
+
+kubeStateMetrics:
+  enabled: false
+
+nodeExporter:
+  enabled: false
+
+server:
+  persistentVolume:
+    enabled: false
+  extraFlags:
+    - "web.config.file=/etc/prometheus/web.config"
+  extraVolumes:
+    - name: web-config
+      secret:
+        secretName: prometheus-web-config
+  extraVolumeMounts:
+    - name: web-config
+      mountPath: /etc/prometheus
+      readOnly: true
+
+extraScrapeConfigs: |
+  - job_name: 'litellm'
+    static_configs:
+      - targets: ['litellm-service.web-services.svc.cluster.local:4000']

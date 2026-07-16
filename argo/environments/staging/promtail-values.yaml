@@ -1,0 +1,4 @@
+# Staging overrides for standalone Promtail community chart
+config:
+  clients:
+    - url: http://loki-staging.web-services.svc.cluster.local:3100/loki/api/v1/push

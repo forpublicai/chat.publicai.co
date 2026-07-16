@@ -5,9 +5,9 @@ certificateArn: ""
 ingresses:
   - enabled: true
     name: web-public-ingress
+    ingressClassName: alb
     host: chat.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
@@ -20,9 +20,9 @@ ingresses:
 
   - enabled: true
     name: litellm-public-ingress
+    ingressClassName: alb
     host: api-internal.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
@@ -35,9 +35,9 @@ ingresses:
 
   - enabled: true
     name: lago-public-ingress
+    ingressClassName: alb
     host: lago.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
@@ -50,9 +50,9 @@ ingresses:
 
   - enabled: true
     name: lago-api-ingress
+    ingressClassName: alb
     host: lago-api.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
@@ -67,9 +67,9 @@ ingresses:
   - enabled: true
     name: argo-ingress
     namespace: argocd
+    ingressClassName: alb
     host: argo.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
@@ -83,15 +83,15 @@ ingresses:
   # Grafana Dashboard UI
   - enabled: true
     name: grafana-ingress
-    host: grafana.publicai.co
+    ingressClassName: alb
+    host: grafana.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
-      alb.ingress.kubernetes.io/group.name: monitoring-ingress-group
+      alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
       name: web-services-grafana
       port: 80
@@ -99,15 +99,15 @@ ingresses:
   # Prometheus Server UI
   - enabled: true
     name: prometheus-ingress
-    host: prometheus.publicai.co
+    ingressClassName: alb
+    host: prometheus.{{ .Values.domain }}
     annotations:
-      kubernetes.io/ingress.class: alb-web
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
-      alb.ingress.kubernetes.io/group.name: monitoring-ingress-group
+      alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
       name: web-services-prometheus-server
       port: 80

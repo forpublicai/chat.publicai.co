@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-staging
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: 'https://prometheus-community.github.io/helm-charts'
+      chart: prometheus
+      targetRevision: 29.17.0
+      helm:
+        valueFiles:
+          - $values/argo/environments/staging/prometheus-values.yaml
+    - repoURL: 'https://github.com/forpublicai/chat.publicai.co'
+      targetRevision: dev
+      ref: values
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: web-services
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
