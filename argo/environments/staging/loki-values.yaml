@@ -21,6 +21,8 @@ loki:
       directory: /data/loki/chunks
 singleBinary:
   replicas: 1
+  persistence:
+    storageClass: gp2
 gateway:
   enabled: false
 write:

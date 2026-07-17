@@ -7,6 +7,9 @@ adminUser: ""
 adminPassword: ""
 persistence:
   enabled: false
+env:
+  PROMETHEUS_ADMIN_USER: "admin"
+  PROMETHEUS_ADMIN_PASSWORD: "password"
 datasources:
   datasources.yaml:
     apiVersion: 1

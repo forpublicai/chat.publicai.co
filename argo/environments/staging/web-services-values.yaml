@@ -6,6 +6,8 @@ litellm:
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
+  prometheus:
+    enabled: true
 
 open-webui:
   app:
