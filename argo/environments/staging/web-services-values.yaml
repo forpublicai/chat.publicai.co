@@ -40,3 +40,27 @@ lago:
     smtp:
       enabled: false
       fromEmail: "support@ai-staging.chat"
+  api:
+    livenessProbe:
+      initialDelaySeconds: 90
+  worker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  billingWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  clockWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  eventsWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  paymentWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  pdfWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  webhookWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
