@@ -30,3 +30,7 @@ extraScrapeConfigs: |
   - job_name: 'litellm'
     static_configs:
       - targets: ['litellm-service.web-services.svc.cluster.local:4000']
+
+configmapReload:
+  prometheus:
+    enabled: false
