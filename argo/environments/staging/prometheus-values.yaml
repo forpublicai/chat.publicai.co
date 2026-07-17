@@ -12,6 +12,7 @@ nodeExporter:
   enabled: false
 
 server:
+  enableConfigReloader: false
   tcpSocketProbeEnabled: true
   persistentVolume:
     enabled: false
