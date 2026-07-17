@@ -1,3 +1,23 @@
+# Log in to cluster
+
+You need to authenticate AWS CLI tool
+
+then you need to get the auth session from AWS CLI into kubectl
+
+```bash
+kubectl config current-context
+
+aws sts get-caller-identity
+aws eks list-clusters --region eu-central-2
+
+aws eks update-kubeconfig \
+  --region eu-central-2 \
+  --name publicai-eks
+  
+kubectl config current-context
+
+```
+
 
 Working in ``charts/web_services/charts/litellm/templates/deployment.yaml``
 
@@ -99,6 +119,17 @@ Working in ``charts/web_services/charts/litellm/custom_lago_callback.py``
             "NewProvider-8B-Instruct-2509": "new-provider/apertus-8b-instruct",
 ```
 
+# Deploy the code
+
+## Check changes
+1. Run this to see if code is edited in correct places ``python developer/test/code_checl_endpoint.py``
+
+1. Then do a dry run ``./web.sh --deploy --dry-run``
+1. Then do a real deploy ``./web.sh --deploy``
+1. Then watch pods deploy ``watch -n 2 kubectl get pods -n web-services`` Check litellm is a new version, some small changes might not trigger a restart, if that is the case do a restart rollout on the deployment.
+1. Once all rolled out test litellm ``python developer/test/litellm.py``, check that you see all the models you expect to and they all return a token.
+
+
 ## Configure OpenWebUI
 
 Go to the OpenWebUI admin panel and configure.
@@ -109,11 +140,25 @@ Cofirm Lagos has detected the model and pricing.
 
 ![lagos-admin.png](lagos-admin.png)
 
-kubectl config current-context
 
-aws sts get-caller-identity
-aws eks list-clusters --region eu-central-2
+# Hugging face
+Use the script in the hugging face directory
 
-aws eks update-kubeconfig \
-  --region eu-central-2 \
-  --name publicai-eks
+```shell
+cd hugging_face
+./get_models.sh
+```
+
+This will show you what is registered with hugging face.
+
+
+## Add a model
+
+
+## Remove / update a model
+
+Get an API key from hugging face, you must be a member of the hugging face organisation.
+```bash
+ ./update_status.sh --token xx_XXX -i 69334562000000c1 --staging
+```
+

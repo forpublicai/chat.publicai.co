@@ -63,7 +63,6 @@ validate_env() {
         "LAGO_RSA_PRIVATE_KEY"
         "LAGO_API_KEY"
         "EXPECTED_KUBE_CONTEXT"
-        "DICTA_API_KEY"
         "INFOMANIAK_API_KEY"
         "BIELIK_API_KEY"
         "GRAFANA_ADMIN_USER"
@@ -124,7 +123,6 @@ deploy_services() {
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
         --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
         --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
-        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.lago.enabled=true \
@@ -215,7 +213,6 @@ validate() {
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
         --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
         --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
-        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.lago.enabled=true \
@@ -286,7 +283,6 @@ dry_run() {
         --set litellm.secrets.sealionApiKey="$SEALION_API_KEY" \
         --set litellm.secrets.vllmApiKeyIntel="$VLLM_API_KEY_INTEL" \
         --set litellm.secrets.lagoApiKey="$LAGO_API_KEY" \
-        --set litellm.secrets.dictaApiKey="$DICTA_API_KEY" \
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.lago.enabled=true \
