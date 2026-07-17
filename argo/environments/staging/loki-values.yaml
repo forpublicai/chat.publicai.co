@@ -22,7 +22,7 @@ loki:
 singleBinary:
   replicas: 1
   persistence:
-    storageClass: gp2
+    storageClass: gp3-sc
 gateway:
   enabled: false
 write:
