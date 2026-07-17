@@ -18,7 +18,7 @@ loki:
           period: 24h
   storage_config:
     filesystem:
-      directory: /data/loki/chunks
+      directory: /var/loki/chunks
 singleBinary:
   replicas: 1
   persistence:
