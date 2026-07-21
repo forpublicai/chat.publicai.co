@@ -22,7 +22,6 @@ open-webui:
   serviceAccount:
     roleArn: "arn:aws:iam::818561370924:role/OpenWebUI-IRSA-Role"
   secrets:
-    name: "web-services-staging-secrets"
     manualSecretsName: "staging/aichat/open-webui/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
 
