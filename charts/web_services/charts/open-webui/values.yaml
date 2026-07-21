@@ -116,7 +116,6 @@ serviceAccount:
 
 secrets:
   name: web-services-secrets
-  # These will be loaded from .env file using external script
   licenseKey: ""
   webuiSecretKey: ""
   databaseUrl: ""
