@@ -132,72 +132,45 @@ def parse_values_secrets(values_path):
                         secrets.add(key)
     return secrets
 
-def parse_values_models(values_path):
-    """Parse active and commented model endpoint definitions from values.yaml."""
+def parse_models(models_dir):
+    """Parse active model endpoint definitions from all YAML files in models_dir."""
+    import yaml
     models = []
-    if not os.path.exists(values_path):
+    if not os.path.exists(models_dir):
+        print(f"Warning: models directory not found at {models_dir}")
         return models
         
-    in_models = False
-    current_model = None
-    
-    with open(values_path, 'r') as f:
-        for line in f:
-            stripped = line.strip()
-            if not stripped:
-                continue
-            # If entering models block
-            if stripped == 'models:':
-                in_models = True
-                continue
-            if in_models:
-                # Check if we left the models block (only on non-commented lines)
-                if not stripped.startswith('#'):
-                    leading_spaces = len(line) - len(line.lstrip(' '))
-                    if leading_spaces == 0 and ':' in stripped:
-                        in_models = False
-                        if current_model:
-                            models.append(current_model)
-                            current_model = None
+    for root_dir, _, files in sorted(os.walk(models_dir)):
+        for file in sorted(files):
+            if file.endswith('.yaml') or file.endswith('.yml'):
+                file_path = os.path.join(root_dir, file)
+                try:
+                    with open(file_path, 'r') as f:
+                        data = yaml.safe_load(f)
+                    if not data or 'models' not in data:
                         continue
-                
-                # Check for start of model block:
-                # e.g., "- model_name: ..." or "# - model_name: ..." or "#    - model_name: ..."
-                model_start_match = re.search(r'(#\s*)?-\s*model_name:\s*(.+)$', stripped)
-                if model_start_match:
-                    if current_model:
-                        models.append(current_model)
-                    is_commented = model_start_match.group(1) is not None or stripped.startswith('#')
-                    model_name = model_start_match.group(2).strip().strip('"').strip("'")
-                    current_model = {
-                        'model_name': model_name,
-                        'litellm_model': None,
-                        'api_key': None,
-                        'is_active': not is_commented
-                    }
-                    continue
-                
-                if current_model:
-                    # Strip comment prefix for field extraction to parse commented out models
-                    line_to_parse = stripped
-                    if line_to_parse.startswith('#'):
-                        line_to_parse = line_to_parse.lstrip('#').strip()
+                    
+                    file_fallbacks = data.get('fallbacks', [])
+                    
+                    for m in data['models']:
+                        model_name = m.get('model_name')
+                        if not model_name:
+                            continue
+                        litellm_params = m.get('litellm_params', {})
+                        api_base = litellm_params.get('api_base')
+                        api_key = litellm_params.get('api_key')
                         
-                    # Match model:
-                    model_match = re.match(r'^model:\s*(.+)$', line_to_parse)
-                    if model_match:
-                        current_model['litellm_model'] = model_match.group(1).strip().strip('"').strip("'")
-                        continue
-                        
-                    # Match api_key:
-                    api_key_match = re.match(r'^api_key:\s*(.+)$', line_to_parse)
-                    if api_key_match:
-                        current_model['api_key'] = api_key_match.group(1).strip().strip('"').strip("'")
-                        continue
-                        
-    if current_model:
-        models.append(current_model)
-        
+                        models.append({
+                            'model_name': model_name,
+                            'litellm_model': litellm_params.get('model'),
+                            'api_key': api_key,
+                            'api_base': api_base,
+                            'is_active': True,
+                            'fallbacks': file_fallbacks,
+                            'file_path': file_path
+                        })
+                except Exception as e:
+                    print(f"Error parsing model file {file_path}: {e}")
     return models
 
 def parse_lago_mappings(callback_path):
@@ -244,6 +217,7 @@ def main():
     secrets_yaml_path = os.path.join(root, 'charts/web_services/charts/litellm/templates/secrets.yaml')
     deployment_yaml_path = os.path.join(root, 'charts/web_services/charts/litellm/templates/deployment.yaml')
     values_yaml_path = os.path.join(root, 'charts/web_services/charts/litellm/values.yaml')
+    models_dir = os.path.join(root, 'charts/web_services/charts/litellm/models')
     lago_callback_path = os.path.join(root, 'charts/web_services/charts/litellm/custom_lago_callback.py')
     
     # Parse files
@@ -252,7 +226,7 @@ def main():
     secrets_mappings = parse_secrets_yaml(secrets_yaml_path)
     deployment_mappings = parse_deployment_yaml(deployment_yaml_path)
     values_secrets = parse_values_secrets(values_yaml_path)
-    values_models = parse_values_models(values_yaml_path)
+    values_models = parse_models(models_dir)
     lago_mappings = parse_lago_mappings(lago_callback_path)
     
     # Collect all API keys / env vars to test
@@ -289,6 +263,10 @@ def main():
         if '_API_KEY' in env_var:
             discovered_keys.add(env_var)
             
+    # Filter out ignored keys
+    IGNORE_KEYS = {"LAGO_API_KEY", "LITELLM_API_KEY"}
+    discovered_keys = {k for k in discovered_keys if k not in IGNORE_KEYS}
+    
     # We sort them for clean display
     sorted_keys = sorted(list(discovered_keys))
     
@@ -494,6 +472,56 @@ def main():
             print(f"❌ Active model '{m['model_name']}' (model: '{m['litellm_model']}') is MISSING from custom_lago_callback.py mappings!")
     else:
         print("✅ All active models are mapped in custom_lago_callback.py.")
+    print()
+
+    # ----------------------------------------------------
+    # Report Section 5: Model Configuration Sanity Checks
+    # ----------------------------------------------------
+    print("🔍 CHECK: MODEL CONFIGURATION AND SANITY CHECKS")
+    model_checks_failed = False
+    
+    # We sort values_models to ensure stable order
+    sorted_models = sorted(values_models, key=lambda x: x['model_name'])
+    
+    for m in sorted_models:
+        model_name = m['model_name']
+        api_base = m.get('api_base')
+        api_key = m.get('api_key')
+        fallbacks = m.get('fallbacks', [])
+        
+        errors = []
+        
+        # 1. Fallback configured check
+        if not fallbacks:
+            errors.append("Missing fallback configuration")
+            
+        # 2. API base check: starts with https:// and ends with v1
+        if not api_base:
+            errors.append("Missing api_base")
+        else:
+            if not api_base.startswith("https://"):
+                errors.append(f"api_base '{api_base}' does not start with 'https://'")
+            if not (api_base.endswith("v1") or api_base.endswith("v1/")):
+                errors.append(f"api_base '{api_base}' does not end with 'v1'")
+                
+        # 3. Valid api key identifier check
+        if not api_key:
+            errors.append("Missing api_key")
+        else:
+            if not api_key.startswith("os.environ/"):
+                errors.append(f"api_key '{api_key}' is not a valid environment reference (must start with 'os.environ/')")
+            else:
+                env_var_part = api_key.split('/', 1)[1]
+                if not re.match(r'^[A-Z][A-Z0-9_]*$', env_var_part):
+                    errors.append(f"api_key reference environment variable '{env_var_part}' is invalid (must be UPPER_SNAKE_CASE)")
+                    
+        if errors:
+            model_checks_failed = True
+            print(f"❌ Model '{model_name}':")
+            for err in errors:
+                print(f"   - {err}")
+        else:
+            print(f"✅ Model '{model_name}': Passed all sanity checks")
     print()
 
 if __name__ == '__main__':
