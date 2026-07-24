@@ -98,6 +98,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: bielik_api_key
+            - name: CSCS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: cscs_api_key
 
 
           volumeMounts:

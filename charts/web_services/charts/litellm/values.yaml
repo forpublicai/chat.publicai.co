@@ -48,7 +48,7 @@ config:
       # Redis SSL is configured via REDIS_URL environment variable
 
   fallbacks:
-    - swiss-ai/apertus-70b-instruct: ["aisingapore/Qwen-SEA-LION-v4-32B-IT"]
+    - swiss-ai/apertus-70b-instruct: [ "aisingapore/Qwen-SEA-LION-v4-32B-IT" ]
 
   models:
     - model_name: utter-project/EuroLLM-22B-Instruct-2512
@@ -78,6 +78,11 @@ config:
       model_info:
         input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
         output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+    #################################
+    #################################
+    #################################
+    #################################
+    #################################
     # Apertus 8B model via intel endpoint
     - model_name: swiss-ai/apertus-8b-instruct
       litellm_params:
@@ -94,19 +99,20 @@ config:
         input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
         output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 8B model via CSCS endpoint
-    # - model_name: swiss-ai/apertus-8b-instruct
-    #   litellm_params:
-    #     model: openai/Apertus-8B-Instruct-2509
-    #     api_base: https://llm-proxy.svc.cscs.ch/v1
-    #     api_key: "os.environ/VLLM_API_KEY_CSCS"
-    #     supports_vision: true  
-    #     weight: 20 
-    #     temperature: 0.8
-    #     top_p: 0.9
-    #     max_tokens: 16384
-    #   model_info:
-    #     input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
-    #     output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+    - model_name: swiss-ai/apertus-8b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-8B-Instruct-2509
+        api_base: https://api.inference.cscs.ch/v1
+        api_key: "os.environ/CSCS_API_KEY"
+        ssl_verify: false
+        supports_vision: true
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
     # Apertus 70B model via Infomaniak endpoint
     - model_name: swiss-ai/apertus-70b-instruct
       litellm_params:
@@ -121,20 +127,21 @@ config:
       model_info:
         input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
         output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
-    #Apertus 70B model via CSCS endpoint
-#    - model_name: swiss-ai/apertus-70b-instruct
-#      litellm_params:
-#        model: openai/swiss-ai/apertus-70b-instruct
-#        api_base: https://llm-proxy.svc.cscs.ch/v1
-#        api_key: "os.environ/VLLM_API_KEY_CSCS"
-#        supports_vision: true
-#        weight: 20
-#        temperature: 0.8
-#        top_p: 0.9
-#        max_tokens: 16384
-#      model_info:
-#        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
-#        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+    # Apertus 70B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-70b-instruct
+      litellm_params:
+        model: openai/swiss-ai/Apertus-70B-Instruct-2509
+        api_base: https://api.inference.cscs.ch/v1
+        api_key: "os.environ/CSCS_API_KEY"
+        ssl_verify: false
+        supports_vision: true
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
     # SeaLion model (Gemma)
     - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
       litellm_params:
@@ -166,6 +173,68 @@ config:
       model_info:
         input_cost_per_token: 0.00000040  # $0.10 per 1M tokens
         output_cost_per_token: 0.00000040  # $0.20 per 1M tokens
+    # Apertus 8B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-v1.5-8b
+      litellm_params:
+        model: openai/swiss-ai/Apertus-v1.5-8B
+        api_base: https://api.inference.cscs.ch/v1
+        api_key: "os.environ/CSCS_API_KEY"
+        ssl_verify: false
+        supports_vision: true
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+    - model_name: swiss-ai/apertus-v1.5-8b-thinking
+      litellm_params:
+        model: openai/swiss-ai/Apertus-v1.5-8B-thinking
+        api_base: https://api.inference.cscs.ch/v1
+        api_key: "os.environ/CSCS_API_KEY"
+        ssl_verify: false
+        supports_vision: true
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
+        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
+        ##########################
+        ##########################
+        #########################
+    # Apertus 70B model via CSCS endpoint
+    - model_name: swiss-ai/apertus-v1.5-70b
+      litellm_params:
+        model: openai/swiss-ai/Apertus-v1.5-70B
+        api_base: https://api.inference.cscs.ch/v1
+        api_key: "os.environ/CSCS_API_KEY"
+        ssl_verify: false
+        supports_vision: true
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+    - model_name: swiss-ai/apertus-v1.5-70b-thinking
+      litellm_params:
+        model: openai/swiss-ai/Apertus-v1.5-70B-thinking
+        api_base: https://api.inference.cscs.ch/v1
+        api_key: "os.environ/CSCS_API_KEY"
+        ssl_verify: false
+        supports_vision: true
+        weight: 20
+        temperature: 0.8
+        top_p: 0.9
+        max_tokens: 16384
+      model_info:
+        input_cost_per_token: 0.00000082  # $0.82 per 1M tokens (estimated from 0.70 EUR per M tokens)
+        output_cost_per_token: 0.00000292  # $2.92 per 1M tokens (estimated from 2.50 EUR per M tokens)
+
   # guardrails:
   #   - guardrail_name: "bedrock-pre-guard"
   #     litellm_params:
@@ -190,6 +259,8 @@ secrets:
   lagoApiKey: ""  # Lago API key for billing integration
   infomaniakApiKey: ""
   bielikApiKey: ""
+  cscsApiKey: ""
+
 
 
 # Environment variables

@@ -141,3 +141,7 @@ Updates the status of an existing model mapping item.
 ```bash
 ./update_status.sh 6a454f492dad7c320e56992c --staging --token your_hf_token
 ```
+
+
+./register_model.sh --task conversational --hf-model swiss-ai/Apertus-v1.5-8B --provider-model swiss-ai/apertus-v1.5-8b --live
+./register_model.sh --task conversational --hf-model swiss-ai/Apertus-v1.5-70B --provider-model swiss-ai/apertus-v1.5-70b --live

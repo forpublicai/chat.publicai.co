@@ -103,6 +103,16 @@ class LagoCustomCallback(CustomLogger):
             "apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/Apertus-70B-2509": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/Apertus-8B-2509": "swiss-ai/apertus-8b-instruct",
+            "openai/swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
+            "swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
+            "openai/swiss-ai/Apertus-v1.5-8B": "swiss-ai/apertus-v1.5-8b",
+            "swiss-ai/apertus-v1.5-8b": "swiss-ai/apertus-v1.5-8b",
+            "openai/swiss-ai/Apertus-v1.5-8B-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
+            "swiss-ai/apertus-v1.5-8b-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
+            "openai/swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
+            "swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
+            "openai/swiss-ai/Apertus-v1.5-70B-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
+            "swiss-ai/apertus-v1.5-70b-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
 
             # Olmo models
             "Olmo-3-7B-Instruct": "allenai/Olmo-3-7B-Instruct",
