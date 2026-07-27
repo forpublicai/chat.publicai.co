@@ -17,7 +17,7 @@ datasources:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-staging-server.web-services.svc.cluster.local:80
+        url: http://prometheus-server.web-services.svc.cluster.local:80
         isDefault: true
         basicAuth: true
         basicAuthUser: ${PROMETHEUS_ADMIN_USER}
@@ -26,7 +26,7 @@ datasources:
       - name: Loki
         type: loki
         access: proxy
-        url: http://loki-staging.web-services.svc.cluster.local:3100
+        url: http://loki.web-services.svc.cluster.local:3100
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1

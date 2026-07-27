@@ -43,7 +43,7 @@ ingresses:
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
-      name: web-services-staging-front-svc
+      name: web-services-front-svc
       port: 80
 
   - enabled: true
@@ -59,7 +59,7 @@ ingresses:
       alb.ingress.kubernetes.io/healthcheck-path: /health
       alb.ingress.kubernetes.io/group.name: api-group
     targetService:
-      name: web-services-staging-api-svc
+      name: web-services-api-svc
       port: 3000
 
   - enabled: true
@@ -90,7 +90,7 @@ ingresses:
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
-      name: grafana-staging
+      name: grafana
       port: 80
 
   - enabled: true
@@ -105,5 +105,5 @@ ingresses:
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
-      name: prometheus-staging-server
+      name: prometheus-server
       port: 80

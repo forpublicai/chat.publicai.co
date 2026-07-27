@@ -66,18 +66,16 @@ resource "aws_secretsmanager_secret" "litellm_manual" {
   }
 }
 
+# ANy changes to these should be done manually in the console, no need to change here
 resource "aws_secretsmanager_secret_version" "litellm_manual" {
   secret_id = aws_secretsmanager_secret.litellm_manual.id
   secret_string = jsonencode({
     LITELLM_MASTER_KEY = "placeholder-replace-in-console"
     LITELLM_SALT_KEY   = "placeholder-replace-in-console"
-    SEALION_API_KEY    = "placeholder-replace-in-console"
     VLLM_API_KEY_INTEL = "placeholder-replace-in-console"
     LAGO_API_KEY       = "placeholder-replace-in-console"
-    DICTA_API_KEY      = "placeholder-replace-in-console"
-    INFOMANIAK_API_KEY = "placeholder-replace-in-console"
-    BIELIK_API_KEY     = "placeholder-replace-in-console"
     CSCS_API_KEY      = "placeholder-replace-in-console"
+    # Add more manually in the console.
   })
 
   lifecycle {
