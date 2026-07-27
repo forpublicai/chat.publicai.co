@@ -70,11 +70,13 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: sealion_api_key
+                  optional: true
             - name: VLLM_API_KEY_INTEL
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: vllm_api_key_intel
+                  optional: true
             {{- if .Values.lago.enabled }}
             - name: LAGO_API_BASE
               value: "http://web-services-api-svc.web-services.svc.cluster.local:3000"
@@ -83,6 +85,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: lago_api_key
+                  optional: true
             - name: LAGO_API_EVENT_CODE
               value: "{{ .Values.lago.eventCode }}"
             - name: LAGO_API_CHARGE_BY
@@ -93,16 +96,19 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: infomaniak_api_key
+                  optional: true
             - name: BIELIK_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: bielik_api_key
+                  optional: true
             - name: CSCS_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: cscs_api_key
+                  optional: true
 
 
           volumeMounts:
