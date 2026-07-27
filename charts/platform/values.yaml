@@ -174,3 +174,4 @@ prometheus:
 grafana:
   adminUser: ""
   adminPassword: ""
+  secretsName: ""

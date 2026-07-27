@@ -48,3 +48,6 @@ lago:
   webhookWorker:
     livenessProbe:
       initialDelaySeconds: 90
+
+grafana:
+  secretsName: "staging/aichat/grafana/secrets"

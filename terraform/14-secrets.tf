@@ -83,6 +83,30 @@ resource "aws_secretsmanager_secret_version" "litellm_manual" {
   }
 }
 
+# 2.6 AWS Secrets Manager Secret for Grafana Manual Configuration
+resource "aws_secretsmanager_secret" "grafana" {
+  name                    = "${local.env}/${local.org}/grafana/secrets"
+  description             = "Manually managed secrets for Grafana"
+  recovery_window_in_days = 0
+
+  tags = {
+    Name        = "${local.env}-${local.org}-grafana-secrets"
+    Environment = local.env
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "grafana" {
+  secret_id = aws_secretsmanager_secret.grafana.id
+  secret_string = jsonencode({
+    admin-user     = "admin"
+    admin-password = "placeholder-replace-in-console"
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 # 3. IAM Role & Policy for External Secrets Operator (IRSA)
 resource "aws_iam_role" "external_secrets_irsa" {
   name = "${local.env}-ExternalSecrets-IRSA-Role"
@@ -128,7 +152,8 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
         Resource = [
           aws_secretsmanager_secret.open_webui_manual.arn,
           aws_secretsmanager_secret.open_webui_managed.arn,
-          aws_secretsmanager_secret.litellm_manual.arn
+          aws_secretsmanager_secret.litellm_manual.arn,
+          aws_secretsmanager_secret.grafana.arn
         ]
       }
     ]
