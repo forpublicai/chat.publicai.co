@@ -1,0 +1,18 @@
+apiVersion: v2
+name: chat
+description: Chat services stack including OpenWebUI, SearXNG, and Tika
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: open-webui
+    version: "0.1.0"
+    repository: "file://./charts/open-webui"
+  - name: searxng
+    version: "0.1.0"
+    repository: "file://./charts/searxng"
+    condition: searxng.enabled
+  - name: tika
+    version: "0.1.0"
+    repository: "file://./charts/tika"

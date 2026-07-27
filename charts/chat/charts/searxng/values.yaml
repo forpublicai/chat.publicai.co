@@ -1,7 +1,7 @@
 # Default values for searxng
 # This is the base configuration for SearXNG metasearch engine
 
-namespace: web-services
+namespace: chat
 
 searxng:
   name: searxng

@@ -25,7 +25,7 @@ spec:
         - name: REDIS_URL
           valueFrom:
             secretKeyRef:
-              name: web-services-secrets
+              name: chat-secrets
               key: REDIS_URL
         volumeMounts:
         - name: searxng-config

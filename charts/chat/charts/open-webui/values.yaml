@@ -115,7 +115,7 @@ serviceAccount:
   roleArn: ""
 
 secrets:
-  name: web-services-secrets
+  name: chat-secrets
   licenseKey: ""
   webuiSecretKey: ""
   databaseUrl: ""

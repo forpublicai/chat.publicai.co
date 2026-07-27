@@ -1,13 +1,19 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: web-services
+  name: platform
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chat
+---
+# External Postgres in platform namespace
 apiVersion: v1
 kind: Service
 metadata:
   name: external-postgres
-  namespace: web-services
+  namespace: platform
 spec:
   ports:
     - name: postgres
@@ -18,7 +24,7 @@ apiVersion: v1
 kind: Endpoints
 metadata:
   name: external-postgres
-  namespace: web-services
+  namespace: platform
 subsets:
   - addresses:
       - ip: 10.244.0.1
@@ -26,11 +32,12 @@ subsets:
       - name: postgres
         port: 5432
 ---
+# External Redis in platform namespace
 apiVersion: v1
 kind: Service
 metadata:
   name: external-redis
-  namespace: web-services
+  namespace: platform
 spec:
   ports:
     - name: redis
@@ -41,7 +48,55 @@ apiVersion: v1
 kind: Endpoints
 metadata:
   name: external-redis
-  namespace: web-services
+  namespace: platform
+subsets:
+  - addresses:
+      - ip: 10.244.0.1
+    ports:
+      - name: redis
+        port: 6379
+---
+# External Postgres in chat namespace
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-postgres
+  namespace: chat
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external-postgres
+  namespace: chat
+subsets:
+  - addresses:
+      - ip: 10.244.0.1
+    ports:
+      - name: postgres
+        port: 5432
+---
+# External Redis in chat namespace
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-redis
+  namespace: chat
+spec:
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external-redis
+  namespace: chat
 subsets:
   - addresses:
       - ip: 10.244.0.1

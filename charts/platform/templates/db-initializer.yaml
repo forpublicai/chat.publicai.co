@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-db-initializer
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: db-initializer
+        image: postgres:16-alpine
+        env:
+        - name: MASTER_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: platform-db-init-secrets
+              key: MASTER_DATABASE_URL
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Initializing platform databases on RDS instance..."
+          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'litellm'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE litellm"
+          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'lago'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE lago"
+          echo "Platform database initialization complete."

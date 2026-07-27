@@ -5,6 +5,7 @@ certificateArn: ""
 ingresses:
   - enabled: true
     name: web-public-ingress
+    namespace: chat
     ingressClassName: alb
     host: chat.{{ .Values.domain }}
     annotations:
@@ -20,6 +21,7 @@ ingresses:
 
   - enabled: true
     name: litellm-public-ingress
+    namespace: platform
     ingressClassName: alb
     host: api-internal.{{ .Values.domain }}
     annotations:
@@ -35,6 +37,7 @@ ingresses:
 
   - enabled: true
     name: lago-public-ingress
+    namespace: platform
     ingressClassName: alb
     host: lago.{{ .Values.domain }}
     annotations:
@@ -45,11 +48,12 @@ ingresses:
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
-      name: web-services-front-svc
+      name: platform-front-svc
       port: 80
 
   - enabled: true
     name: lago-api-ingress
+    namespace: platform
     ingressClassName: alb
     host: lago-api.{{ .Values.domain }}
     annotations:
@@ -61,7 +65,7 @@ ingresses:
       alb.ingress.kubernetes.io/healthcheck-path: /health
       alb.ingress.kubernetes.io/group.name: api-group
     targetService:
-      name: web-services-api-svc
+      name: platform-api-svc
       port: 3000
 
   - enabled: true
@@ -83,6 +87,7 @@ ingresses:
   # Grafana Dashboard UI
   - enabled: true
     name: grafana-ingress
+    namespace: monitoring
     ingressClassName: alb
     host: grafana.{{ .Values.domain }}
     annotations:
@@ -93,12 +98,13 @@ ingresses:
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
-      name: web-services-grafana
+      name: grafana
       port: 80
 
   # Prometheus Server UI
   - enabled: true
     name: prometheus-ingress
+    namespace: monitoring
     ingressClassName: alb
     host: prometheus.{{ .Values.domain }}
     annotations:
@@ -109,7 +115,7 @@ ingresses:
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: admin-group
     targetService:
-      name: web-services-prometheus-server
+      name: prometheus-server
       port: 80
 
 # Certificate ARN (passed from command line)

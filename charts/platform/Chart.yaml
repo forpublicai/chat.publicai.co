@@ -1,0 +1,16 @@
+apiVersion: v2
+name: platform
+description: Platform services stack including LiteLLM and Lago
+type: application
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: litellm
+    version: "0.1.0"
+    repository: "file://./charts/litellm"
+    condition: litellm.enabled
+  - name: lago
+    version: "1.27.1"
+    repository: "https://getlago.github.io/lago-helm-charts"
+    condition: lago.enabled

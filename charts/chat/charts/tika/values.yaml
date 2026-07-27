@@ -1,7 +1,7 @@
 # Default values for tika
 # This is the base configuration for Apache Tika server
 
-namespace: web-services
+namespace: chat
 
 tika:
   name: tika

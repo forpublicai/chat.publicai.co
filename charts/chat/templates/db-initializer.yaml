@@ -24,8 +24,6 @@ spec:
         - /bin/sh
         - -c
         - |
-          echo "Initializing databases on RDS instance..."
+          echo "Initializing chat database on RDS instance..."
           psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'openwebui'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE openwebui"
-          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'litellm'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE litellm"
-          psql "$MASTER_DATABASE_URL" -tc "SELECT 1 FROM pg_database WHERE datname = 'lago'" | grep -q 1 || psql "$MASTER_DATABASE_URL" -c "CREATE DATABASE lago"
-          echo "Database initialization complete."
+          echo "Chat database initialization complete."

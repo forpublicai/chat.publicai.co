@@ -1,0 +1,80 @@
+# Global values for chat umbrella chart
+global:
+  # Shared namespace for all services
+  namespace: chat
+  
+  # AWS configuration
+  aws:
+    region: ""
+
+# OpenWebUI configuration - only environment-specific overrides
+open-webui:
+  enabled: true
+  
+  # Application overrides
+  app:
+    webuiUrl: ""
+    replicas: 1
+    
+    # Storage configuration
+    storage:
+      s3:
+        bucketName: ""
+        region: ""
+        keyPrefix: uploads/
+        endpointUrl: ""
+    
+    # Production resource allocation for 5k concurrent users
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "300m"
+      limits:
+        memory: "4Gi"
+        cpu: "1000m"
+
+  # Autoscaling for high load
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 85
+
+  serviceAccount:
+    roleArn: ""
+
+  # Secrets configuration
+  secrets:
+    name: chat-secrets
+    manualSecretsName: ""
+    managedSecretsName: ""
+
+# SearXNG configuration
+searxng:
+  enabled: false
+  service:
+    name: searxng-service
+    port: 8080
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi" 
+      cpu: "1000m"
+
+# Tika configuration
+tika:
+  enabled: true
+  service:
+    name: tika-service
+    port: 9998
+  javaOpts: "-Xms256m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+  resources:
+    requests:
+      memory: "768Mi"    # Match actual memory request
+      cpu: "250m"        # Match actual CPU request
+    limits:
+      memory: "2Gi"      # Keep high for OCR/large PDFs!
+      cpu: "1000m"
