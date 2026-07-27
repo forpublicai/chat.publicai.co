@@ -82,6 +82,17 @@ if [ -z "$TOKEN" ] && [ -n "$HF_TOKEN" ]; then
     TOKEN="$HF_TOKEN"
 fi
 
+# Fallback to token in the nearby .env file if still not set
+if [ -z "$TOKEN" ]; then
+    SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        ENV_TOKEN=$(grep -E '^(HF_TOKEN|HF)=' "$SCRIPT_DIR/.env" | cut -d= -f2- | tr -d '"'\')
+        if [ -n "$ENV_TOKEN" ]; then
+            TOKEN="$ENV_TOKEN"
+        fi
+    fi
+fi
+
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then
     echo "Error: 'jq' is not installed. Please install it to format the JSON output." >&2

@@ -1,0 +1,16 @@
+models:
+- model_name: utter-project/EuroLLM-22B-Instruct-2512
+  litellm_params:
+    model: openai/utter-project/EuroLLM-22B-Instruct-2512
+    api_base: https://api-internal-intel.publicai.co/eurollm/v1
+    api_key: os.environ/VLLM_API_KEY_INTEL
+    ssl_verify: false
+    weight: 1
+    temperature: 0.6
+    top_p: 0.95
+    max_tokens: 16384
+  model_info:
+    input_cost_per_token: 0.00000010
+    output_cost_per_token: 0.00000020
+fallbacks:
+- aisingapore/Qwen-SEA-LION-v4-32B-IT

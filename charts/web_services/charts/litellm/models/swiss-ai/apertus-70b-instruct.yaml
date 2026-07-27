@@ -1,0 +1,31 @@
+models:
+- model_name: swiss-ai/apertus-70b-instruct
+  litellm_params:
+    model: openai/swiss-ai/Apertus-70B-Instruct-2509
+    api_base: https://api.infomaniak.com/2/ai/106744/openai/v1
+    api_key: os.environ/INFOMANIAK_API_KEY
+    supports_vision: true
+    weight: 1
+    temperature: 0.8
+    top_p: 0.9
+    max_tokens: 8192
+  model_info:
+    input_cost_per_token: 0.00000082
+    output_cost_per_token: 0.00000292
+- model_name: swiss-ai/apertus-70b-instruct
+  litellm_params:
+    model: openai/swiss-ai/Apertus-70B-Instruct-2509
+    api_base: https://api.inference.cscs.ch/v1
+    api_key: os.environ/CSCS_API_KEY
+    ssl_verify: false
+    supports_vision: true
+    weight: 20
+    temperature: 0.8
+    top_p: 0.9
+    max_tokens: 16384
+  model_info:
+    input_cost_per_token: 0.00000082
+    output_cost_per_token: 0.00000292
+fallbacks:
+- aisingapore/Qwen-SEA-LION-v4-32B-IT
+

@@ -1,0 +1,17 @@
+models:
+- model_name: swiss-ai/apertus-v1.5-8b
+  litellm_params:
+    model: openai/swiss-ai/Apertus-v1.5-8B
+    api_base: https://api.inference.cscs.ch/v1
+    api_key: os.environ/CSCS_API_KEY
+    ssl_verify: false
+    supports_vision: true
+    weight: 20
+    temperature: 0.8
+    top_p: 0.9
+    max_tokens: 16384
+  model_info:
+    input_cost_per_token: 0.00000010
+    output_cost_per_token: 0.00000020
+fallbacks:
+- allenai/Olmo-3-7B-Instruct

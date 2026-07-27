@@ -1,0 +1,7 @@
+models:
+- model_name: Cohere/Cohere-embed-multilingual-v3.0
+  litellm_params:
+    model: bedrock/cohere.embed-multilingual-v3
+    aws_region_name: eu-central-1
+  model_info:
+    input_cost_per_token: 0.0000001

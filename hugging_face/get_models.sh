@@ -32,9 +32,24 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-# Fallback to HF_TOKEN env var if token option is not set
-if [ -z "$TOKEN" ] && [ -n "$HF_TOKEN" ]; then
-    TOKEN="$HF_TOKEN"
+# Fallback to HF_TOKEN or HF env var if token option is not set
+if [ -z "$TOKEN" ]; then
+    if [ -n "$HF_TOKEN" ]; then
+        TOKEN="$HF_TOKEN"
+    elif [ -n "$HF" ]; then
+        TOKEN="$HF"
+    fi
+fi
+
+# Fallback to HF token in the nearby .env file if still not set
+if [ -z "$TOKEN" ]; then
+    SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        ENV_TOKEN=$(grep -E '^HF=' "$SCRIPT_DIR/.env" | cut -d= -f2- | tr -d '"'\' | tr -d '\r')
+        if [ -n "$ENV_TOKEN" ]; then
+            TOKEN="$ENV_TOKEN"
+        fi
+    fi
 fi
 
 # Check if jq is installed
