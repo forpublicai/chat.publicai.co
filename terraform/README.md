@@ -162,6 +162,7 @@ aws eks list-clusters --region us-east-1
 ### 3. Update your kubeconfig
 
 ```bash
+
 aws eks update-kubeconfig \
   --region us-east-1 \
   --name staging-main-cluster

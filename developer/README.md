@@ -1,5 +1,8 @@
 # Local Developer Setup: External Databases & Kubernetes Integration
 
+> 🗺️ **Looking for Cloud Infrastructure & Terraform Architecture?**  
+> Check out the [Terraform Infrastructure Architecture Map](file:///home/jungle/chat.publicai.co/developer/TERRAFORM.md).
+
 This directory contains the configurations required to run a local development database and caching layer (PostgreSQL + Redis) in Docker Compose, and hook them up to Kubernetes (k0s) services (Lago, OpenWebUI, LiteLLM) deployed via `./web-services.sh`.
 
 ---
