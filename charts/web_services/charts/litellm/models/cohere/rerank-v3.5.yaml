@@ -1,0 +1,7 @@
+models:
+- model_name: Cohere/rerank-v3.5
+  litellm_params:
+    model: bedrock/cohere.rerank-v3-5:0
+    aws_region_name: eu-central-1
+  model_info:
+    input_cost_per_token: 0.000001

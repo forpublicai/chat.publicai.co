@@ -485,36 +485,39 @@ def main():
     
     for m in sorted_models:
         model_name = m['model_name']
+        litellm_model = m.get('litellm_model')
         api_base = m.get('api_base')
         api_key = m.get('api_key')
         fallbacks = m.get('fallbacks', [])
         
         errors = []
+        is_bedrock = litellm_model and litellm_model.startswith("bedrock/")
         
         # 1. Fallback configured check
-        if not fallbacks:
+        if not fallbacks and not is_bedrock:
             errors.append("Missing fallback configuration")
             
         # 2. API base check: starts with https:// and ends with v1
-        if not api_base:
-            errors.append("Missing api_base")
-        else:
-            if not api_base.startswith("https://"):
-                errors.append(f"api_base '{api_base}' does not start with 'https://'")
-            if not (api_base.endswith("v1") or api_base.endswith("v1/")):
-                errors.append(f"api_base '{api_base}' does not end with 'v1'")
-                
-        # 3. Valid api key identifier check
-        if not api_key:
-            errors.append("Missing api_key")
-        else:
-            if not api_key.startswith("os.environ/"):
-                errors.append(f"api_key '{api_key}' is not a valid environment reference (must start with 'os.environ/')")
+        if not is_bedrock:
+            if not api_base:
+                errors.append("Missing api_base")
             else:
-                env_var_part = api_key.split('/', 1)[1]
-                if not re.match(r'^[A-Z][A-Z0-9_]*$', env_var_part):
-                    errors.append(f"api_key reference environment variable '{env_var_part}' is invalid (must be UPPER_SNAKE_CASE)")
+                if not api_base.startswith("https://"):
+                    errors.append(f"api_base '{api_base}' does not start with 'https://'")
+                if not (api_base.endswith("v1") or api_base.endswith("v1/")):
+                    errors.append(f"api_base '{api_base}' does not end with 'v1'")
                     
+            # 3. Valid api key identifier check
+            if not api_key:
+                errors.append("Missing api_key")
+            else:
+                if not api_key.startswith("os.environ/"):
+                    errors.append(f"api_key '{api_key}' is not a valid environment reference (must start with 'os.environ/')")
+                else:
+                    env_var_part = api_key.split('/', 1)[1]
+                    if not re.match(r'^[A-Z][A-Z0-9_]*$', env_var_part):
+                        errors.append(f"api_key reference environment variable '{env_var_part}' is invalid (must be UPPER_SNAKE_CASE)")
+                        
         if errors:
             model_checks_failed = True
             print(f"❌ Model '{model_name}':")

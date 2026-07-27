@@ -352,3 +352,6 @@ elif [ "$1" = "--dry-run" ]; then
 else
     show_usage
 fi
+
+echo "Check the pods and if needed do a: kubectl rollout restart deployment/litellm -n web-services"
+echo "Check the pods and if needed do a: kubectl rollout restart deployment/openwebui -n web-services"
