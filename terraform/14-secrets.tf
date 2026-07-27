@@ -74,7 +74,7 @@ resource "aws_secretsmanager_secret_version" "litellm_manual" {
     SEALION_API_KEY    = "placeholder-replace-in-console"
     VLLM_API_KEY_INTEL = "placeholder-replace-in-console"
     LAGO_API_KEY       = "placeholder-replace-in-console"
-    DICTA_API_KEY      = "placeholder-replace-in-console"
+    CSCS_API_KEY      = "placeholder-replace-in-console"
     INFOMANIAK_API_KEY = "placeholder-replace-in-console"
     BIELIK_API_KEY     = "placeholder-replace-in-console"
   })
