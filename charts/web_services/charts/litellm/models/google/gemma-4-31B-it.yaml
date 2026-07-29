@@ -1,0 +1,16 @@
+# models:
+# - model_name: google/gemma-4-31B-it
+#   litellm_params:
+#     model: openai/google/gemma-4-31B-it
+#     api_base: https://api.inference.cscs.ch/v1
+#     api_key: os.environ/CSCS_API_KEY
+#     ssl_verify: false
+#     supports_vision: true
+#     temperature: 1.0
+#     top_p: 0.95
+#     max_tokens: 16384
+#   model_info:
+#     input_cost_per_token: 0.00000008
+#     output_cost_per_token: 0.00000030
+# fallbacks:
+# - allenai/Olmo-3-7B-Instruct
