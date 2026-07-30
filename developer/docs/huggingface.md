@@ -22,6 +22,7 @@ These docs describe how to use the utility scripts in the ``developer/hugging_fa
 Fetches the list of model mappings currently registered under the `publicai` provider.
 
 ```bash
+cd developer/hugging_face
 ./get_models.sh
 ```
 ```json
@@ -47,6 +48,7 @@ Registers a new model mapping item under the `publicai` provider.
 
 #### Register as staging
 ```bash
+cd developer/hugging_face
 ./register_model.sh \
   --task text-generation \
   --hf-model swiss-ai/Apertus-8B-Instruct-2509 \ # hugging face id
@@ -91,10 +93,12 @@ Updates the status of an existing model mapping item.
 
 ### Promote a model to live/production
 ```bash
+cd developer/hugging_face
 ./update_status.sh 6a454f4ffdad7c320e5699ff --prod
 ```
 
 ### Revert a model to staging
 ```bash
+cd developer/hugging_face
 ./update_status.sh 6a454f4ffdad7c320e5699ff --staging
 ```
