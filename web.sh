@@ -93,7 +93,15 @@ set_kube_context() {
         echo "🔄 Switching Kubernetes context..."
         echo "   From: $current_context"
         echo "   To: $EXPECTED_KUBE_CONTEXT"
-        kubectl config use-context "$EXPECTED_KUBE_CONTEXT"
+        if ! kubectl config use-context "$EXPECTED_KUBE_CONTEXT" 2>/dev/null; then
+            echo ""
+            echo "Please make sure the aws cli is installed, then in the aws console find the IAM user called currentai-cluster-deploy and generate security keys for them and add to using aws configure. Then run the commands below to check and add the kubecontext from aws cli."
+            echo ""
+            echo "aws sts get-caller-identity"
+            echo "aws eks list-clusters --region eu-central-2"
+            echo "aws eks update-kubeconfig --region eu-central-2 --name publicai-eks"
+            exit 1
+        fi
     fi
     
     echo "✅ Using Kubernetes context: $EXPECTED_KUBE_CONTEXT"

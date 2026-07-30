@@ -24,63 +24,40 @@ def load_env(env_path):
                 val = val.strip().strip('"').strip("'")
                 os.environ[key] = val
 
-def parse_active_endpoints(values_path):
-    """Parse active LLM endpoints from the litellm values.yaml file."""
-    if not os.path.exists(values_path):
-        print(f"Error: values.yaml file not found at {values_path}")
+def parse_active_endpoints(models_dir):
+    """Parse active LLM endpoints from the litellm models directory."""
+    import yaml
+    if not os.path.exists(models_dir):
+        print(f"Error: models directory not found at {models_dir}")
         sys.exit(1)
         
     models = []
-    current_model = None
-    in_params = False
     
-    with open(values_path, 'r') as f:
-        for line in f:
-            stripped = line.strip()
-            # If line is empty or is a comment, skip it
-            if not stripped or stripped.startswith('#'):
-                continue
-            
-            # Check if this line starts a model configuration block
-            model_match = re.match(r'^-\s+model_name:\s*(.+)$', stripped)
-            if model_match:
-                # If we were building a model block, save it if it has an api_base
-                if current_model and 'api_base' in current_model.get('litellm_params', {}):
-                    models.append(current_model)
-                
-                current_model = {
-                    'model_name': model_match.group(1).strip().strip('"').strip("'"),
-                    'litellm_params': {}
-                }
-                in_params = False
-                continue
-            
-            if current_model is not None:
-                # Check if we are entering litellm_params
-                if stripped.startswith('litellm_params:'):
-                    in_params = True
-                    continue
-                
-                if in_params:
-                    # Check indentation to see if we left litellm_params
-                    # All parameters inside litellm_params are indented with 8+ spaces
-                    leading_spaces = len(line) - len(line.lstrip(' '))
-                    if leading_spaces < 8:
-                        in_params = False
+    for root_dir, _, files in sorted(os.walk(models_dir)):
+        for file in sorted(files):
+            if file.endswith('.yaml') or file.endswith('.yml'):
+                file_path = os.path.join(root_dir, file)
+                try:
+                    with open(file_path, 'r') as f:
+                        data = yaml.safe_load(f)
+                    if not data or 'models' not in data:
                         continue
+                    for m in data['models']:
+                        model_name = m.get('model_name')
+                        if not model_name:
+                            continue
+                        litellm_params = m.get('litellm_params', {})
+                        # Only test endpoints that have api_base
+                        if 'api_base' in litellm_params:
+                            models.append({
+                                'model_name': model_name,
+                                'litellm_params': litellm_params
+                            })
+                except Exception as e:
+                    print(f"Error parsing model file {file_path}: {e}")
                     
-                    # Parse parameter key-value pairs
-                    param_match = re.match(r'^([a-zA-Z0-9_]+):\s*([^#]+)', stripped)
-                    if param_match:
-                        key = param_match.group(1)
-                        val = param_match.group(2).strip().strip('"').strip("'")
-                        current_model['litellm_params'][key] = val
-                        
-    # Append the last model if it qualifies
-    if current_model and 'api_base' in current_model.get('litellm_params', {}):
-        models.append(current_model)
-        
     return models
+
 
 def resolve_api_key(api_key_str):
     """Resolve API key which may refer to an environment variable."""
@@ -185,16 +162,16 @@ def main():
         root_dir = os.path.dirname(root_dir)
         
     env_path = os.path.join(root_dir, '.env')
-    values_path = os.path.join(root_dir, 'charts/web_services/charts/litellm/values.yaml')
+    models_dir = os.path.join(root_dir, 'charts/web_services/charts/litellm/models')
     
     print(f"Loading environment from: {env_path}")
     load_env(env_path)
     
-    print(f"Parsing active endpoints from: {values_path}")
-    active_endpoints = parse_active_endpoints(values_path)
+    print(f"Parsing active endpoints from: {models_dir}")
+    active_endpoints = parse_active_endpoints(models_dir)
     
     if not active_endpoints:
-        print("No active HTTP endpoints found in values.yaml.")
+        print("No active HTTP endpoints found in models directory.")
         return
         
     print(f"Found {len(active_endpoints)} active HTTP endpoints. Starting tests...")
@@ -207,8 +184,11 @@ def main():
         api_base = ep['litellm_params'].get('api_base', '')
         api_key_str = ep['litellm_params'].get('api_key', '')
         
-        ssl_verify_str = ep['litellm_params'].get('ssl_verify', 'true').strip().lower()
-        ssl_verify = ssl_verify_str != 'false'
+        ssl_verify_val = ep['litellm_params'].get('ssl_verify', True)
+        if isinstance(ssl_verify_val, str):
+            ssl_verify = ssl_verify_val.strip().lower() != 'false'
+        else:
+            ssl_verify = bool(ssl_verify_val)
         
         print(f"[{idx}/{len(active_endpoints)}] Testing model: {model_name} at {api_base} ...")
         success, ttft, error = measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify)

@@ -63,65 +63,117 @@ def list_models(base_url, api_key, ssl_verify=True):
         return None, f"Exception: {type(e).__name__} - {str(e)}"
 
 def measure_ttft(base_url, model_name, api_key, ssl_verify=True):
-    """Call a chat completion model and measure Time to First Token (TTFT)."""
-    url = f"{base_url.rstrip('/')}/v1/chat/completions"
+    """Call a model (chat completion, embedding, or rerank) and measure latency/TTFT."""
+    model_lower = model_name.lower()
     
-    payload = {
-        "model": model_name,
-        "messages": [
-            {"role": "user", "content": "Respond with a single word hello"}
-        ],
-        "stream": True,
-        "max_tokens": 10
-    }
-    
+    if "embed" in model_lower:
+        url = f"{base_url.rstrip('/')}/v1/embeddings"
+        payload = {
+            "model": model_name,
+            "input": ["hello"]
+        }
+        is_streaming = False
+    elif "rerank" in model_lower:
+        url = f"{base_url.rstrip('/')}/v1/rerank"
+        payload = {
+            "model": model_name,
+            "query": "hello",
+            "documents": ["hello", "world"]
+        }
+        is_streaming = False
+    else:
+        url = f"{base_url.rstrip('/')}/v1/chat/completions"
+        payload = {
+            "model": model_name,
+            "messages": [
+                {"role": "user", "content": "Respond with a single word hello"}
+            ],
+            "stream": True,
+            "max_tokens": 10
+        }
+        is_streaming = True
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
         "User-Agent": "Mozilla/5.0"
     }
-    
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode('utf-8'),
-        headers=headers,
-        method='POST'
-    )
-    
+
     if not ssl_verify:
         context = ssl.create_default_context()
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
     else:
         context = None
+
+    def execute_request(req_url, req_payload, stream_mode):
+        req = urllib.request.Request(
+            req_url,
+            data=json.dumps(req_payload).encode('utf-8'),
+            headers=headers,
+            method='POST'
+        )
+        t0 = time.time()
         
-    t0 = time.time()
-    try:
-        # 30-second timeout to establish connection and receive stream
-        with urllib.request.urlopen(req, context=context, timeout=30) as response:
-            while True:
-                line = response.readline()
-                if not line:
-                    break
-                line_str = line.decode('utf-8').strip()
-                if line_str.startswith('data:'):
-                    data_str = line_str[5:].strip()
-                    if data_str == '[DONE]':
+        if stream_mode:
+            # 30-second timeout to establish connection and receive stream
+            with urllib.request.urlopen(req, context=context, timeout=30) as response:
+                while True:
+                    line = response.readline()
+                    if not line:
                         break
+                    line_str = line.decode('utf-8').strip()
+                    if line_str.startswith('data:'):
+                        data_str = line_str[5:].strip()
+                        if data_str == '[DONE]':
+                            break
+                        try:
+                            data = json.loads(data_str)
+                            choices = data.get('choices', [])
+                            if choices:
+                                delta = choices[0].get('delta', {})
+                                # Check for any generated content/token
+                                if delta.get('content') or delta.get('reasoning_content') or delta.get('text') or delta:
+                                    ttft = time.time() - t0
+                                    return True, ttft, None
+                        except json.JSONDecodeError:
+                            pass
+                return False, None, "Response stream ended without any tokens"
+        else:
+            with urllib.request.urlopen(req, context=context, timeout=30) as response:
+                response.read()
+                latency = time.time() - t0
+                return True, latency, None
+
+    try:
+        if is_streaming:
+            try:
+                return execute_request(url, payload, stream_mode=True)
+            except urllib.error.HTTPError as e:
+                # If streaming fails, retry non-streaming
+                error_body = ""
+                try:
+                    error_body = e.read().decode('utf-8')
+                except Exception:
+                    pass
+                
+                payload["stream"] = False
+                try:
+                    return execute_request(url, payload, stream_mode=False)
+                except Exception as retry_err:
+                    err_msg = error_body if error_body else str(e)
+                    return False, None, f"HTTP Error {e.code}: {e.reason} (Streaming failed: {err_msg}) - Non-streaming retry failed: {retry_err}"
+        else:
+            try:
+                return execute_request(url, payload, stream_mode=False)
+            except urllib.error.HTTPError as e:
+                if "rerank" in model_lower and e.code == 404 and "/v1/rerank" in url:
+                    alt_url = f"{base_url.rstrip('/')}/rerank"
                     try:
-                        data = json.loads(data_str)
-                        choices = data.get('choices', [])
-                        if choices:
-                            delta = choices[0].get('delta', {})
-                            # Check for any generated content/token
-                            if delta.get('content') or delta.get('reasoning_content') or delta.get('text') or delta:
-                                ttft = time.time() - t0
-                                return True, ttft, None
-                    except json.JSONDecodeError:
+                        return execute_request(alt_url, payload, stream_mode=False)
+                    except Exception:
                         pass
-                        
-            return False, None, "Response stream ended without any tokens"
-            
+                raise e
     except urllib.error.HTTPError as e:
         try:
             error_body = e.read().decode('utf-8')

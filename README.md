@@ -1,3 +1,16 @@
+```bash
+░█████████             ░██        ░██ ░██                 ░███    ░██████
+░██     ░██            ░██        ░██                    ░██░██     ░██  
+░██     ░██ ░██    ░██ ░████████  ░██ ░██ ░███████      ░██  ░██    ░██  
+░█████████  ░██    ░██ ░██    ░██ ░██ ░██░██    ░██    ░█████████   ░██  
+░██         ░██    ░██ ░██    ░██ ░██ ░██░██           ░██    ░██   ░██  
+░██         ░██   ░███ ░███   ░██ ░██ ░██░██    ░██    ░██    ░██   ░██  
+░██          ░█████░██ ░██░█████  ░██ ░██ ░███████     ░██    ░██ ░██████
+                                                                         
+                                                                         
+                                                                         
+```
+
 # Public AI Inference Utility
 
 **A public compute platform for everyone.**
@@ -7,6 +20,10 @@ The Public AI Inference Utility is a public compute platform that provides free 
 Unlike commercial AI APIs that prioritize profit maximization, the Utility is designed to serve the public interest. We provide transparent pricing, open governance, and equitable access to ensure that AI capabilities are available to everyone, not just those who can afford premium services.
 
 This repository contains the production deployment configuration and community contributions for the platform.
+
+## Documentation
+
+For the full documentation (for developers) please go here:  [developer/docs/index.md](developer/docs/index.md)
 
 ## How to Contribute
 
@@ -30,21 +47,6 @@ The `community/` folder contains user-contributed enhancements that make the pla
 3. Include documentation and examples
 4. Submit a pull request with a clear description
 
-### ⚙️ Infrastructure Contributions (`/charts`)
-
-For technically-minded contributors, the `charts/` folder contains Helm charts for Kubernetes deployment:
-
-- **`infrastructure/`**: Core infrastructure components (databases, networking)
-- **`llm_services/`**: AI model serving infrastructure
-- **`web_ingress/`**: Load balancing and SSL termination
-- **`web_services/`**: Application services and monitoring
-
-**How to contribute to infrastructure:**
-1. Review existing chart configurations
-2. Test your changes in a staging environment
-3. Ensure compatibility with existing deployments
-4. Submit pull requests with detailed technical documentation
-
 ### 🚀 Platform Development & Governance
 
 We are currently in **beta** and working toward progressive decentralization of the platform. Our goal is to create more accessible ways for people to contribute beyond just code and infrastructure.
@@ -61,20 +63,6 @@ We are currently in **beta** and working toward progressive decentralization of 
 - Join our community discussions about platform direction and governance
 
 We believe the best infrastructure is built by and for the communities it serves.
-
-## Project Structure
-
-```
-├── README.md
-├── community/               # Community contributions
-│   ├── owui_functions/     # Custom Open WebUI functions
-│   └── system_prompts/     # Region-specific prompts
-├── charts/                 # Kubernetes Helm charts
-│   ├── infrastructure/     # Core infrastructure
-│   ├── llm_services/      # AI model services
-│   ├── web_ingress/       # Load balancers & SSL
-│   └── web_services/      # Application services
-```
 
 ## Getting Started
 

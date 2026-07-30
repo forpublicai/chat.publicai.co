@@ -35,6 +35,14 @@ open-webui:
         memory: "4Gi"
         cpu: "1000m"
 
+    # OpenTelemetry configuration
+    otel:
+      enabled: true
+      metricsEnabled: true
+      insecure: true
+      endpoint: "http://web-services-prometheus-server:80"
+      serviceName: "open-webui"
+
   # Autoscaling for high load
   autoscaling:
     enabled: true
@@ -264,6 +272,7 @@ prometheus:
       enabled: false
     extraFlags:
       - "web.config.file=/etc/prometheus/web.config"
+      - "storage.tsdb.retention.size=5GB"
     extraVolumes:
       - name: web-config
         secret:
@@ -329,14 +338,25 @@ grafana:
         gnetId: 25541
         revision: 1
         datasource: Prometheus
+      open-webui:
+        gnetId: 22867
+        revision: 1
+        datasource: Prometheus
 
 # Loki log aggregation database configuration
 loki:
   enabled: true
   deploymentMode: SingleBinary
+  compactor:
+    retention_enabled: true
+    working_directory: /var/loki/compactor
   loki:
+    auth_enabled: false
     commonConfig:
       replication_factor: 1
+    limits_config:
+      retention_period: 168h
+      volume_enabled: true
     storage:
       type: filesystem
       bucketNames:
@@ -352,9 +372,13 @@ loki:
             period: 24h
     storage_config:
       filesystem:
-        directory: /data/loki/chunks
+        directory: /var/loki/chunks
   singleBinary:
     replicas: 1
+    persistence:
+      enabled: true
+      storageClass: ebs-sc
+      size: 10Gi
   gateway:
     enabled: false
   write:
