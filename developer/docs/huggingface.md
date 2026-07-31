@@ -86,6 +86,30 @@ The `--task` argument must be exactly one of the following:
 * `video-classification`
 * `text-to-video`
 
+## Testing
+
+To test make sure you have defined ``HF_TEST_TOKEN`` in ``/developer/hugging_face/.env`` the token/account needs to have credits to call inference providers. 
+
+```bash
+cd developer/hugging_face
+python test.py
+```
+
+```
+========================================================================================================================
+Model Name                                         | Status       | TTFT (s)  
+------------------------------------------------------------------------------------------------------------------------
+aisingapore/Gemma-SEA-LION-v4-27B-IT               | SUCCESS      | 1.117s    
+aisingapore/Qwen-SEA-LION-v4-32B-IT                | SUCCESS      | 1.357s    
+allenai/Olmo-3-7B-Instruct                         | SUCCESS      | 1.216s    
+speakleash/Bielik-11B-v3.0-Instruct                | SUCCESS      | 1.048s    
+swiss-ai/Apertus-70B-Instruct-2509                 | SUCCESS      | 1.048s    
+swiss-ai/Apertus-8B-Instruct-2509                  | SUCCESS      | 0.862s    
+swiss-ai/Apertus-v1.5-70B                          | SUCCESS      | 0.499s    
+swiss-ai/Apertus-v1.5-8B                           | SUCCESS      | 0.754s    
+utter-project/EuroLLM-22B-Instruct-2512            | SUCCESS      | 0.906s    
+========================================================================================================================
+```
 
 ## Updating Model Status: Live or Staging
 

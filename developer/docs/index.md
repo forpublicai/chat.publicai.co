@@ -1,6 +1,6 @@
 
 # Contents
-1. [Accounts and UIs](account-and-uis.md)
+1. [Accounts and UIs](accounts-and-uis.md)
 1. [Deploy to production](#deploy-to-production)
 1. [Tests](#tests)
 1. [Add an inference provider](add-inference-provider.md)
@@ -16,7 +16,7 @@ If you want to use the UIs for any service like
 - Authenticated 
 - and more...
 
-please read this document: [Accounts and UIs](account-and-uis.md)
+please read this document: [Accounts and UIs](accounts-and-uis.md)
 
 # Deploy to production
 1. Clone this repo
