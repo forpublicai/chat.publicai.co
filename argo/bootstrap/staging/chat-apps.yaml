@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: root-app-staging
+  name: chat-apps-staging
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io

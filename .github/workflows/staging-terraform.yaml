@@ -51,4 +51,4 @@ jobs:
 
       - name: Apply ArgoCD Root App
         working-directory: .
-        run: kubectl apply -f argo/bootstrap/root-app.yaml
+        run: kubectl apply -f argo/bootstrap/staging-bootstrap.yaml
