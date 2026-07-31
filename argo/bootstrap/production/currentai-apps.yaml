@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: infra-apps-production
+  name: currentai-apps-production
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
