@@ -72,8 +72,8 @@ kubectl rollout restart deployment/openwebui -n web-services
 After deployment run the tests:
 
 ```bash
-cd developer/test
-python providers.py # this tests our providers are working
+cd health-check
+python suppliers.py # this tests our providers are working
 python litellm.py # this tests our litellm is working
 ```
 

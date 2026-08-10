@@ -191,7 +191,7 @@ validate() {
     validate_env
 
     echo "🔍 Running configuration alignment checks..."
-    python3 developer/test/code_check_endpoint.py
+    python3 health-check/code_check_endpoint.py
 
     echo "🔧 Building web services dependencies..."
     helm dependency build charts/web_services/

@@ -91,8 +91,7 @@ The `--task` argument must be exactly one of the following:
 To test make sure you have defined ``HF_TEST_TOKEN`` in ``/developer/hugging_face/.env`` the token/account needs to have credits to call inference providers. 
 
 ```bash
-cd developer/hugging_face
-python test.py
+python health-check/huggingface.py
 ```
 
 ```

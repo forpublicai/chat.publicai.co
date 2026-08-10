@@ -110,7 +110,7 @@ Working in ``charts/web_services/charts/litellm/custom_lago_callback.py``
 
 ## Check changes
 1. Validate the code ``./web.sh --validate``
-1. Run this to see if code is edited in correct places ``python developer/test/code_check_endpoint.py``
+1. Run this to see if code is edited in correct places ``python health-check/code_check_endpoint.py``
 
 ## Deploy
 1. Then do a dry run ``./web.sh --deploy --dry-run``
@@ -118,7 +118,7 @@ Working in ``charts/web_services/charts/litellm/custom_lago_callback.py``
 1. Then watch pods deploy ``watch -n 2 kubectl get pods -n web-services`` Check litellm is a new version, some small changes might not trigger a restart, if that is the case do a restart rollout on the deployment.
 
 ## Test
-1. Once all rolled out test litellm ``python developer/test/litellm.py``, check that you see all the models you expect to and they all return a token.
+1. Once all rolled out test litellm ``python health-check/litellm.py``, check that you see all the models you expect to and they all return a token.
 
 # Configure Apps
 
