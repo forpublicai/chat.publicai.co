@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-check
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+spec:
+  replicas: {{ .Values.healthcheck.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: health-check
+  template:
+    metadata:
+      labels:
+        app: health-check
+    spec:
+      containers:
+        - name: health-check
+          image: "{{ .Values.healthcheck.image.repository }}:{{ .Values.healthcheck.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.healthcheck.image.pullPolicy | default "Always" | quote }}
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            {{- toYaml .Values.healthcheck.resources | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: health-check-secrets

@@ -1,9 +1,10 @@
 FROM python:3.10-slim
 
-# Install curl and jq (required by get_models.sh)
+# Install curl, jq, and git (required for dynamic repo updates)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     jq \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

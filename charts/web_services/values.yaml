@@ -287,6 +287,9 @@ prometheus:
     - job_name: 'litellm'
       static_configs:
         - targets: ['litellm-service:4000']
+    - job_name: 'health-check'
+      static_configs:
+        - targets: ['health-check-service:8000']
 
 # Grafana visualization dashboard configuration
 grafana:
@@ -394,3 +397,23 @@ promtail:
   config:
     clients:
       - url: http://web-services-loki:3100/loki/api/v1/push
+
+# Health check configuration
+healthcheck:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/forpublicai/chat.publicai.co/health-check"
+    tag: "latest"
+    pullPolicy: "Always"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  secrets:
+    hfTestToken: ""
+    zuploTest: ""
+    litellmApiKey: ""

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-check-service
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+spec:
+  selector:
+    app: health-check
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: http

@@ -70,6 +70,8 @@ validate_env() {
         "GRAFANA_ADMIN_PASSWORD"
         "PROMETHEUS_ADMIN_USER"
         "PROMETHEUS_ADMIN_PASSWORD"
+        "HF_TEST_TOKEN"
+        "ZUPLO_TEST"
     )
     
     for var in "${required_vars[@]}"; do
@@ -151,7 +153,10 @@ deploy_services() {
         --set grafana.env.PROMETHEUS_ADMIN_PASSWORD="$PROMETHEUS_ADMIN_PASSWORD" \
         --set loki.enabled=true \
         --set promtail.enabled=true \
-        --set litellm.prometheus.enabled=true 
+        --set litellm.prometheus.enabled=true \
+        --set healthcheck.secrets.hfTestToken="$HF_TEST_TOKEN" \
+        --set healthcheck.secrets.zuploTest="$ZUPLO_TEST" \
+        --set healthcheck.secrets.litellmApiKey="$LITELLM_API_KEY" 
         
 
     echo "✅ Web services deployment complete!"
@@ -242,7 +247,10 @@ validate() {
         --set grafana.env.PROMETHEUS_ADMIN_PASSWORD="$PROMETHEUS_ADMIN_PASSWORD" \
         --set loki.enabled=true \
         --set promtail.enabled=true \
-        --set litellm.prometheus.enabled=true > /dev/null
+        --set litellm.prometheus.enabled=true \
+        --set healthcheck.secrets.hfTestToken="$HF_TEST_TOKEN" \
+        --set healthcheck.secrets.zuploTest="$ZUPLO_TEST" \
+        --set healthcheck.secrets.litellmApiKey="$LITELLM_API_KEY" > /dev/null
 
     echo "✅ Template validation and configuration checks passed successfully!"
 }
@@ -314,6 +322,9 @@ dry_run() {
         --set loki.enabled=true \
         --set promtail.enabled=true \
         --set litellm.prometheus.enabled=true \
+        --set healthcheck.secrets.hfTestToken="$HF_TEST_TOKEN" \
+        --set healthcheck.secrets.zuploTest="$ZUPLO_TEST" \
+        --set healthcheck.secrets.litellmApiKey="$LITELLM_API_KEY" \
         --dry-run
 
     echo "✅ Cluster dry-run simulation completed successfully!"

@@ -175,7 +175,29 @@ def main():
             root_dir = os.path.dirname(root_dir)
             
         env_path = os.path.join(root_dir, '.env')
-        models_dir = os.path.join(root_dir, 'charts/web_services/charts/litellm/models')
+        
+        models_dir = os.environ.get("MODELS_DIR")
+        if not models_dir:
+            try:
+                import shutil
+                import subprocess
+                repo_dir = "/tmp/chat.publicai.co"
+                if os.path.exists(repo_dir):
+                    try:
+                        shutil.rmtree(repo_dir)
+                    except Exception:
+                        pass
+                log("Cloning latest models dynamically from public repository...")
+                subprocess.run(
+                    ["git", "clone", "--depth", "1", "https://github.com/forpublicai/chat.publicai.co.git", repo_dir],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                models_dir = os.path.join(repo_dir, 'charts/web_services/charts/litellm/models')
+            except Exception as e:
+                log(f"Dynamic clone failed: {e}. Falling back to local directory.")
+                models_dir = os.path.join(root_dir, 'charts/web_services/charts/litellm/models')
         
         log(f"Loading environment from: {env_path}")
         load_env(env_path, verbose=not json_mode)
