@@ -302,6 +302,15 @@ grafana:
   adminPassword: ""
   persistence:
     enabled: false
+  extraVolumeMounts:
+    - name: health-check-dashboard-volume
+      mountPath: /var/lib/grafana/dashboards/default/health-check.json
+      subPath: health-check.json
+      readOnly: true
+  extraVolumes:
+    - name: health-check-dashboard-volume
+      configMap:
+        name: health-check-dashboard-configmap
   datasources:
     datasources.yaml:
       apiVersion: 1
