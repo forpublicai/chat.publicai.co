@@ -4,10 +4,41 @@ import json
 import time
 import subprocess
 import threading
+import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # Thread safety lock
 data_lock = threading.Lock()
+
+# Custom JSON Logger setup
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "timestamp": time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(record.created)) + f".{int(record.msecs):03d}Z",
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "logger": record.name,
+        }
+        if record.exc_info:
+            log_record["exception"] = self.formatException(record.exc_info)
+        
+        # Include extra attributes passed to log statements via `extra={...}`
+        standard_attrs = {
+            'args', 'asctime', 'created', 'exc_info', 'exc_text', 'filename',
+            'funcName', 'levelname', 'levelno', 'lineno', 'module',
+            'msecs', 'message', 'msg', 'name', 'pathname', 'process',
+            'processName', 'relativeCreated', 'stack_info', 'thread', 'threadName'
+        }
+        for key, val in record.__dict__.items():
+            if key not in standard_attrs:
+                log_record[key] = val
+        return json.dumps(log_record)
+
+logger = logging.getLogger("health-check")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JsonFormatter())
+logger.addHandler(handler)
 
 # Global state
 latest_results = []
@@ -32,7 +63,7 @@ def run_health_check():
     global litellm_results, litellm_last_run_timestamp, litellm_last_error
     global zuplo_results, zuplo_last_run_timestamp, zuplo_last_error
     
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Running health checks...", flush=True)
+    logger.info("Running health checks...")
     
     # 1. Run Hugging Face Check
     hf_script = "/app/huggingface.py"
@@ -56,18 +87,34 @@ def run_health_check():
                     last_error = error_obj.get("message")
                 else:
                     last_error = None
+            logger.info("HuggingFace health check completed", extra={
+                "check_type": "huggingface",
+                "success": last_error is None,
+                "results": latest_results,
+                "error": last_error
+            })
         except json.JSONDecodeError:
             with data_lock:
                 latest_results = []
                 last_run_timestamp = time.time()
                 last_error = f"Invalid JSON output from huggingface.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            print(f"Error: failed to decode JSON from huggingface.py. Stdout: {result.stdout} Stderr: {result.stderr}", file=sys.stderr, flush=True)
+            logger.error("Failed to decode JSON from huggingface.py", extra={
+                "check_type": "huggingface",
+                "success": False,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "error": last_error
+            })
     except Exception as e:
         with data_lock:
             latest_results = []
             last_run_timestamp = time.time()
             last_error = f"Exception running huggingface.py: {e}"
-        print(f"Error running huggingface.py: {e}", file=sys.stderr, flush=True)
+        logger.error(f"Exception running huggingface.py: {e}", exc_info=True, extra={
+            "check_type": "huggingface",
+            "success": False,
+            "error": last_error
+        })
 
     # 2. Run Suppliers Check
     suppliers_script = "/app/suppliers.py"
@@ -91,18 +138,34 @@ def run_health_check():
                     suppliers_last_error = error_obj.get("message")
                 else:
                     suppliers_last_error = None
+            logger.info("Suppliers health check completed", extra={
+                "check_type": "suppliers",
+                "success": suppliers_last_error is None,
+                "results": suppliers_results,
+                "error": suppliers_last_error
+            })
         except json.JSONDecodeError:
             with data_lock:
                 suppliers_results = []
                 suppliers_last_run_timestamp = time.time()
                 suppliers_last_error = f"Invalid JSON output from suppliers.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            print(f"Error: failed to decode JSON from suppliers.py. Stdout: {result.stdout} Stderr: {result.stderr}", file=sys.stderr, flush=True)
+            logger.error("Failed to decode JSON from suppliers.py", extra={
+                "check_type": "suppliers",
+                "success": False,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "error": suppliers_last_error
+            })
     except Exception as e:
         with data_lock:
             suppliers_results = []
             suppliers_last_run_timestamp = time.time()
             suppliers_last_error = f"Exception running suppliers.py: {e}"
-        print(f"Error running suppliers.py: {e}", file=sys.stderr, flush=True)
+        logger.error(f"Exception running suppliers.py: {e}", exc_info=True, extra={
+            "check_type": "suppliers",
+            "success": False,
+            "error": suppliers_last_error
+        })
 
     # 3. Run LiteLLM Check
     litellm_script = "/app/litellm.py"
@@ -126,18 +189,34 @@ def run_health_check():
                     litellm_last_error = error_obj.get("message")
                 else:
                     litellm_last_error = None
+            logger.info("LiteLLM health check completed", extra={
+                "check_type": "litellm",
+                "success": litellm_last_error is None,
+                "results": litellm_results,
+                "error": litellm_last_error
+            })
         except json.JSONDecodeError:
             with data_lock:
                 litellm_results = []
                 litellm_last_run_timestamp = time.time()
                 litellm_last_error = f"Invalid JSON output from litellm.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            print(f"Error: failed to decode JSON from litellm.py. Stdout: {result.stdout} Stderr: {result.stderr}", file=sys.stderr, flush=True)
+            logger.error("Failed to decode JSON from litellm.py", extra={
+                "check_type": "litellm",
+                "success": False,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "error": litellm_last_error
+            })
     except Exception as e:
         with data_lock:
             litellm_results = []
             litellm_last_run_timestamp = time.time()
             litellm_last_error = f"Exception running litellm.py: {e}"
-        print(f"Error running litellm.py: {e}", file=sys.stderr, flush=True)
+        logger.error(f"Exception running litellm.py: {e}", exc_info=True, extra={
+            "check_type": "litellm",
+            "success": False,
+            "error": litellm_last_error
+        })
 
     # 4. Run Zuplo Check
     zuplo_script = "/app/zuplo.py"
@@ -161,18 +240,34 @@ def run_health_check():
                     zuplo_last_error = error_obj.get("message")
                 else:
                     zuplo_last_error = None
+            logger.info("Zuplo health check completed", extra={
+                "check_type": "zuplo",
+                "success": zuplo_last_error is None,
+                "results": zuplo_results,
+                "error": zuplo_last_error
+            })
         except json.JSONDecodeError:
             with data_lock:
                 zuplo_results = []
                 zuplo_last_run_timestamp = time.time()
                 zuplo_last_error = f"Invalid JSON output from zuplo.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            print(f"Error: failed to decode JSON from zuplo.py. Stdout: {result.stdout} Stderr: {result.stderr}", file=sys.stderr, flush=True)
+            logger.error("Failed to decode JSON from zuplo.py", extra={
+                "check_type": "zuplo",
+                "success": False,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "error": zuplo_last_error
+            })
     except Exception as e:
         with data_lock:
             zuplo_results = []
             zuplo_last_run_timestamp = time.time()
             zuplo_last_error = f"Exception running zuplo.py: {e}"
-        print(f"Error running zuplo.py: {e}", file=sys.stderr, flush=True)
+        logger.error(f"Exception running zuplo.py: {e}", exc_info=True, extra={
+            "check_type": "zuplo",
+            "success": False,
+            "error": zuplo_last_error
+        })
 
 def scheduler_loop():
     while True:
@@ -181,8 +276,11 @@ def scheduler_loop():
 
 class MetricsHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
-        # Silence default access logging to keep stdout clean
-        pass
+        # Log server requests in JSON format
+        logger.info(format % args, extra={
+            "client_address": self.client_address[0],
+            "request_line": self.requestline
+        })
 
     def do_GET(self):
         if self.path == "/metrics":
@@ -344,12 +442,12 @@ def main():
     port = int(os.environ.get("PORT", 8000))
     server_address = ("", port)
     httpd = HTTPServer(server_address, MetricsHandler)
-    print(f"Starting server on port {port}...", flush=True)
+    logger.info(f"Starting server on port {port}...")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
-    print("Server stopped.", flush=True)
+    logger.info("Server stopped.")
 
 if __name__ == "__main__":
     main()
