@@ -40,8 +40,12 @@ open-webui:
       enabled: true
       metricsEnabled: true
       insecure: true
-      endpoint: "http://web-services-prometheus-server:80"
+      endpoint: "http://web-services-prometheus-server:80/api/v1/otlp"
       serviceName: "open-webui"
+
+    extraEnv:
+      - name: OTEL_OTLP_SPAN_EXPORTER
+        value: "http"
 
   # Autoscaling for high load
   autoscaling:
@@ -269,10 +273,13 @@ prometheus:
     enabled: false
   server:
     persistentVolume:
-      enabled: false
+      enabled: true
+      size: 10Gi
+      storageClass: "ebs-sc"
     extraFlags:
       - "web.config.file=/etc/prometheus/web.config"
       - "storage.tsdb.retention.size=5GB"
+      - "enable-feature=otlp-write-receiver"
     extraVolumes:
       - name: web-config
         secret:
