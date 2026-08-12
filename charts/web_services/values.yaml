@@ -40,7 +40,7 @@ open-webui:
       enabled: true
       metricsEnabled: true
       insecure: true
-      endpoint: "http://web-services-prometheus-server:80/api/v1/otlp"
+      endpoint: "http://web-services-prometheus-server:80/api/v1/otlp/v1/metrics"
       serviceName: "open-webui"
 
     extraEnv:
@@ -297,6 +297,9 @@ prometheus:
     - job_name: 'health-check'
       static_configs:
         - targets: ['health-check-service:8000']
+    - job_name: 'openwebui-exporter'
+      static_configs:
+        - targets: ['openwebui-exporter-service:9090']
 
 # Grafana visualization dashboard configuration
 grafana:
@@ -313,6 +316,10 @@ grafana:
     - name: health-check-dashboard-volume
       mountPath: /var/lib/grafana/dashboards/default/health-check.json
       subPath: health-check.json
+      readOnly: true
+    - name: health-check-dashboard-volume
+      mountPath: /var/lib/grafana/dashboards/default/open-webui.json
+      subPath: open-webui.json
       readOnly: true
   extraVolumes:
     - name: health-check-dashboard-volume
@@ -357,10 +364,7 @@ grafana:
         gnetId: 25541
         revision: 1
         datasource: Prometheus
-      open-webui:
-        gnetId: 22867
-        revision: 1
-        datasource: Prometheus
+
 
 # Loki log aggregation database configuration
 loki:
@@ -433,3 +437,19 @@ healthcheck:
     hfTestToken: ""
     zuploTest: ""
     litellmApiKey: ""
+
+# OpenWebUI Prometheus Exporter configuration
+openwebuiexporter:
+  enabled: true
+  image:
+    repository: "ghcr.io/baselhusam/open-webui-exporter"
+    tag: "latest"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  secrets:
+    apiKey: ""

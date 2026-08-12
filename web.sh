@@ -72,6 +72,7 @@ validate_env() {
         "PROMETHEUS_ADMIN_PASSWORD"
         "HF_TEST_TOKEN"
         "ZUPLO_TEST"
+        "OPENWEBUI_API_KEY"
     )
     
     for var in "${required_vars[@]}"; do
@@ -126,6 +127,9 @@ deploy_services() {
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
         --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set open-webui.secrets.prometheusUser="$PROMETHEUS_ADMIN_USER" \
+        --set open-webui.secrets.prometheusPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set openwebuiexporter.secrets.apiKey="$OPENWEBUI_API_KEY" \
         --set litellm.enabled=true \
         --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
         --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
@@ -220,6 +224,9 @@ validate() {
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
         --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set open-webui.secrets.prometheusUser="$PROMETHEUS_ADMIN_USER" \
+        --set open-webui.secrets.prometheusPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set openwebuiexporter.secrets.apiKey="$OPENWEBUI_API_KEY" \
         --set litellm.enabled=true \
         --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
         --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \
@@ -294,6 +301,9 @@ dry_run() {
         --set open-webui.secrets.oauthClientId="$OAUTH_CLIENT_ID" \
         --set open-webui.secrets.oauthClientSecret="$OAUTH_CLIENT_SECRET" \
         --set open-webui.secrets.openidRedirectUri="$OPENID_REDIRECT_URI" \
+        --set open-webui.secrets.prometheusUser="$PROMETHEUS_ADMIN_USER" \
+        --set open-webui.secrets.prometheusPassword="$PROMETHEUS_ADMIN_PASSWORD" \
+        --set openwebuiexporter.secrets.apiKey="$OPENWEBUI_API_KEY" \
         --set litellm.enabled=true \
         --set litellm.secrets.litellmMasterKey="$LITELLM_API_KEY" \
         --set litellm.secrets.litellmSaltKey="$LITELLM_SALT_KEY" \

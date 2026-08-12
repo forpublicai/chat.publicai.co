@@ -220,6 +220,16 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: "{{ .Values.app.otel.serviceName }}"
         {{- end }}
+        - name: OTEL_BASIC_AUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OTEL_BASIC_AUTH_USERNAME
+        - name: OTEL_BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OTEL_BASIC_AUTH_PASSWORD
         {{- end }}
 
         # Extra environment variables

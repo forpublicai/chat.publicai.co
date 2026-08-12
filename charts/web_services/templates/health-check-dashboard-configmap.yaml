@@ -6,3 +6,5 @@ metadata:
 data:
   health-check.json: |-
 {{ .Files.Get "dashboards/health-check.json" | indent 4 }}
+  open-webui.json: |-
+{{ .Files.Get "dashboards/open-webui.json" | indent 4 }}
