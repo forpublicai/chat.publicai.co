@@ -6,4 +6,3 @@ metadata:
 data:
   health-check.json: |-
 {{ .Files.Get "dashboards/health-check.json" | indent 4 }}
-

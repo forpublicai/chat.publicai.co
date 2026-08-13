@@ -29,35 +29,23 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "6Gi"
-        cpu: "1000m"
+        memory: "2Gi"
+        cpu: "300m"
       limits:
-        memory: "10Gi"
-        cpu: "2000m"
+        memory: "4Gi"
+        cpu: "1000m"
 
     # OpenTelemetry configuration
     otel:
-      enabled: false
-      metricsEnabled: false
+      enabled: true
+      metricsEnabled: true
       insecure: true
-      endpoint: "http://web-services-prometheus-server:80/api/v1/otlp/v1/metrics"
+      endpoint: "http://web-services-prometheus-server:80/api/v1/otlp"
       serviceName: "open-webui"
 
     extraEnv:
       - name: OTEL_OTLP_SPAN_EXPORTER
         value: "http"
-      - name: AUDIO_STT_ENGINE
-        value: "openai"
-      - name: AUDIO_STT_OPENAI_API_KEY
-        value: "disabled"
-      - name: USER_PERMISSIONS_CHAT_STT
-        value: "false"
-
-  # Production persistence override
-  persistence:
-    enabled: true
-    storageClass: "ebs-sc"
-    size: 10Gi
 
   # Autoscaling for high load
   autoscaling:
@@ -310,7 +298,6 @@ prometheus:
       static_configs:
         - targets: ['health-check-service:8000']
 
-
 # Grafana visualization dashboard configuration
 grafana:
   enabled: true
@@ -326,10 +313,6 @@ grafana:
     - name: health-check-dashboard-volume
       mountPath: /var/lib/grafana/dashboards/default/health-check.json
       subPath: health-check.json
-      readOnly: true
-    - name: health-check-dashboard-volume
-      mountPath: /var/lib/grafana/dashboards/default/open-webui.json
-      subPath: open-webui.json
       readOnly: true
   extraVolumes:
     - name: health-check-dashboard-volume
@@ -374,7 +357,10 @@ grafana:
         gnetId: 25541
         revision: 1
         datasource: Prometheus
-
+      open-webui:
+        gnetId: 22867
+        revision: 1
+        datasource: Prometheus
 
 # Loki log aggregation database configuration
 loki:

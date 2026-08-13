@@ -5,8 +5,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.app.replicas }}
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -222,16 +220,6 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: "{{ .Values.app.otel.serviceName }}"
         {{- end }}
-        - name: OTEL_BASIC_AUTH_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: OTEL_BASIC_AUTH_USERNAME
-        - name: OTEL_BASIC_AUTH_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.secrets.name }}
-              key: OTEL_BASIC_AUTH_PASSWORD
         {{- end }}
 
         # Extra environment variables
@@ -255,14 +243,3 @@ spec:
           limits:
             memory: "{{ .Values.app.resources.limits.memory }}"
             cpu: "{{ .Values.app.resources.limits.cpu }}"
-        {{- if .Values.persistence.enabled }}
-        volumeMounts:
-        - name: openwebui-data
-          mountPath: {{ .Values.persistence.mountPath }}
-        {{- end }}
-      {{- if .Values.persistence.enabled }}
-      volumes:
-      - name: openwebui-data
-        persistentVolumeClaim:
-          claimName: {{ default (printf "%s-pvc" .Values.app.name) .Values.persistence.existingClaim }}
-      {{- end }}
