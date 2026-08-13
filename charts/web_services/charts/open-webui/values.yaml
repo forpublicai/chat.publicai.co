@@ -77,11 +77,19 @@ app:
   # Resource configuration - minimal defaults
   resources:
     requests:
-      memory: "2Gi"
-      cpu: "300m"
-    limits:
-      memory: "4Gi"
+      memory: "6Gi"
       cpu: "1000m"
+    limits:
+      memory: "10Gi"
+      cpu: "2000m"
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClass: "ebs-sc"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  mountPath: /app/backend/data
 
 service:
   name: openwebui-service

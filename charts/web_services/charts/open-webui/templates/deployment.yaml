@@ -5,6 +5,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.app.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -253,3 +255,14 @@ spec:
           limits:
             memory: "{{ .Values.app.resources.limits.memory }}"
             cpu: "{{ .Values.app.resources.limits.cpu }}"
+        {{- if .Values.persistence.enabled }}
+        volumeMounts:
+        - name: openwebui-data
+          mountPath: {{ .Values.persistence.mountPath }}
+        {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+      - name: openwebui-data
+        persistentVolumeClaim:
+          claimName: {{ default (printf "%s-pvc" .Values.app.name) .Values.persistence.existingClaim }}
+      {{- end }}
