@@ -187,3 +187,9 @@ healthcheck:
     manualSecretsName: ""
     managedSecretsName: ""
 
+# Prometheus config for web authentication
+prometheus:
+  adminUser: ""
+  adminPassword: ""
+
+
