@@ -27,11 +27,29 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "2Gi"
-        cpu: "300m"
-      limits:
         memory: "4Gi"
-        cpu: "1000m"
+        cpu: "500m"
+      limits:
+        memory: "10Gi"
+        cpu: "2000m"
+
+    # OpenTelemetry configuration
+    # otel:
+    #   enabled: true
+    #   metricsEnabled: true
+    #   insecure: true
+    #   endpoint: "http://web-services-prometheus-server:80/api/v1/otlp"
+    #   serviceName: "open-webui"
+
+    extraEnv:
+      - name: AUDIO_STT_ENGINE
+        value: "openai"
+      - name: AUDIO_STT_OPENAI_API_KEY
+        value: "disabled"
+      - name: USER_PERMISSIONS_CHAT_STT
+        value: "false"
+    #   - name: OTEL_OTLP_SPAN_EXPORTER
+    #     value: "http"
 
   # Autoscaling for high load
   autoscaling:
