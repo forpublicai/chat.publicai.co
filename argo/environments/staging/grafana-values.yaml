@@ -49,3 +49,9 @@ dashboards:
       gnetId: 25541
       revision: 1
       datasource: Prometheus
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
