@@ -67,6 +67,7 @@ open-webui:
     name: chat-secrets
     manualSecretsName: ""
     managedSecretsName: ""
+    dbPasswordArn: ""
 
 # SearXNG configuration
 searxng:

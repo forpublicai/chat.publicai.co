@@ -38,6 +38,7 @@ secrets:
   name: litellm-secrets
   manualSecretsName: ""
   managedSecretsName: ""
+  dbPasswordArn: ""
 
 
 # Environment variables
