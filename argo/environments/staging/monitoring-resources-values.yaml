@@ -1,0 +1,9 @@
+prometheus:
+  adminUser: "admin"
+  adminPassword: "password"
+
+grafana:
+  secretsName: "staging/aichat/grafana/secrets"
+
+healthcheck:
+  enabled: true

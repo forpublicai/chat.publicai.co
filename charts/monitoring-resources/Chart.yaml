@@ -1,0 +1,6 @@
+apiVersion: v2
+name: monitoring-resources
+description: Dedicated helm chart for monitoring configurations and secrets in the monitoring namespace
+type: application
+version: 1.0.0
+appVersion: "1.0"

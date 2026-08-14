@@ -1,0 +1,12 @@
+# Default values for monitoring-resources.
+# This is a YAML-formatted file.
+
+prometheus:
+  adminUser: ""
+  adminPassword: ""
+
+grafana:
+  secretsName: ""
+
+healthcheck:
+  enabled: true
