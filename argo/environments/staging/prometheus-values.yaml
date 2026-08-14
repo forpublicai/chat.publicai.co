@@ -15,9 +15,12 @@ server:
   enableConfigReloader: false
   tcpSocketProbeEnabled: true
   persistentVolume:
-    enabled: false
+    enabled: true
+    size: 10Gi
+    storageClass: "ebs-sc"
   extraFlags:
     - "web.config.file=/etc/prometheus/web.config"
+    - "storage.tsdb.retention.size=5GB"
   extraVolumes:
     - name: web-config
       secret:
