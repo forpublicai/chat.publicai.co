@@ -1,0 +1,16 @@
+# models:
+# - model_name: moonshotai/Kimi-K2.7-Code
+#   litellm_params:
+#     model: openai/moonshotai/Kimi-K2.7-Code
+#     api_base: https://api.inference.cscs.ch/v1
+#     api_key: os.environ/CSCS_API_KEY
+#     ssl_verify: false
+#     supports_vision: true
+#     temperature: 1.0
+#     top_p: 0.95
+#     max_tokens: 32768
+#   model_info:
+#     input_cost_per_token: 0.00000070
+#     output_cost_per_token: 0.00000200
+# fallbacks:
+# - aisingapore/Qwen-SEA-LION-v4-32B-IT

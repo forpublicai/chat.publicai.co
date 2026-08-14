@@ -1,3 +1,16 @@
+```bash
+░█████████             ░██        ░██ ░██                 ░███    ░██████
+░██     ░██            ░██        ░██                    ░██░██     ░██  
+░██     ░██ ░██    ░██ ░████████  ░██ ░██ ░███████      ░██  ░██    ░██  
+░█████████  ░██    ░██ ░██    ░██ ░██ ░██░██    ░██    ░█████████   ░██  
+░██         ░██    ░██ ░██    ░██ ░██ ░██░██           ░██    ░██   ░██  
+░██         ░██   ░███ ░███   ░██ ░██ ░██░██    ░██    ░██    ░██   ░██  
+░██          ░█████░██ ░██░█████  ░██ ░██ ░███████     ░██    ░██ ░██████
+                                                                         
+                                                                         
+                                                                         
+```
+
 # Public AI Inference Utility
 
 **A public compute platform for everyone.**
@@ -7,6 +20,10 @@ The Public AI Inference Utility is a public compute platform that provides free 
 Unlike commercial AI APIs that prioritize profit maximization, the Utility is designed to serve the public interest. We provide transparent pricing, open governance, and equitable access to ensure that AI capabilities are available to everyone, not just those who can afford premium services.
 
 This repository contains the production deployment configuration and community contributions for the platform.
+
+## Documentation
+
+For the full documentation (for developers) please go here:  [developer/docs/index.md](developer/docs/index.md)
 
 ## How to Contribute
 

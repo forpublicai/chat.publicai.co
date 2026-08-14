@@ -32,6 +32,8 @@ Instead of scattering Ingress definitions across every microservice, we centrali
   * `chat.publicai.co` -> OpenWebUI
   * `api-internal.publicai.co` -> LiteLLM (Internal AI Gateway)
   * `lago.publicai.co` & `lago-api.publicai.co` -> Lago Billing
+  * `grafana.publicai.co` -> Grafana Monitoring UI
+  * `prometheus.publicai.co` -> Prometheus Server UI
 
 ### 3. `llm_services`
 This is the core of our AI offering—the production inference stack.
@@ -42,12 +44,17 @@ This is the core of our AI offering—the production inference stack.
 * **Karpenter Integration**: A dedicated `gpu` node pool is defined here to spin up `p4d` instances specifically when inference pods are scheduled. Taints prevent normal web services from accidentally scheduling onto these expensive instances.
 
 ### 4. `web_services`
-This is an **umbrella chart** that pulls together all the end-user and backend microservices.
-* **OpenWebUI**: The main chat frontend users interact with. Configured to autoscale (HPA) between 1-3 replicas based on load (75% CPU / 85% Memory) and uses S3 for user file uploads.
+This is an **umbrella chart** that pulls together all the end-user and backend microservices, including our telemetry and observability stack.
+* **OpenWebUI**: The main chat frontend users interact with. Configured to autoscale (HPA) between 1-3 replicas based on load (75% CPU / 85% Memory) and uses S3 for user file uploads. It also has **OpenTelemetry (OTel)** integration enabled to push application metrics to Prometheus.
 * **Tika**: An Apache Tika service used for extracting text from PDFs and documents that users upload. It's configured with heavy memory limits (2Gi) because OCR and processing large PDFs can easily OOM kill smaller pods.
-* **LiteLLM**: The AI Gateway. It normalizes APIs and routes traffic securely to our underlying vLLM instances.
+* **LiteLLM**: The AI Gateway. It normalizes APIs and routes traffic securely to our underlying vLLM instances. It is integrated with Prometheus to export routing and performance metrics.
 * **Lago**: Our robust billing and metering engine. It's a large architecture with multiple dedicated background workers (billing, clock, events, payment, pdf, webhook) all scaled individually. It relies on our external Postgres and Redis databases.
 * **SearXNG**: A metasearch engine (currently disabled) intended to back our web-search tool capabilities.
+* **Monitoring & Observability Stack**:
+  * **Prometheus**: Collects and stores time-series metrics scraped from services like LiteLLM and OpenWebUI. Configured with a `5GB` storage size retention limit.
+  * **Grafana**: Visualization platform pre-populated with dashboards for LiteLLM Spend, LiteLLM SRE, and OpenWebUI, sourcing metrics from Prometheus and logs from Loki.
+  * **Loki**: Log aggregation database configured in `SingleBinary` mode with retention rules (168h retention period) and compacting enabled.
+  * **Promtail**: DaemonSet log agent deployed on all nodes to tail container log files and ship them directly to Loki.
 
 ## 🔐 Authentication & API Flow
 
@@ -156,6 +163,9 @@ S3 is used globally for heavy object storage:
 * **LLM Weights**: vLLM instances mount S3 buckets using the S3 CSI driver to load massive 70B parameter models at runtime.
 * **Billing Documents**: Lago utilizes S3 to store generated PDF invoices.
 
+### 4. EBS Volumes (Elastic Block Store)
+* **Loki Log Storage**: Loki runs in `SingleBinary` mode and utilizes a `10Gi` persistent volume backed by the AWS `ebs-sc` storage class to store aggregated logs.
+
 ---
 
 ## 🛠 Everyday Developer Tasks
@@ -163,5 +173,6 @@ S3 is used globally for heavy object storage:
 * **Adding a new environment variable to a web service**: Modify the corresponding block in `charts/web_services/values.yaml` (e.g. under the `open-webui` or `lago` section).
 * **Updating the Apertus model version**: Go to `charts/llm_services/values.yaml`, update the `modelURL` path pointing to the new S3 directory, and ensure the `vllmConfig` matches any new architectural requirements.
 * **Scaling behavior**: Modify the resources `requests/limits` or the autoscaling rules in the specific service's `values.yaml` configuration block.
+* **Configuring dashboards or alerting**: Grafana dashboards can be managed via `charts/web_services/values.yaml` under the `grafana.dashboards` section. Retention configuration and storage settings for Loki/Prometheus are configured under the `loki` and `prometheus` keys in the same file.
 
 Remember, everything here ultimately deploys to AWS EKS, so look out for how we link IAM roles (via `serviceAccount.annotations`) and handle persistent storage!

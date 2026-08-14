@@ -142,6 +142,16 @@ class LagoCustomCallback(CustomLogger):
             # EuroLLM
             # "EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
             "utter-project/EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
+
+            # New models
+            "openai/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+            "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+            "openai/moonshotai/Kimi-K2.7-Code": "moonshotai/Kimi-K2.7-Code",
+            "moonshotai/Kimi-K2.7-Code": "moonshotai/Kimi-K2.7-Code",
+            "openai/zai-org/GLM-5.2": "zai-org/GLM-5.2",
+            "zai-org/GLM-5.2": "zai-org/GLM-5.2",
+            "openai/google/gemma-4-31B-it": "google/gemma-4-31B-it",
+            "google/gemma-4-31B-it": "google/gemma-4-31B-it",
         }
 
         # Try direct mapping first

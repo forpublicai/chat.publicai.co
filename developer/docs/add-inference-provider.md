@@ -1,23 +1,10 @@
 # Log in to cluster
 
-You need to authenticate AWS CLI tool
+You will need to authenticate AWS CLI tool and get an auth session into kubectl.
+You can do that by follwing the docs here: [how to log in](index.md#deploy-to-production)
 
-then you need to get the auth session from AWS CLI into kubectl
-
-```bash
-kubectl config current-context
-
-aws sts get-caller-identity
-aws eks list-clusters --region eu-central-2
-
-aws eks update-kubeconfig \
-  --region eu-central-2 \
-  --name publicai-eks
-  
-kubectl config current-context
-
-```
-
+# Edit code
+## Add API Key to LiteLLM
 
 Working in ``charts/web_services/charts/litellm/templates/deployment.yaml``
 
@@ -122,18 +109,30 @@ Working in ``charts/web_services/charts/litellm/custom_lago_callback.py``
 # Deploy the code
 
 ## Check changes
-1. Run this to see if code is edited in correct places ``python developer/test/code_checl_endpoint.py``
+1. Validate the code ``./web.sh --validate``
+1. Run this to see if code is edited in correct places ``python health-check/code_check_endpoint.py``
 
+## Deploy
 1. Then do a dry run ``./web.sh --deploy --dry-run``
 1. Then do a real deploy ``./web.sh --deploy``
 1. Then watch pods deploy ``watch -n 2 kubectl get pods -n web-services`` Check litellm is a new version, some small changes might not trigger a restart, if that is the case do a restart rollout on the deployment.
-1. Once all rolled out test litellm ``python developer/test/litellm.py``, check that you see all the models you expect to and they all return a token.
 
+## Test
+1. Once all rolled out test litellm ``python health-check/litellm.py``, check that you see all the models you expect to and they all return a token.
+
+# Configure Apps
+
+## Configure LiteLLM
+To allow zuplo to access the new models they need to be added to the developer portal API key allowed list.
+
+Go to the LiteLLM UI > Virtual Keys. Open the Developer Portal Master Key > go to Edit > Select the new models from the list.
+
+![litellm](litellm.jpg)
 
 ## Configure OpenWebUI
 
 Go to the OpenWebUI admin panel and configure.
-![openwebui-admin.png](openwebui-admin.png)
+![openwebui-admin](openwebui-admin.png)
 
 ## Check Lagos configuration
 Cofirm Lagos has detected the model and pricing.
@@ -141,24 +140,6 @@ Cofirm Lagos has detected the model and pricing.
 ![lagos-admin.png](lagos-admin.png)
 
 
-# Hugging face
-Use the script in the hugging face directory
-
-```shell
-cd hugging_face
-./get_models.sh
-```
-
-This will show you what is registered with hugging face.
-
-
-## Add a model
-
-
-## Remove / update a model
-
-Get an API key from hugging face, you must be a member of the hugging face organisation.
-```bash
- ./update_status.sh --token xx_XXX -i 69334562000000c1 --staging
-```
+# Deploy to Hugging face
+Read the hugging face docs here: [hugging face](huggingface.md)
 

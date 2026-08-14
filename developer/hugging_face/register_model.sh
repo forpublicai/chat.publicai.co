@@ -82,11 +82,12 @@ if [ -z "$TOKEN" ] && [ -n "$HF_TOKEN" ]; then
     TOKEN="$HF_TOKEN"
 fi
 
-# Fallback to token in the nearby .env file if still not set
+# Fallback to token in the root .env file if still not set
 if [ -z "$TOKEN" ]; then
     SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
-    if [ -f "$SCRIPT_DIR/.env" ]; then
-        ENV_TOKEN=$(grep -E '^(HF_TOKEN|HF)=' "$SCRIPT_DIR/.env" | cut -d= -f2- | tr -d '"'\')
+    ROOT_ENV="$SCRIPT_DIR/../../.env"
+    if [ -f "$ROOT_ENV" ]; then
+        ENV_TOKEN=$(grep -E '^(HF_TOKEN|HF|HF_TEST_TOKEN)=' "$ROOT_ENV" | cut -d= -f2- | tr -d '"'\' | tr -d '\r')
         if [ -n "$ENV_TOKEN" ]; then
             TOKEN="$ENV_TOKEN"
         fi

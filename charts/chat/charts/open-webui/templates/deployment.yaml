@@ -199,13 +199,43 @@ spec:
           value: "{{ .Values.app.contentExtraction.tikaServerUrl }}"
 
         # Telemetry
-        # TODO: Translate to helm chart format
-        # TODO: Find a way to secure the OTLP
-        # - ENABLE_OTEL=true
-        # - ENABLE_OTEL_METRICS=true
-        # - OTEL_EXPORTER_OTLP_INSECURE=true # Use insecure connection for OTLP, remove in production
-        # - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
-        # - OTEL_SERVICE_NAME=open-webui
+        {{- if .Values.app.otel }}
+        {{- if .Values.app.otel.enabled }}
+        - name: ENABLE_OTEL
+          value: "true"
+        {{- end }}
+        {{- if .Values.app.otel.metricsEnabled }}
+        - name: ENABLE_OTEL_METRICS
+          value: "true"
+        {{- end }}
+        {{- if .Values.app.otel.insecure }}
+        - name: OTEL_EXPORTER_OTLP_INSECURE
+          value: "true"
+        {{- end }}
+        {{- if .Values.app.otel.endpoint }}
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "{{ .Values.app.otel.endpoint }}"
+        {{- end }}
+        {{- if .Values.app.otel.serviceName }}
+        - name: OTEL_SERVICE_NAME
+          value: "{{ .Values.app.otel.serviceName }}"
+        {{- end }}
+        - name: OTEL_BASIC_AUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OTEL_BASIC_AUTH_USERNAME
+        - name: OTEL_BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OTEL_BASIC_AUTH_PASSWORD
+        {{- end }}
+
+        # Extra environment variables
+        {{- if .Values.app.extraEnv }}
+        {{- toYaml .Values.app.extraEnv | nindent 8 }}
+        {{- end }}
 
         # Embedding Engine & Task Models
         # TODO: Translate to helm chart format
