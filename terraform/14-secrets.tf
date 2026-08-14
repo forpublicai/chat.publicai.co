@@ -106,6 +106,30 @@ resource "aws_secretsmanager_secret_version" "grafana" {
   }
 }
 
+# 2.7 AWS Secrets Manager Secret for Prometheus Manual Configuration
+resource "aws_secretsmanager_secret" "prometheus" {
+  name                    = "${local.env}/${local.org}/prometheus/secrets"
+  description             = "Manually managed secrets for Prometheus"
+  recovery_window_in_days = 0
+
+  tags = {
+    Name        = "${local.env}-${local.org}-prometheus-secrets"
+    Environment = local.env
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "prometheus" {
+  secret_id = aws_secretsmanager_secret.prometheus.id
+  secret_string = jsonencode({
+    admin-user     = "admin"
+    admin-password = "placeholder-replace-in-console"
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 # 3. IAM Role & Policy for External Secrets Operator (IRSA)
 resource "aws_iam_role" "external_secrets_irsa" {
   name = "${local.env}-ExternalSecrets-IRSA-Role"
@@ -153,6 +177,7 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.open_webui_managed.arn,
           aws_secretsmanager_secret.litellm_manual.arn,
           aws_secretsmanager_secret.grafana.arn,
+          aws_secretsmanager_secret.prometheus.arn,
           aws_rds_cluster.this.master_user_secret[0].secret_arn
         ]
       }

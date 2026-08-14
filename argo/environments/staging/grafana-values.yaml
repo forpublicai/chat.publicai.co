@@ -7,9 +7,15 @@ adminUser: ""
 adminPassword: ""
 persistence:
   enabled: false
-env:
-  PROMETHEUS_ADMIN_USER: "admin"
-  PROMETHEUS_ADMIN_PASSWORD: "password"
+envValueFrom:
+  PROMETHEUS_ADMIN_USER:
+    secretKeyRef:
+      name: prometheus-web-config
+      key: admin-user
+  PROMETHEUS_ADMIN_PASSWORD:
+    secretKeyRef:
+      name: prometheus-web-config
+      key: admin-password
 datasources:
   datasources.yaml:
     apiVersion: 1

@@ -2,8 +2,7 @@
 # This is a YAML-formatted file.
 
 prometheus:
-  adminUser: ""
-  adminPassword: ""
+  secretsName: ""
 
 grafana:
   secretsName: ""

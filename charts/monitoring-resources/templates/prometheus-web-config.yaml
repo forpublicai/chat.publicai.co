@@ -1,10 +1,32 @@
-apiVersion: v1
-kind: Secret
+{{- if .Values.prometheus.secretsName }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
 metadata:
   name: prometheus-web-config
   namespace: monitoring
-type: Opaque
-stringData:
-  web.config: |
-    basic_auth_users:
-      {{ .Values.prometheus.adminUser | default "admin" }}: {{ .Values.prometheus.adminPassword | default "password" | bcrypt }}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: ClusterSecretStore
+  target:
+    name: prometheus-web-config
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        web.config: |
+          basic_auth_users:
+            {{ "{{ .admin_user }}" }}: {{ "{{ .admin_password | bcrypt }}" }}
+        admin-user: '{{ "{{ .admin_user }}" }}'
+        admin-password: '{{ "{{ .admin_password }}" }}'
+  data:
+    - secretKey: admin_user
+      remoteRef:
+        key: {{ .Values.prometheus.secretsName }}
+        property: admin-user
+    - secretKey: admin_password
+      remoteRef:
+        key: {{ .Values.prometheus.secretsName }}
+        property: admin-password
+{{- end }}

@@ -1,6 +1,5 @@
 prometheus:
-  adminUser: "admin"
-  adminPassword: "password"
+  secretsName: "staging/aichat/prometheus/secrets"
 
 grafana:
   secretsName: "staging/aichat/grafana/secrets"
