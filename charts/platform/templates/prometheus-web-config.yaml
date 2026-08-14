@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: prometheus-web-config
-  namespace: {{ .Values.global.namespace | default "web-services" }}
+  namespace: monitoring
 type: Opaque
 stringData:
   web.config: |

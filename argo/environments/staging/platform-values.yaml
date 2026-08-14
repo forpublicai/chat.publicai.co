@@ -51,3 +51,10 @@ lago:
 
 grafana:
   secretsName: "staging/aichat/grafana/secrets"
+
+healthcheck:
+  enabled: true
+  secrets:
+    manualSecretsName: "staging/aichat/litellm/manual-secrets"
+    managedSecretsName: "staging/aichat/open-webui/managed-secrets"
+
