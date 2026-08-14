@@ -1,8 +1,15 @@
 # Staging overrides for standalone Loki community chart
 deploymentMode: SingleBinary
+compactor:
+  retention_enabled: true
+  working_directory: /var/loki/compactor
 loki:
+  auth_enabled: false
   commonConfig:
     replication_factor: 1
+  limits_config:
+    retention_period: 168h
+    volume_enabled: true
   storage:
     type: filesystem
     bucketNames:
@@ -22,7 +29,9 @@ loki:
 singleBinary:
   replicas: 1
   persistence:
+    enabled: true
     storageClass: gp3-sc
+    size: 10Gi
 gateway:
   enabled: false
 write:
