@@ -1,0 +1,21 @@
+global:
+  aws:
+    region: eu-central-2
+
+open-webui:
+  app:
+    webuiUrl: "https://chat.publicai.co"
+    auth:
+      signoutRedirectUrl: "https://chat.publicai.co/"
+    storage:
+      s3:
+        bucketName: "publicai-bucket"
+        region: "eu-central-2"
+        endpointUrl: "https://s3.eu-central-2.amazonaws.com"
+  serviceAccount:
+    roleArn: "arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role"
+  secrets:
+    name: chat-secrets
+    manualSecretsName: "prod/publicai/open-webui/manual-secrets"
+    managedSecretsName: "prod/publicai/open-webui/managed-secrets"
+    dbPasswordArn: "arn:aws:secretsmanager:eu-central-2:901779868336:secret:rds!cluster-e04986d7-5489-4c25-bd9a-05d4a66d702a-8KGrdh"

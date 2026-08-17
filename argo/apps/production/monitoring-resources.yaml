@@ -1,19 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: chat-apps-production
+  name: monitoring-resources
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
     repoURL: 'https://github.com/forpublicai/chat.publicai.co'
     targetRevision: main
-    path: argo/apps/production
+    path: charts/monitoring-resources
+    helm:
+      valueFiles:
+        - values.yaml
+        - ../../argo/environments/prod/monitoring-resources-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true

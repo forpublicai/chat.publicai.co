@@ -1,0 +1,63 @@
+# Staging overrides for standalone Grafana community chart
+admin:
+  existingSecret: grafana-admin-credentials
+  userKey: admin-user
+  passwordKey: admin-password
+adminUser: ""
+adminPassword: ""
+persistence:
+  enabled: false
+envValueFrom:
+  PROMETHEUS_ADMIN_USER:
+    secretKeyRef:
+      name: prometheus-web-config
+      key: admin-user
+  PROMETHEUS_ADMIN_PASSWORD:
+    secretKeyRef:
+      name: prometheus-web-config
+      key: admin-password
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.monitoring.svc.cluster.local:80
+        isDefault: true
+        basicAuth: true
+        basicAuthUser: ${PROMETHEUS_ADMIN_USER}
+        secureJsonData:
+          basicAuthPassword: ${PROMETHEUS_ADMIN_PASSWORD}
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+dashboards:
+  default:
+    litellm-spend:
+      gnetId: 24965
+      revision: 1
+      datasource: Prometheus
+    litellm-sre:
+      gnetId: 25541
+      revision: 1
+      datasource: Prometheus
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"

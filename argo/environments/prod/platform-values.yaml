@@ -1,0 +1,60 @@
+global:
+  aws:
+    region: eu-central-2
+
+litellm:
+  secrets:
+    manualSecretsName: "prod/publicai/litellm/manual-secrets"
+    managedSecretsName: "prod/publicai/open-webui/managed-secrets"
+    dbPasswordArn: "arn:aws:secretsmanager:eu-central-2:901779868336:secret:rds!cluster-e04986d7-5489-4c25-bd9a-05d4a66d702a-8KGrdh"
+  prometheus:
+    enabled: true
+
+lago:
+  serviceAccount:
+    roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
+  apiUrl: "https://lago-api.publicai.co"
+  frontUrl: "https://lago.publicai.co"
+  global:
+    existingSecret: lago-db-secrets
+    s3:
+      enabled: true
+      bucket: "publicai-bucket"
+      region: "eu-central-2"
+      endpoint: "https://s3.eu-central-2.amazonaws.com"
+    smtp:
+      enabled: false
+      fromEmail: "support@publicai.co"
+  api:
+    livenessProbe:
+      initialDelaySeconds: 90
+  worker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  billingWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  clockWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  eventsWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  paymentWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  pdfWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+  webhookWorker:
+    livenessProbe:
+      initialDelaySeconds: 90
+
+grafana:
+  secretsName: "prod/publicai/grafana/secrets"
+
+healthcheck:
+  enabled: true
+  secrets:
+    manualSecretsName: "prod/publicai/litellm/manual-secrets"
+    managedSecretsName: "prod/publicai/open-webui/managed-secrets"

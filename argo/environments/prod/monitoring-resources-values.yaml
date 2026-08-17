@@ -1,0 +1,8 @@
+prometheus:
+  secretsName: "prod/aichat/prometheus/secrets"
+
+grafana:
+  secretsName: "prod/aichat/grafana/secrets"
+
+healthcheck:
+  enabled: true

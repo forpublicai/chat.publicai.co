@@ -1,0 +1,5 @@
+aws-load-balancer-controller:
+  clusterName: prod-main-cluster
+  region: eu-central-2
+  serviceAccount:
+    annotations: {}
