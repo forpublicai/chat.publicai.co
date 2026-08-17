@@ -15,7 +15,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: terraform
+        working-directory: terraform_publicai
 
     steps:
       - name: Checkout
