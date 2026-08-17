@@ -18,4 +18,4 @@ open-webui:
     name: chat-secrets
     manualSecretsName: "prod/publicai/open-webui/manual-secrets"
     managedSecretsName: "prod/publicai/open-webui/managed-secrets"
-    dbPasswordArn: "arn:aws:secretsmanager:eu-central-2:901779868336:secret:rds!cluster-e04986d7-5489-4c25-bd9a-05d4a66d702a-8KGrdh"
+    dbPasswordArn: "prod/publicai/database/password"

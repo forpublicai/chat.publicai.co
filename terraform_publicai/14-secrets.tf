@@ -41,7 +41,7 @@ resource "aws_secretsmanager_secret_version" "open_webui_managed" {
     DB_HOST              = data.aws_rds_cluster.this.endpoint
     DB_PORT              = "5432"
     DB_USER              = "postgres"
-    DB_PASSWORD_ARN      = data.aws_rds_cluster.this.master_user_secret[0].secret_arn
+    DB_PASSWORD_ARN      = aws_secretsmanager_secret.rds_password.arn
     REDIS_URL            = "rediss://${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.port}"
     LAGO_REDIS_URL       = "rediss://${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.port}/0"
     REDIS_HOST           = data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address
@@ -124,8 +124,49 @@ resource "aws_secretsmanager_secret_version" "prometheus" {
   }
 }
 
-data "aws_iam_role" "external_secrets_irsa" {
-  name = "ExternalSecrets-IRSA-Role"
+resource "aws_secretsmanager_secret" "rds_password" {
+  name                    = "${local.env}/${local.org}/database/password"
+  description             = "Manually managed database master password"
+  recovery_window_in_days = 0
+}
+
+resource "aws_secretsmanager_secret_version" "rds_password" {
+  secret_id     = aws_secretsmanager_secret.rds_password.id
+  secret_string = jsonencode({
+    password = "placeholder-replace-in-console"
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
+resource "aws_iam_role" "external_secrets_irsa" {
+  name = "${local.env}-ExternalSecrets-IRSA-Role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.eks.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:external-secrets:external-secrets"
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${local.env}-${local.org}-external-secrets-irsa-role"
+    Environment = local.env
+  }
 }
 
 resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
@@ -147,7 +188,7 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.litellm_manual.arn,
           aws_secretsmanager_secret.grafana.arn,
           aws_secretsmanager_secret.prometheus.arn,
-          data.aws_rds_cluster.this.master_user_secret[0].secret_arn
+          aws_secretsmanager_secret.rds_password.arn
         ]
       }
     ]
@@ -155,6 +196,6 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
 }
 
 resource "aws_iam_role_policy_attachment" "external_secrets_secretsmanager" {
-  role       = data.aws_iam_role.external_secrets_irsa.name
+  role       = aws_iam_role.external_secrets_irsa.name
   policy_arn = aws_iam_policy.external_secrets_secretsmanager_access.arn
 }
