@@ -6,3 +6,6 @@ grafana:
 
 healthcheck:
   enabled: true
+
+awsRegion: "eu-central-2"
+
