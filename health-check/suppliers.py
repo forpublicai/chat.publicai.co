@@ -189,7 +189,7 @@ def main():
                         pass
                 log("Cloning latest models dynamically from public repository...")
                 subprocess.run(
-                    ["git", "clone", "--depth", "1", "https://github.com/forpublicai/chat.publicai.co.git", repo_dir],
+                    ["git", "clone", "--depth", "1", "--branch", "production", "https://github.com/forpublicai/chat.publicai.co.git", repo_dir],
                     check=True,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
