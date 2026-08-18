@@ -13,8 +13,8 @@ open-webui:
   serviceAccount:
     roleArn: "arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role"
   secrets:
-    manualSecretsName: "prod/aichat/open-webui/manual-secrets"
-    managedSecretsName: "prod/aichat/open-webui/managed-secrets"
+    manualSecretsName: "prod/publicai/open-webui/manual-secrets"
+    managedSecretsName: "prod/publicai/open-webui/managed-secrets"
 
 lago:
   serviceAccount:
