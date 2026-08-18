@@ -192,4 +192,9 @@ prometheus:
   adminUser: ""
   adminPassword: ""
 
+# Database initializer Job config
+dbInitializer:
+  enabled: true
+
+
 

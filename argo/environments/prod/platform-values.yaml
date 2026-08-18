@@ -58,3 +58,7 @@ healthcheck:
   secrets:
     manualSecretsName: "prod/publicai/litellm/manual-secrets"
     managedSecretsName: "prod/publicai/open-webui/managed-secrets"
+
+dbInitializer:
+  enabled: false
+
