@@ -93,10 +93,12 @@ class LagoCustomCallback(CustomLogger):
             "bedrock/eu.meta.llama3-2-3b-instruct-v1:0": "meta-llama/Llama-3.2-3B-Instruct",
             "bedrock/cohere.embed-multilingual-v3": "Cohere/Cohere-embed-multilingual-v3.0",
             "bedrock/cohere.rerank-v3-5:0": "Cohere/rerank-v3.5",
+            "bedrock/arn:aws:bedrock:eu-central-1::foundation-model/cohere.rerank-v3-5:0": "Cohere/rerank-v3.5",
 
             # Apertus models (various endpoints with version suffixes)
             "Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
             "swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
+            "openai/swiss-ai/Apertus-8B-Instruct-2509:featherless-ai": "swiss-ai/apertus-8b-instruct",
             "apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
             "Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",

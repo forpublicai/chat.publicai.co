@@ -47,6 +47,7 @@ secrets:
   infomaniakApiKey: ''
   bielikApiKey: ''
   cscsApiKey: ''
+  hfCreditsKey: ''
 env:
   aws_region: eu-central-1
   litellmRedisPort: '6379'

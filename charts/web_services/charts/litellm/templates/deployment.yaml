@@ -103,6 +103,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: cscs_api_key
+            - name: HF_CREDITS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: hf_credits_key
 
 
           volumeMounts:

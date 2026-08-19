@@ -66,6 +66,7 @@ validate_env() {
         "INFOMANIAK_API_KEY"
         "BIELIK_API_KEY"
         "CSCS_API_KEY"
+        "HF_CREDITS_KEY"
         "GRAFANA_ADMIN_USER"
         "GRAFANA_ADMIN_PASSWORD"
         "PROMETHEUS_ADMIN_USER"
@@ -137,6 +138,7 @@ deploy_services() {
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.secrets.cscsApiKey="$CSCS_API_KEY" \
+        --set litellm.secrets.hfCreditsKey="$HF_CREDITS_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
@@ -231,6 +233,7 @@ validate() {
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.secrets.cscsApiKey="$CSCS_API_KEY" \
+        --set litellm.secrets.hfCreditsKey="$HF_CREDITS_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
@@ -305,6 +308,7 @@ dry_run() {
         --set litellm.secrets.infomaniakApiKey="$INFOMANIAK_API_KEY" \
         --set litellm.secrets.bielikApiKey="$BIELIK_API_KEY" \
         --set litellm.secrets.cscsApiKey="$CSCS_API_KEY" \
+        --set litellm.secrets.hfCreditsKey="$HF_CREDITS_KEY" \
         --set litellm.lago.enabled=true \
         --set lago.enabled=true \
         --set lago.global.databaseUrl="$LAGO_DATABASE_URL" \
