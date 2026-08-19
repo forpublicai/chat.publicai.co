@@ -28,4 +28,4 @@ models:
 #    input_cost_per_token: 0.00000010
 #    output_cost_per_token: 0.0000002
 fallbacks:
-- allenai/Olmo-3-7B-Instruct
+- aisingapore/Qwen-SEA-LION-v4-32B-IT
