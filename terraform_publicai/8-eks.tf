@@ -52,7 +52,9 @@ resource "aws_eks_cluster" "eks" {
 
     subnet_ids = [
       data.aws_subnet.private_zone_1.id,
-      data.aws_subnet.private_zone_2.id
+      data.aws_subnet.private_zone_2.id,
+      data.aws_subnet.public_zone_1.id,
+      data.aws_subnet.public_zone_2.id
     ]
   }
 

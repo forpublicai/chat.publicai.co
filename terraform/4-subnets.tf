@@ -9,7 +9,7 @@ resource "aws_subnet" "private_zone_1" {
   tags = {
     Name                                                   = "${local.env}-private-${local.zone1}"
     "kubernetes.io/role/internal-elb"                      = "1"     # subnet can be used for private/internal load balancers
-    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "owned" #
+    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "shared" #
   }
 }
 
@@ -24,7 +24,7 @@ resource "aws_subnet" "private_zone_2" {
   tags = {
     Name                                                   = "${local.env}-private-${local.zone2}"
     "kubernetes.io/role/internal-elb"                      = "1"     # subnet can be used for private/internal load balancers
-    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "owned" #
+    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "shared" #
   }
 }
 
@@ -37,7 +37,7 @@ resource "aws_subnet" "public_zone_1" {
   tags = {
     Name                                                   = "${local.env}-public-${local.zone1}"
     "kubernetes.io/role/elb"                               = "1" # subnet can be used for public load balancers
-    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "owned"
+    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "shared"
   }
 }
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "public_zone_2" {
   tags = {
     Name                                                   = "${local.env}-public-${local.zone2}"
     "kubernetes.io/role/elb"                               = "1" # subnet can be used for public load balancers
-    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "owned"
+    "kubernetes.io/cluster/${local.env}-${local.eks_name}" = "shared"
   }
 }
 
