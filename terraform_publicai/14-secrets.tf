@@ -38,17 +38,17 @@ resource "aws_secretsmanager_secret" "open_webui_managed" {
 resource "aws_secretsmanager_secret_version" "open_webui_managed" {
   secret_id = aws_secretsmanager_secret.open_webui_managed.id
   secret_string = jsonencode({
-    DB_HOST              = data.aws_rds_cluster.this.endpoint
-    DB_PORT              = "5432"
-    DB_USER              = "postgres"
-    DB_PASSWORD_ARN      = aws_secretsmanager_secret.rds_password.arn
-    REDIS_URL            = "rediss://${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.port}"
-    LAGO_REDIS_URL       = "rediss://${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.port}/0"
-    REDIS_HOST           = data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address
-    OAUTH_CLIENT_ID      = data.aws_cognito_user_pool_client.publicai_app.id
-    OAUTH_CLIENT_SECRET  = data.aws_cognito_user_pool_client.publicai_app.client_secret
-    OPENID_PROVIDER_URL  = "https://cognito-idp.${local.region}.amazonaws.com/${data.aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
-    OPENID_REDIRECT_URI  = "https://chat.${local.domain}/oauth/oidc/callback"
+    DB_HOST             = data.aws_rds_cluster.this.endpoint
+    DB_PORT             = "5432"
+    DB_USER             = "postgres"
+    DB_PASSWORD_ARN     = aws_secretsmanager_secret.rds_password.arn
+    REDIS_URL           = "rediss://${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.port}"
+    LAGO_REDIS_URL      = "rediss://${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.port}/0"
+    REDIS_HOST          = data.aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint.address
+    OAUTH_CLIENT_ID     = data.aws_cognito_user_pool_client.publicai_app.id
+    OAUTH_CLIENT_SECRET = data.aws_cognito_user_pool_client.publicai_app.client_secret
+    OPENID_PROVIDER_URL = "https://cognito-idp.${local.region}.amazonaws.com/${data.aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
+    OPENID_REDIRECT_URI = "https://chat.${local.domain}/oauth/oidc/callback"
   })
 }
 
@@ -131,7 +131,7 @@ resource "aws_secretsmanager_secret" "rds_password" {
 }
 
 resource "aws_secretsmanager_secret_version" "rds_password" {
-  secret_id     = aws_secretsmanager_secret.rds_password.id
+  secret_id = aws_secretsmanager_secret.rds_password.id
   secret_string = jsonencode({
     password = "placeholder-replace-in-console"
   })
