@@ -1,0 +1,61 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: vllm-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - vllm-apertus
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  vllm-apertus:
+    image: public.ecr.aws/q9t5s3a7/vllm-cpu-release-repo:latest
+    container_name: vllm-apertus
+    expose:
+      - "8000"
+    volumes:
+      - ./hf_cache:/root/.cache/huggingface
+      - ./apertus_templates:/app/apertus_templates
+    environment:
+      - VLLM_API_KEY=${VLLM_API_KEY}
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+      # vLLM CPU Performance Optimizations (16 vCPUs, 64GB RAM)
+      - VLLM_CPU_KVCACHE_SPACE=28           # 28GB KV cache space (fits in the 36.56GB available RAM)
+      - VLLM_CPU_OMP_THREADS_BIND=0-14      # Bind to 15 vCPUs
+      - VLLM_CPU_NUM_OF_RESERVED_CPU=1      # Reserve 1 CPU for vLLM frontend
+      - OMP_NUM_THREADS=15                  # Use 15 threads
+      - VLLM_CPU_SGL_KERNEL=0              # Enable AMX small-batch kernels
+    security_opt:
+      - seccomp=unconfined                  # Required for NUMA memory optimizations
+    cap_add:
+      - SYS_NICE                            # Required for get_mempolicy syscall
+    shm_size: 16g
+    command: >
+      --model swiss-ai/Apertus-8B-Instruct-2509
+      --revision main
+      --host 0.0.0.0
+      --port 8000
+      --api-key ${VLLM_API_KEY}
+      --max-model-len 32768
+      --dtype bfloat16
+      --tensor-parallel-size 1
+      --max-num-seqs 128
+      --max-num-batched-tokens 32768
+      --enable-chunked-prefill
+      --enable-prefix-caching
+      --limit-mm-per-prompt '{"image": 2}'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
