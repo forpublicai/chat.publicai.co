@@ -3,7 +3,7 @@ global:
     region: eu-central-2
 
 litellm:
-  enabled: true # Set to false to temporarily turn off the LiteLLM deployment in prod
+  enabled: false # Set to false to temporarily turn off the LiteLLM deployment in prod
   secrets:
     manualSecretsName: "prod/publicai/litellm/manual-secrets"
     managedSecretsName: "prod/publicai/open-webui/managed-secrets"
