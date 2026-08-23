@@ -1,0 +1,16 @@
+# models:
+# - model_name: zai-org/GLM-5.2
+#   litellm_params:
+#     model: openai/zai-org/GLM-5.2
+#     api_base: https://api.inference.cscs.ch/v1
+#     api_key: os.environ/CSCS_API_KEY
+#     ssl_verify: false
+#     supports_vision: false
+#     temperature: 1.0
+#     top_p: 0.95
+#     max_tokens: 65536
+#   model_info:
+#     input_cost_per_token: 0.00000050
+#     output_cost_per_token: 0.00000150
+# fallbacks:
+# - aisingapore/Qwen-SEA-LION-v4-32B-IT
