@@ -28,3 +28,4 @@ models:
 #    output_cost_per_token: 0.00000292
 fallbacks:
 - aisingapore/Qwen-SEA-LION-v4-32B-IT
+- speakleash/Bielik-11B-v3.0-Instruct

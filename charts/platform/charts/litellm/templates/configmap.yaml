@@ -23,12 +23,30 @@ data:
       custom_auth_settings:
         mode: "auto"
 
+    {{- $allFallbacks := list }}
+    {{- range $path, $_ := .Files.Glob "models/**/*.yaml" }}
+      {{- $data := $.Files.Get $path | fromYaml }}
+      {{- if $data.fallbacks }}
+        {{- $modelName := (index $data.models 0).model_name }}
+        {{- $allFallbacks = append $allFallbacks (dict $modelName $data.fallbacks) }}
+      {{- end }}
+    {{- end }}
+
     router_settings:
       routing_strategy: "{{ .Values.router.routingStrategy }}"
       # Redis disabled - using simple-shuffle strategy doesn't require persistent state
       # redis_host: "{{ .Values.secrets.redisHost }}"
       # redis_port: {{ .Values.env.litellmRedisPort }}
       # redis_url: "{{ .Values.secrets.redisUrl }}"
+      {{- if $allFallbacks }}
+      fallbacks:
+        {{- range $fallbackMap := $allFallbacks }}
+          {{- range $modelName, $targets := $fallbackMap }}
+        - {{ $modelName }}:
+            {{- toYaml $targets | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
 
     litellm_settings:
       {{- if .Values.config.litellm_settings }}
@@ -146,20 +164,3 @@ data:
     {{- end }}
     {{- end }}
     
-    {{- $allFallbacks := list }}
-    {{- range $path, $_ := .Files.Glob "models/**/*.yaml" }}
-      {{- $data := $.Files.Get $path | fromYaml }}
-      {{- if $data.fallbacks }}
-        {{- $modelName := (index $data.models 0).model_name }}
-        {{- $allFallbacks = append $allFallbacks (dict $modelName $data.fallbacks) }}
-      {{- end }}
-    {{- end }}
-    {{- if $allFallbacks }}
-    fallbacks:
-      {{- range $fallbackMap := $allFallbacks }}
-        {{- range $modelName, $targets := $fallbackMap }}
-      - {{ $modelName }}:
-          {{- toYaml $targets | nindent 8 }}
-        {{- end }}
-      {{- end }}
-    {{- end }}

@@ -10,3 +10,4 @@ models:
     output_cost_per_token: 0.00000050
 fallbacks:
 - swiss-ai/apertus-70b-instruct
+- speakleash/Bielik-11B-v3.0-Instruct
