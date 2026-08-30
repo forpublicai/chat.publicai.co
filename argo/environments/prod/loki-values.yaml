@@ -30,7 +30,7 @@ singleBinary:
   replicas: 1
   persistence:
     enabled: true
-    storageClass: gp3-sc
+    storageClass: ebs-sc
     size: 10Gi
 gateway:
   enabled: false
