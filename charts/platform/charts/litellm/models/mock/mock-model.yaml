@@ -1,5 +1,6 @@
 environments:
   - staging
+# This model doesn't work, it is used to test the fallbacks work okay, it only appears on staging.
 models:
 - model_name: mock/Test-Model-120B-A12B-BF16
   litellm_params:
