@@ -1,0 +1,19 @@
+environments:
+  - staging
+models:
+- model_name: mock/Test-Model-120B-A12B-BF16
+  litellm_params:
+    model: openai/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+    api_base: https://www.example.com/v1
+    api_key: ""
+    ssl_verify: false
+    supports_vision: false
+    temperature: 1.0
+    top_p: 0.95
+    max_tokens: 16384
+  model_info:
+    input_cost_per_token: 0.00000085
+    output_cost_per_token: 0.00000040
+fallbacks:
+- aisingapore/Qwen-SEA-LION-v4-32B-IT
+- speakleash/Bielik-11B-v3.0-Instruct
