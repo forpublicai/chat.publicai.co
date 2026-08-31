@@ -22,6 +22,8 @@ data:
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
         mode: "auto"
+      alerting: ["slack"]
+
 
     {{- $allFallbacks := list }}
     {{- range $path, $_ := .Files.Glob "models/**/*.yaml" }}
