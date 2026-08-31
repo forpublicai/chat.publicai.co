@@ -29,6 +29,7 @@ data:
         "db_exceptions",
         "cooldown_deployment",
         "new_model_added",
+        "outage_alerts",
       ]
 
 
