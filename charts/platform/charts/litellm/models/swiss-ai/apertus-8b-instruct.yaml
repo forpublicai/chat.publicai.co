@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 models:
 - model_name: swiss-ai/apertus-8b-instruct
   litellm_params:

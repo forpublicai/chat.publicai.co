@@ -3,6 +3,9 @@ global:
   # Shared namespace for all services
   namespace: platform
   
+  # Current deployment environment (e.g., staging, prod)
+  environment: ""
+
   # AWS configuration
   aws:
     region: ""

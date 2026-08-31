@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 # models:
 # - model_name: google/gemma-4-31B-it
 #   litellm_params:

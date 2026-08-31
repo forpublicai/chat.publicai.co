@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 models:
 - model_name: Cohere/Cohere-embed-multilingual-v3.0
   litellm_params:

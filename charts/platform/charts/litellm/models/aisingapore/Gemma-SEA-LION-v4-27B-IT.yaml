@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 models:
 - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
   litellm_params:

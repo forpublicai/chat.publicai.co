@@ -28,7 +28,17 @@ data:
     {{- $allFallbacks := list }}
     {{- range $path, $_ := .Files.Glob "models/**/*.yaml" }}
       {{- $data := $.Files.Get $path | fromYaml }}
-      {{- if $data.fallbacks }}
+      {{- $env := "" }}
+      {{- if and $.Values.global (hasKey $.Values.global "environment") }}
+        {{- $env = $.Values.global.environment }}
+      {{- end }}
+      {{- $shouldRender := true }}
+      {{- if and $data $data.environments }}
+        {{- if not (has $env $data.environments) }}
+          {{- $shouldRender = false }}
+        {{- end }}
+      {{- end }}
+      {{- if and $shouldRender $data $data.fallbacks }}
         {{- $modelName := (index $data.models 0).model_name }}
         {{- $allFallbacks = append $allFallbacks (dict $modelName $data.fallbacks) }}
       {{- end }}
@@ -104,6 +114,17 @@ data:
     model_list:
     {{- range $path, $_ := .Files.Glob "models/**/*.yaml" }}
     {{- $data := $.Files.Get $path | fromYaml }}
+    {{- $env := "" }}
+    {{- if and $.Values.global (hasKey $.Values.global "environment") }}
+      {{- $env = $.Values.global.environment }}
+    {{- end }}
+    {{- $shouldRender := true }}
+    {{- if and $data $data.environments }}
+      {{- if not (has $env $data.environments) }}
+        {{- $shouldRender = false }}
+      {{- end }}
+    {{- end }}
+    {{- if $shouldRender }}
     {{- range $data.models }}
     - model_name: {{ .model_name }}
       litellm_params:
@@ -144,6 +165,7 @@ data:
         output_cost_per_token: {{ .model_info.output_cost_per_token }}
         {{- end }}
       {{- end }}
+    {{- end }}
     {{- end }}
     {{- end }}
     

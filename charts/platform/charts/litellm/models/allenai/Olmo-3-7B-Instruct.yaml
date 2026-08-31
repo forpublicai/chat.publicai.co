@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 # models:
 # - model_name: allenai/Olmo-3-7B-Instruct
 #   litellm_params:

@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 # models:
 # - model_name: utter-project/EuroLLM-22B-Instruct-2512
 #   litellm_params:

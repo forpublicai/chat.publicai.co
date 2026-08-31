@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 # models:
 # - model_name: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
 #   litellm_params:

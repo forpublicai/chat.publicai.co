@@ -1,4 +1,5 @@
 global:
+  environment: prod
   aws:
     region: eu-central-2
 

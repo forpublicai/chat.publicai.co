@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 models:
 - model_name: aisingapore/Qwen-SEA-LION-v4-32B-IT
   litellm_params:

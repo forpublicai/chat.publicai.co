@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 # models:
 # - model_name: moonshotai/Kimi-K2.7-Code
 #   litellm_params:

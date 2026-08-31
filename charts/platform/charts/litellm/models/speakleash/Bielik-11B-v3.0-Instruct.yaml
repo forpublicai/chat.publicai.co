@@ -1,3 +1,6 @@
+environments:
+  - staging
+  - prod
 models:
 - model_name: speakleash/Bielik-11B-v3.0-Instruct
   litellm_params:
