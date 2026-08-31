@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.global.namespace | default "web-services" }}
 spec:
   replicas: {{ .Values.app.replicas }}
+  minReadySeconds: {{ .Values.app.minReadySeconds | default 20 }}
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -109,6 +110,13 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: cscs_api_key
                   optional: true
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: slack_webhook_url
+                  optional: true
+
 
 
           volumeMounts:
