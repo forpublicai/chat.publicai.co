@@ -23,6 +23,13 @@ data:
       custom_auth_settings:
         mode: "auto"
       alerting: ["slack"]
+      alert_types: [
+        "llm_too_slow",
+        "llm_requests_hanging",
+        "db_exceptions",
+        "cooldown_deployment",
+        "new_model_added",
+      ]
 
 
     {{- $allFallbacks := list }}
