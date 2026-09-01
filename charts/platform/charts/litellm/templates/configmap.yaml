@@ -164,6 +164,13 @@ data:
         {{- if .litellm_params.max_tokens }}
         max_tokens: {{ .litellm_params.max_tokens }}
         {{- end }}
+        {{- if hasKey .litellm_params "drop_params" }}
+        drop_params: {{ .litellm_params.drop_params }}
+        {{- end }}
+        {{- if .litellm_params.complexity_router_config }}
+        complexity_router_config:
+          {{- toYaml .litellm_params.complexity_router_config | nindent 10 }}
+        {{- end }}
       {{- if .model_info }}
       model_info:
         {{- if .model_info.input_cost_per_token }}
