@@ -4,6 +4,8 @@ global:
 
 open-webui:
   app:
+    image:
+      tag: cognito-patch-311b5c5b8-20260901-125838
     webuiUrl: "https://chat.ai-staging.chat"
     auth:
       signoutRedirectUrl: "https://chat.ai-staging.chat/"
