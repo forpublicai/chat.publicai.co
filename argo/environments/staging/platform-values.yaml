@@ -4,6 +4,9 @@ global:
     region: us-east-1
 
 litellm:
+  app:
+    image:
+      tag: v1.98.0 
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
