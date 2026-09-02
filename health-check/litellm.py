@@ -187,12 +187,16 @@ def measure_ttft(base_url, model_name, api_key, ssl_verify=True):
         return False, None, f"Exception: {type(e).__name__} - {str(e)}"
 
 def main():
-    parser = argparse.ArgumentParser(description="Test LiteLLM endpoints on api-internal.publicai.co")
+    parser = argparse.ArgumentParser(description="Test LiteLLM endpoints")
+    parser.add_argument("--staging", action="store_true", help="Use staging endpoint (api-internal.ai-staging.chat) instead of production")
     parser.add_argument("--insecure", action="store_true", help="Bypass SSL verification")
     parser.add_argument("--url", default="https://api-internal.publicai.co", help="Base URL of LiteLLM proxy")
     parser.add_argument("--workers", type=int, default=10, help="Number of parallel workers to use")
     parser.add_argument("-json", "--json", action="store_true", help="Output results in JSON format")
     args = parser.parse_args()
+
+    if args.staging:
+        args.url = args.url.replace("api-internal.publicai.co", "api-internal.ai-staging.chat")
 
     json_mode = args.json
 

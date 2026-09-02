@@ -1,131 +1,117 @@
-# Log in to cluster
+# Intro
+Models are stored in here: ``charts/platform/charts/litellm/models``.
+Each model has a file, and where there are multiple provider endpoints, they all exist in that file.
 
-You will need to authenticate AWS CLI tool and get an auth session into kubectl.
-You can do that by follwing the docs here: [how to log in](index.md#deploy-to-production)
+## Fallbacks
+When adding a model please use at least two fallbacks, ideally from unrelated suppliers.
 
 # Edit code
-## Add API Key to LiteLLM
+To add a new model to LiteLLM, there are three main parts to configure: defining the model YAML, configuring the secret & environment variable, and adding billing name mapping in the Lago callback.
 
-Working in ``charts/web_services/charts/litellm/templates/deployment.yaml``
+### 1. Define the Model YAML
+Create a new YAML file (or update an existing one) under [`charts/platform/charts/litellm/models/`](/charts/platform/charts/litellm/models) organized by provider (for example: [`charts/platform/charts/litellm/models/<provider>/<model-name>.yaml`](/charts/platform/charts/litellm/models)).
 
-Add a section to ``env`` for the API key.
+> [!NOTE]
+> The LiteLLM ConfigMap template in [`configmap.yaml`](/charts/platform/charts/litellm/templates/configmap.yaml#L123-L178) dynamically globs all `models/**/*.yaml` files and filters them against `environments` (`staging` / `prod`).
 
+**Example Model YAML:**
 ```yaml
-          env:
-            - name: NEW_PROVIDER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secrets.name }}
-                  key: new_provider_api_key
-```
-## Create a new model endpoint and pricing for LiteLLM
-Working in ``charts/web_services/charts/litellm/values.yaml``
-
-```yaml
-  models:
-    - model_name: new-provider/apertus-8b-instruct
-      litellm_params:
-        model: openai/inference-apertus-8b
-        api_base: https://api.newprovider.com/v1
-        api_key: "os.environ/NEW_PROVIDER_API_KEY"
-        supports_vision: true  
-        weight: 20
-        temperature: 0.8
-        top_p: 0.9
-        max_tokens: 16384
-      model_info:
-        input_cost_per_token: 0.00000010  # $0.10 per 1M tokens
-        output_cost_per_token: 0.00000020  # $0.20 per 1M tokens
-
-...
-# Also add a line to declare the secrets configuration:
-secrets:
-  name: litellm-secrets
-  litellmMasterKey: ""
-  litellmSaltKey: ""
-  ...
-  new_provider_api_key: ""
+environments:
+  - staging
+  - prod
+models:
+- model_name: provider/my-new-model
+  litellm_params:
+    model: openai/provider/my-new-model
+    api_base: https://api.provider.example.com/v1
+    api_key: os.environ/MY_PROVIDER_API_KEY
+    ssl_verify: false
+    supports_vision: false
+    temperature: 1.0
+    top_p: 0.95
+    max_tokens: 16384
+  model_info:
+    input_cost_per_token: 0.00000085
+    output_cost_per_token: 0.00000040
+fallbacks:
+- speakleash/Bielik-11B-v3.0-Instruct
 ```
 
-In ``charts/web_services/charts/litellm/templates/secrets.yaml``
-Add the secret
+### 2. Configure the Secret & Environment Variable
 
-```yaml
-...
-  infomaniak_api_key: {{ .Values.secrets.infomaniakApiKey | quote }}
-  deepinfra_api_key: {{ .Values.secrets.deepinfraApiKey | quote }}
-  phoeniqs_api_key: {{ .Values.secrets.phoeniqsApiKey | quote }}
-  bielik_api_key: {{ .Values.secrets.bielikApiKey | quote }}
-...
+If the model requires an API key secret referenced via `os.environ/MY_PROVIDER_API_KEY`, wire it through AWS Secrets Manager and Kubernetes:
+
+1. **AWS Secrets Manager**:
+   - Add the key/value `MY_PROVIDER_API_KEY` to the Secrets Manager secret (e.g., `staging/aichat/litellm/manual-secrets` and `prod/publicai/litellm/manual-secrets`).
+2. **ExternalSecret Definition** in [`secrets.yaml`](/charts/platform/charts/litellm/templates/secrets.yaml):
+   - Map the secret in `spec.target.template.data`:
+     ```yaml
+     my_provider_api_key: '{{ "{{ .MY_PROVIDER_API_KEY }}" }}'
+     ```
+   - Reference the secret from `manualSecretsName` in `spec.data`:
+     ```yaml
+     - secretKey: MY_PROVIDER_API_KEY
+       remoteRef:
+         key: {{ .Values.secrets.manualSecretsName }}
+         property: MY_PROVIDER_API_KEY
+     ```
+3. **Container Environment Variable** in [`deployment.yaml`](/charts/platform/charts/litellm/templates/deployment.yaml#L69-L119):
+   - Expose the secret to LiteLLM's environment:
+     ```yaml
+     - name: MY_PROVIDER_API_KEY
+       valueFrom:
+         secretKeyRef:
+           name: {{ .Values.secrets.name }}
+           key: my_provider_api_key
+           optional: true
+     ```
+4. *(Optional)* If the model is tested in the health-check job, also add the key to [`health-check-secrets.yaml`](/charts/platform/templates/health-check-secrets.yaml#L15-L39).
+
+
+### 3. Update Lago Billing Mapping
+Update [`custom_lago_callback.py`](/charts/platform/charts/litellm/custom_lago_callback.py) so Lago tracks token usage with the correct billing code.
+
+In [`_normalize_model_name`](/charts/platform/charts/litellm/custom_lago_callback.py#L85-L165), add mappings for both the LiteLLM internal model string and any aliases to the user-facing/billing model name:
+
+```python
+# In model_mapping dictionary:
+"openai/provider/my-new-model": "provider/my-new-model",
+"provider/my-new-model": "provider/my-new-model",
 ```
 
-## Add the API key to the deployment script
+### Summary Checklist
 
-``web.sh``
-This part of the script checks for missing env vars
-```bash
-    local required_vars=(
-        "LICENSE_KEY"
-        "WEBUI_SECRET_KEY"
-        "OWUI_DATABASE_URL"
-        ...
-        "NEW_PROVIDER_API_KEY"
+| Step | File | Purpose |
+| :--- | :--- | :--- |
+| **1. Model Config** | [`models/<provider>/<model>.yaml`](/charts/platform/charts/litellm/models) | Defines model params, pricing, fallbacks, and target envs |
+| **2. Secret Mapping** | [`secrets.yaml`](/charts/platform/charts/litellm/templates/secrets.yaml) | Pulls API key from AWS Secrets Manager via ExternalSecret |
+| **3. Container Env** | [`deployment.yaml`](/charts/platform/charts/litellm/templates/deployment.yaml) | Exposes `MY_PROVIDER_API_KEY` to the LiteLLM container |
+| **4. Billing Normalization** | [`custom_lago_callback.py`](/charts/platform/charts/litellm/custom_lago_callback.py) | Maps model name to Lago billing event code |
+
+# Pre deploy check
+Run this code test to make sure the model code is valid and will work with LiteLLM
+
 ```
-
-```bash
-# Function to deploy web services
-deploy_services() {
-    echo "🔧 Building web services dependencies..."
-    helm dependency build charts/web_services/
-
-    echo "📦 Deploying web services with Lago billing..."
-    helm upgrade --install web-services charts/web_services/ \
-        -n web-services \
-        --create-namespace \
-        --set open-webui.secrets.licenseKey="$LICENSE_KEY" \
-        --set open-webui.secrets.webuiSecretKey="$WEBUI_SECRET_KEY" \
-        ...
-        --set litellm.secrets.newProviderApiKey="$NEW_PROVIDER_API_KEY"
-```
-
-## Configure the callback to Lago billing engine
-Working in ``charts/web_services/charts/litellm/custom_lago_callback.py``
-```bash
-    def _normalize_model_name(self, model: str) -> str:
-        """
-        Normalize model names to match Lago billing codes.
-        Maps internal LiteLLM model names to user-facing model names.
-        """
-        # Model name mapping: litellm model -> lago billing name
-        model_mapping = {
-            # Apertus models (various endpoints with version suffixes)
-            "Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
-            "swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
-            "apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
-            
-            "NewProvider-8B-Instruct-2509": "new-provider/apertus-8b-instruct",
+python3 health-check/model-code-check.py
 ```
 
 # Deploy the code
-
-## Check changes
-1. Validate the code ``./web.sh --validate``
-1. Run this to see if code is edited in correct places ``python health-check/code_check_endpoint.py``
-
-## Deploy
-1. Then do a dry run ``./web.sh --deploy --dry-run``
-1. Then do a real deploy ``./web.sh --deploy``
-1. Then watch pods deploy ``watch -n 2 kubectl get pods -n web-services`` Check litellm is a new version, some small changes might not trigger a restart, if that is the case do a restart rollout on the deployment.
+Push to ``dev`` branch wait for argo to pick it up, if the model doesn't appear restart the LiteLLM deployment in Argo or use kubectl.
 
 ## Test
-1. Once all rolled out test litellm ``python health-check/litellm.py``, check that you see all the models you expect to and they all return a token.
+1. Once all rolled out test litellm ``python health-check/litellm.py --staging``, check that you see all the models you expect to and that they all return success.
+2. Login into api-internal.staging.chat and use the playground to check the model. 
+
+## Production
+Push to ``main`` and repeat for production.
+
 
 # Configure Apps
 
 ## Configure LiteLLM
 To allow zuplo to access the new models they need to be added to the developer portal API key allowed list.
 
-Go to the LiteLLM UI > Virtual Keys. Open the Developer Portal Master Key > go to Edit > Select the new models from the list.
+Go to api-internal.publicai.co > Virtual Keys. Open the Developer Portal Master Key > go to Edit > Select the new models from the list.
 
 ![litellm](litellm.jpg)
 

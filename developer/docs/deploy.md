@@ -1,1 +1,0 @@
-open web ui connect to litellm using http://litellm-service.platform.svc.cluster.local:4000

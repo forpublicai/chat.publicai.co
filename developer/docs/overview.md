@@ -1,178 +1,369 @@
-# Public AI System Architecture & Charts Guide
+# Public AI System Architecture & GitOps Guide
 
-Welcome to the team! This directory (`/charts`) contains the infrastructure-as-code (IaC) definitions that deploy and manage the entire Public AI platform on Kubernetes (Amazon EKS).
+Welcome to the team! This repository contains the complete Infrastructure-as-Code (IaC), Kubernetes Helm charts, and Argo CD GitOps definitions that deploy and operate the Public AI platform on Amazon Elastic Kubernetes Service (EKS).
 
-As a new developer, it's crucial to understand how our various microservices, language models, and infrastructure components fit together. We use **Helm** to template and manage these Kubernetes resources.
-
-## 🏗 High-Level Architecture Concepts
-
-Before diving into the specific charts, here are the foundational concepts and tooling you need to understand:
-
-1. **Kubernetes (EKS)**: Our core orchestration platform.
-2. **Helm**: We use Helm umbrella charts to group related services, making it easy to deploy entire environments with a single command and manage configurations dynamically.
-3. **IRSA (IAM Roles for Service Accounts)**: We use AWS IRSA to grant specific pods (like OpenWebUI or Lago) access to AWS resources securely, without hardcoding or mounting AWS credentials.
-4. **Karpenter**: We use Karpenter for dynamic node auto-provisioning. It's especially critical for scaling our expensive GPU nodes (`p4d.24xlarge`) on demand, or taking advantage of AWS Capacity Blocks.
-5. **S3-Backed Volumes (CSI)**: Large model weights (70B+ parameters) are stored in S3 and mounted directly into our inference pods using the S3 CSI driver. This allows instantaneous access to massive models without downloading hundreds of gigabytes over the network on pod startup.
+As a developer or operator, this document provides the canonical overview of our infrastructure environments, GitOps deployment lifecycle, Kubernetes namespace topology, Helm chart architecture, authentication flows, and model routing.
 
 ---
 
-## 📂 The Charts Directory
+## 🏗 System Architecture Overview
 
-We've split our infrastructure into four logical domains to cleanly isolate concerns.
+```mermaid
+graph TD
+    subgraph Users["End Users & Developers"]
+        EndUser["Chat Users<br/>(Browser)"]
+        DevUser["API Developers<br/>(SDK / CLI)"]
+    end
 
-### 1. `load-balancer`
-This chart handles the foundational, cluster-wide networking components.
-* **AWS Load Balancer Controller**: Listens to our Kubernetes `Ingress` objects and automatically provisions AWS Application Load Balancers (ALBs). It is configured to run on `hostNetwork` to bypass certain networking constraints and uses IRSA (`AmazonEKSLoadBalancerControllerRole`) to communicate securely with the AWS API.
+    subgraph Auth["Identity & Access Layer"]
+        Cognito["AWS Cognito<br/>(End-User Auth)"]
+        Auth0["Auth0<br/>(Developer Auth)"]
+        Zuplo["Zuplo API Gateway<br/>(api.publicai.co)"]
+    end
 
-### 2. `ingress`
-Instead of scattering Ingress definitions across every microservice, we centralize our public routing layer here.
-* Uses the `alb` ingress class.
-* Connects hostnames to their respective backend services using **IP-mode routing** (traffic routes straight from the ALB to the Pod IP, bypassing `kube-proxy` for lower latency).
-* **Routes Managed**:
-  * `chat.publicai.co` -> OpenWebUI
-  * `api-internal.publicai.co` -> LiteLLM (Internal AI Gateway)
-  * `lago.publicai.co` & `lago-api.publicai.co` -> Lago Billing
-  * `grafana.publicai.co` -> Grafana Monitoring UI
-  * `prometheus.publicai.co` -> Prometheus Server UI
+    subgraph ALB["AWS Application Load Balancer (Ingress)"]
+        ALB_Chat["chat.publicai.co"]
+        ALB_API["api-internal.publicai.co"]
+        ALB_Lago["lago.publicai.co / lago-api.publicai.co"]
+        ALB_Argo["argo.publicai.co"]
+        ALB_Obs["grafana.publicai.co / prometheus.publicai.co"]
+    end
 
-### 3. `llm_services`
-This is the core of our AI offering—the production inference stack.
-* **vLLM Stack**: We use [vLLM](https://github.com/vllm-project/vllm) for high-throughput, memory-efficient LLM serving.
-* **Model Configuration**: We currently serve our custom `apertus-70b-instruct` model.
-* **GPU & Tensor Parallelism**: Serving a 70B model requires massive VRAM. We request 8 GPUs per instance and use a `tensorParallelSize` of 8 to split the model execution across them seamlessly.
-* **Custom Chat Templates & Tools**: You'll notice `apertus_tool_parser.py` and `apertus_chat_template.jinja` in this folder. These are injected into the vLLM pods via a ConfigMap. This teaches vLLM how to parse our custom tool-calling format and format prompts natively for the Apertus architecture.
-* **Karpenter Integration**: A dedicated `gpu` node pool is defined here to spin up `p4d` instances specifically when inference pods are scheduled. Taints prevent normal web services from accidentally scheduling onto these expensive instances.
+    subgraph K8s["Amazon EKS Cluster"]
+        subgraph NS_Chat["Namespace: chat"]
+            OpenWebUI["OpenWebUI Pods<br/>(Port 8080)"]
+            Tika["Tika Service<br/>(Port 9998)"]
+            SearXNG["SearXNG Service<br/>(Optional)"]
+        end
 
-### 4. `web_services`
-This is an **umbrella chart** that pulls together all the end-user and backend microservices, including our telemetry and observability stack.
-* **OpenWebUI**: The main chat frontend users interact with. Configured to autoscale (HPA) between 1-3 replicas based on load (75% CPU / 85% Memory) and uses S3 for user file uploads. It also has **OpenTelemetry (OTel)** integration enabled to push application metrics to Prometheus.
-* **Tika**: An Apache Tika service used for extracting text from PDFs and documents that users upload. It's configured with heavy memory limits (2Gi) because OCR and processing large PDFs can easily OOM kill smaller pods.
-* **LiteLLM**: The AI Gateway. It normalizes APIs and routes traffic securely to our underlying vLLM instances. It is integrated with Prometheus to export routing and performance metrics.
-* **Lago**: Our robust billing and metering engine. It's a large architecture with multiple dedicated background workers (billing, clock, events, payment, pdf, webhook) all scaled individually. It relies on our external Postgres and Redis databases.
-* **SearXNG**: A metasearch engine (currently disabled) intended to back our web-search tool capabilities.
-* **Monitoring & Observability Stack**:
-  * **Prometheus**: Collects and stores time-series metrics scraped from services like LiteLLM and OpenWebUI. Configured with a `5GB` storage size retention limit.
-  * **Grafana**: Visualization platform pre-populated with dashboards for LiteLLM Spend, LiteLLM SRE, and OpenWebUI, sourcing metrics from Prometheus and logs from Loki.
-  * **Loki**: Log aggregation database configured in `SingleBinary` mode with retention rules (168h retention period) and compacting enabled.
-  * **Promtail**: DaemonSet log agent deployed on all nodes to tail container log files and ship them directly to Loki.
+        subgraph NS_Platform["Namespace: platform"]
+            LiteLLM["LiteLLM AI Gateway<br/>(Port 4000)"]
+            LagoFront["Lago UI<br/>(Port 80)"]
+            LagoAPI["Lago API<br/>(Port 3000)"]
+            LagoWorkers["Lago Workers<br/>(Billing, Clock, Events, Payment, PDF, Webhook)"]
+            HealthCheck["Health Check Service"]
+        end
 
-## 🔐 Authentication & API Flow
+        subgraph NS_Monitoring["Namespace: monitoring"]
+            Prometheus["Prometheus Server<br/>(Port 80)"]
+            Grafana["Grafana UI<br/>(Port 80)"]
+            Loki["Loki Log DB<br/>(Port 3100)"]
+            Promtail["Promtail DaemonSet"]
+        end
 
-Understanding how users and developers authenticate, and how that identity propagates through the system, is critical. We use different Identity Providers (IdPs) depending on the audience:
+        subgraph NS_Argo["Namespace: argocd"]
+            ArgoCD["Argo CD Controller & Server<br/>(Port 80)"]
+        end
 
-### 1. End Users (Web Portal)
+        subgraph NS_KubeSystem["Namespace: kube-system"]
+            ALBController["AWS Load Balancer Controller"]
+            StorageClass["EBS CSI StorageClass (ebs-sc)"]
+        end
+    end
+
+    subgraph ManagedData["AWS Managed Data Layer"]
+        RDS["Amazon Aurora PostgreSQL<br/>(OpenWebUI + pgvector, LiteLLM, Lago)"]
+        ElastiCache["ElastiCache Valkey / Redis<br/>(WebSockets, Cache, Queues)"]
+        S3["Amazon S3<br/>(User Uploads, Invoices, State)"]
+    end
+
+    subgraph ExternalInference["External Inference Providers"]
+        Infomaniak["Infomaniak / CSCS / PHOENIQS"]
+        Bedrock["AWS Bedrock"]
+    end
+
+    %% User Flow
+    EndUser -->|OAuth / Login| Cognito
+    EndUser --> ALB_Chat --> OpenWebUI
+    DevUser -->|API Key| Zuplo
+    Zuplo --> ALB_API --> LiteLLM
+
+    %% Service Connections
+    OpenWebUI --> Tika
+    OpenWebUI -->|Model Inference| LiteLLM
+    LiteLLM --> Infomaniak
+    LiteLLM --> Bedrock
+    LiteLLM -->|Token Metering Events| LagoAPI
+
+    %% Data Connections
+    OpenWebUI --> RDS
+    OpenWebUI --> ElastiCache
+    OpenWebUI --> S3
+    LiteLLM --> RDS
+    LiteLLM --> ElastiCache
+    LagoAPI --> RDS
+    LagoAPI --> ElastiCache
+    LagoAPI --> S3
+
+    %% Monitoring
+    Promtail --> Loki
+    Prometheus --> LiteLLM
+    Prometheus --> OpenWebUI
+    Grafana --> Prometheus
+    Grafana --> Loki
+```
+
+---
+
+## 🌍 Infrastructure as Code (Terraform)
+
+Our cloud infrastructure is partitioned into two distinct workspaces targeting different AWS accounts, regions, and environments.
+
+| Environment | Repository Directory | AWS Region | EKS Cluster Name | Primary Domain | Deployment Trigger | GitHub Workflow |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Staging** | [`/terraform`](file:///home/jungle/chat.publicai.co/terraform) | `us-east-1` (N. Virginia) | `staging-main-cluster` | `ai-staging.chat` | Release tag matching `v*` (e.g., `v0.0.5`, `v1.0.0`) | [staging-terraform.yaml](file:///home/jungle/chat.publicai.co/.github/workflows/staging-terraform.yaml) |
+| **Production** | [`/terraform_publicai`](file:///home/jungle/chat.publicai.co/terraform_publicai) | `eu-central-2` (Zurich) | `prod-main-cluster` | `publicai.co` | Release tag matching `prod-v*` (e.g., `prod-v0.0.5`) | [production-terraform.yaml](file:///home/jungle/chat.publicai.co/.github/workflows/production-terraform.yaml) |
+
+### 1. Staging (`/terraform`)
+* **Purpose**: Sandbox and staging environment for testing infrastructure changes, database migrations, and pre-production workloads.
+* **Deployment Workflow**:
+  1. Create a GitHub Release with a tag matching `v*` (e.g., `v0.1.2`).
+  2. The GitHub Action runs `terraform init`, `validate`, `plan`, and `apply -auto-approve`.
+  3. Updates kubeconfig for `staging-main-cluster` in `us-east-1`.
+  4. Automatically bootstraps the cluster GitOps root application by applying `kubectl apply -f argo/bootstrap/staging-bootstrap.yaml`.
+
+### 2. Production (`/terraform_publicai`)
+* **Purpose**: High-availability production environment hosting public traffic, developer APIs, and billing services.
+* **Deployment Workflow**:
+  1. Create a GitHub Release with a tag containing `prod-` matching `prod-v*` (e.g., `prod-v0.0.5`).
+  2. The GitHub Action runs `terraform init`, `validate`, `plan`, and `apply -auto-approve` within `terraform_publicai/`.
+  3. Updates kubeconfig for `prod-main-cluster` in `eu-central-2`.
+  4. Automatically bootstraps the cluster GitOps root application by applying `kubectl apply -f argo/bootstrap/production-bootstrap.yaml`.
+
+### What Terraform Provisions
+* **Networking**: VPC, Public & Private Subnets across 2 Availability Zones, Internet Gateways, NAT Gateways, Route Tables, and Route53 DNS records.
+* **Compute**: EKS Cluster (Control Plane + Managed Worker Node Groups), IAM OIDC Identity Providers, and IRSA Roles.
+* **Data Layer**: Amazon Aurora PostgreSQL (Serverless v2 / KMS encrypted), ElastiCache Valkey/Redis clusters, S3 buckets, and Secrets Manager.
+* **Authentication**: AWS Cognito User Pool with Google OAuth integration, SES email verification, and pre-signup Lambda triggers.
+* **Core In-Cluster Controllers**: Bootstraps the Argo CD Helm release and namespace.
+
+---
+
+## 🐙 GitOps & Argo CD Architecture (`/argo`)
+
+We follow a **declarative, pull-based GitOps model** using Argo CD's **App-of-Apps** pattern. Once the root bootstrap application is applied via Terraform, Argo CD reconciles all in-cluster state directly from this Git repository.
+
+```
+argo/
+├── bootstrap/
+│   ├── staging-bootstrap.yaml         # Root Application for Staging (points to argo/bootstrap/staging)
+│   ├── production-bootstrap.yaml      # Root Application for Production (points to argo/bootstrap/production)
+│   ├── staging/                       # Child Application Definitions for Staging
+│   │   ├── publicai-apps.yaml         # App-of-Apps pointing to argo/apps/staging
+│   │   └── currentai-apps.yaml
+│   └── production/                    # Child Application Definitions for Production
+│       ├── publicai-apps.yaml         # App-of-Apps pointing to argo/apps/production
+│       └── currentai-apps.yaml
+├── apps/
+│   ├── staging/                       # Application CRDs for Staging (targetRevision: dev)
+│   └── production/                    # Application CRDs for Production (targetRevision: main)
+└── environments/
+    ├── staging/                       # Environment-specific Helm values overrides
+    └── prod/                          # Environment-specific Helm values overrides
+```
+
+### Git Branching & Synchronization Strategy
+* **Staging Applications** (`argo/apps/staging/`): Sync continuously against the **`dev`** branch.
+* **Production Applications** (`argo/apps/production/`): Sync continuously against the **`main`** branch.
+* **Sync Policy**: Automated with `prune: true`, `selfHeal: true`, and `CreateNamespace=true`.
+
+### Sync Waves & Deployment Ordering
+Argo CD uses `argocd.argoproj.io/sync-wave` annotations to ensure dependent infrastructure components are fully operational before applications start:
+
+| Sync Wave | Applications Deployed | Namespace | Purpose |
+| :---: | :--- | :--- | :--- |
+| **Wave 0** | `load-balancer`, `storage-class` | `kube-system` | AWS Load Balancer Controller and EBS CSI storage classes |
+| **Wave 1** | `monitoring-resources` | `monitoring` | Prometheus Custom Resource Definitions, RBAC, and Dashboards |
+| **Wave 2** | `platform`, `prometheus`, `grafana`, `loki`, `promtail` | `platform`, `monitoring` | LiteLLM, Lago billing stack, and observability TSDBs/collectors |
+| **Wave 3** | `chat`, `ingress` | `chat`, `web-services` | OpenWebUI chat frontend, Tika, and public Ingress ALB rules |
+
+---
+
+## 🏷 Kubernetes Namespaces & Workloads
+
+The cluster is cleanly segmented into dedicated namespaces to enforce resource isolation, RBAC policies, and distinct scaling profiles:
+
+| Namespace | Key Services & Deployments | Storage / State | Scaling Profile |
+| :--- | :--- | :--- | :--- |
+| **`chat`** | • `openwebui-service` (Port 8080)<br/>• `tika-service` (Port 9998)<br/>• `searxng-service` (Port 8080) | S3 (`uploads/`), Aurora PostgreSQL, Valkey Redis | HPA Autoscaling: 1-3 replicas (75% CPU / 85% Memory) |
+| **`platform`** | • `litellm-service` (Port 4000)<br/>• `platform-front-svc` (Port 80)<br/>• `platform-api-svc` (Port 3000)<br/>• Lago Workers (Billing, Clock, Events, Payment, PDF, Webhook)<br/>• `health-check` service | Aurora PostgreSQL, Valkey Redis, S3 (PDF invoices) | LiteLLM HPA: 1-3 replicas. Lago workers scaled individually. |
+| **`monitoring`** | • `prometheus-server` (Port 80)<br/>• `grafana` (Port 80)<br/>• `loki` (Port 3100)<br/>• `promtail` (DaemonSet) | EBS CSI Volume (`ebs-sc`) for Loki (10Gi) | 1 replica (Prometheus TSDB, Grafana, Loki SingleBinary) + Promtail DaemonSet on every node |
+| **`kube-system`** | • AWS Load Balancer Controller<br/>• StorageClass (`ebs-sc`) | AWS API | 1-2 replicas running with IRSA permissions |
+| **`argocd`** | • `argocd-server` (Port 80)<br/>• `argocd-repo-server`<br/>• `argocd-application-controller` | In-cluster GitOps state | Managed by Argo CD Helm chart |
+| **`web-services`** | • Centralized Ingress definition host namespace | N/A (Routing Layer) | Managed by AWS ALB Controller |
+
+---
+
+## 📦 Helm Charts Architecture (`/charts`)
+
+Application definitions are organized under [`/charts`](file:///home/jungle/chat.publicai.co/charts) as reusable, modular Helm charts:
+
+```
+charts/
+├── chat/                      # Umbrella chart for the end-user chat interface
+│   ├── charts/
+│   │   ├── open-webui/        # OpenWebUI frontend chart
+│   │   ├── tika/              # Apache Tika document text extraction
+│   │   └── searxng/           # SearXNG metasearch engine (disabled by default)
+│   └── templates/
+│       └── db-initializer.yaml# Database initialization job for OpenWebUI pgvector
+├── platform/                  # Umbrella chart for core AI and billing services
+│   ├── charts/
+│   │   ├── litellm/           # LiteLLM AI Gateway, custom auth & Lago callbacks
+│   │   │   └── models/        # Modular per-vendor model YAML definitions
+│   │   └── lago/              # Lago metering & billing platform (upstream sub-chart)
+│   └── templates/
+│       ├── health-check-*.yaml# Health-check deployment, service, and secrets
+│       ├── db-initializer.yaml# Database migration/seed jobs
+│       └── lago-*.yaml        # Lago secrets and service account patches
+├── ingress/                   # Centralized multi-host AWS Application Load Balancer Ingress
+├── load-balancer/             # AWS Load Balancer Controller chart
+├── monitoring-resources/      # Dashboards ConfigMaps, scrape configs, and RBAC
+└── storage-class/             # AWS EBS CSI StorageClass definitions
+```
+
+### Upstream Charts Managed via Argo CD
+Instead of committing vendor charts into git, monitoring workloads are pulled directly from upstream Helm repositories by Argo CD:
+* **Prometheus**: Sourced from `prometheus-community/prometheus` (version `29.17.0`)
+* **Grafana**: Sourced from `grafana/grafana` (version `10.5.15`)
+* **Loki**: Sourced from `grafana/loki` (version `7.0.0`)
+* **Promtail**: Sourced from `grafana/promtail` (version `6.17.1`)
+
+---
+
+## 🌐 Ingress & Public Routing
+
+Public traffic enters through AWS Application Load Balancers provisioned by the AWS Load Balancer Controller using the `alb` IngressClass. Traffic is routed in **IP-mode** directly from the ALB to the Pod IPs, bypassing `kube-proxy` for minimal latency.
+
+### Hostname Routing Matrix
+
+| Public Hostname (Production) | Public Hostname (Staging) | Target Kubernetes Service | Target Namespace | Target Port | Description |
+| :--- | :--- | :--- | :--- | :---: | :--- |
+| `chat.publicai.co` | `chat.ai-staging.chat` | `openwebui-service` | `chat` | 8080 | OpenWebUI Chat Frontend |
+| `api-internal.publicai.co` | `api-internal.ai-staging.chat` | `litellm-service` | `platform` | 4000 | LiteLLM AI Gateway (Zuplo upstream) |
+| `lago.publicai.co` | `lago.ai-staging.chat` | `platform-front-svc` | `platform` | 80 | Lago Billing Admin Dashboard |
+| `lago-api.publicai.co` | `lago-api.ai-staging.chat` | `platform-api-svc` | `platform` | 3000 | Lago Billing API & Webhooks |
+| `argo.publicai.co` | `argo.ai-staging.chat` | `argocd-server` | `argocd` | 80 | Argo CD GitOps Dashboard |
+| `grafana.publicai.co` | `grafana.ai-staging.chat` | `grafana` | `monitoring` | 80 | Grafana Observability Dashboards |
+| `prometheus.publicai.co` | `prometheus.ai-staging.chat` | `prometheus-server` | `monitoring` | 80 | Prometheus Metric Server UI |
+
+---
+
+## 🔐 Authentication & Identity Architecture
+
+We strictly decouple end-user authentication from developer API authentication:
+
+```mermaid
+graph LR
+    subgraph EndUserFlow["End-User Chat Flow"]
+        Browser["User Browser"] -->|1. OAuth / OIDC| Cognito["AWS Cognito"]
+        Cognito -->|2. JWT / Identity| WebUI["OpenWebUI (chat namespace)"]
+        WebUI -->|3. Shadow Profile| PG_WebUI["Postgres (pgvector)"]
+        WebUI -->|4. X-OpenWebUI-User-* headers| LiteLLM["LiteLLM (platform namespace)"]
+    end
+
+    subgraph DevFlow["Developer API Flow"]
+        Dev["Developer"] -->|1. Auth0 Login| Portal["Developer Portal (platform.publicai.co)"]
+        Portal -->|2. API Key Issued| Zuplo["Zuplo SaaS Gateway (api.publicai.co)"]
+        Zuplo -->|3. Validate Key & Proxy| LiteLLM
+    end
+
+    subgraph BillingConvergence["Billing Layer"]
+        LiteLLM -->|5. Token Usage with Customer ID| Lago["Lago Billing Engine (platform namespace)"]
+    end
+```
+
+### 1. End Users (Chat Web UI)
 * **Identity Provider**: **AWS Cognito**
-* **Flow**: When a user visits `chat.publicai.co`, OpenWebUI handles the OAuth/OpenID Connect flow. The configuration for this (Client ID, Secret, Provider URL) is injected into OpenWebUI's secrets via the `web.sh` deployment script.
-* **Internal Tracking**: When OpenWebUI forwards an inference request to LiteLLM (the internal AI gateway), it passes the user's identity along using `X-OpenWebUI-User-*` HTTP headers.
+* **Flow**: When a user logs in at `chat.publicai.co`, OpenWebUI handles the OAuth2/OIDC flow with AWS Cognito. OpenWebUI creates a shadow profile in its PostgreSQL database mapped to the Cognito unique user ID.
+* **Header Propagation**: OpenWebUI passes the user's identity to LiteLLM via `X-OpenWebUI-User-*` headers for per-user token attribution.
 
 ### 2. Developers (API & Platform)
 * **Identity Provider**: **Auth0**
-* **Developer Portal**: Developers log into `platform.publicai.co` (built with Zudoku) using Auth0.
-* **API Gateway (Zuplo)**: Developers generate API keys from the portal to access `api.publicai.co`. Our SaaS API Gateway, Zuplo, validates these API keys, enforces rate limits, and checks budgets. 
-* **Internal Routing**: Once Zuplo validates a developer's request, it proxies the traffic to our internal LiteLLM ingress (`api-internal.publicai.co`).
+* **Flow**: Developers access the developer portal at `platform.publicai.co` (built with Zudoku) using Auth0. They generate API keys managed by our SaaS API gateway, **Zuplo** (`api.publicai.co`).
+* **Gateway Proxy**: Zuplo enforces rate limits, validates keys, and proxies authenticated requests to our internal LiteLLM ingress (`api-internal.publicai.co`).
 
-### ⚠️ Are Cognito and Auth0 Unified?
-**No, they are completely separate, disjoint systems.** We use them to serve two different audiences with very different requirements.
-
-* **Where is the identity data stored?**
-  * **End-User Data**: Stored in **AWS Cognito** (passwords, emails). OpenWebUI creates a "shadow profile" in its own PostgreSQL database—mapped by the unique Cognito ID—to save chat histories and user preferences.
-  * **Developer Data**: Stored in **Auth0**. This is optimized for B2B developer workflows, API key generation, and machine-to-machine OAuth flows which Zuplo relies on.
-* **Where do they unify?**
-  * The identities only unify at the **billing layer (Lago)**. Lago is IdP-agnostic. It simply receives an ID from LiteLLM (which originated from either Cognito or Auth0) and maps it to a single `external_customer_id` to track token usage and generate invoices.
-
-### 3. Billing & Metering (Lago)
-Whether a request originates from an end-user on OpenWebUI or a developer hitting the API via Zuplo, it ultimately flows through **LiteLLM**. 
-* LiteLLM acts as the central chokepoint. It is configured to integrate directly with **Lago** (our billing engine). 
-* LiteLLM reports token usage (prompt and completion tokens) asynchronously to Lago, attaching the usage to the specific user or developer identity passed down from the upstream services.
+### 3. Billing & Metering Convergence (Lago)
+Cognito and Auth0 identities remain disjoint until they reach **LiteLLM**. LiteLLM uses `custom_lago_callback.py` to intercept completion responses and asynchronously report prompt/completion token usage to Lago (`platform-api-svc`), linking usage to the caller's unique `external_customer_id`.
 
 ---
 
 ## 🤖 AI Gateway & Model Routing (LiteLLM)
 
-OpenWebUI serves as the user interface but **does not know where models are hosted**. Instead, it acts as a client connected to **LiteLLM**, our internal AI Gateway. 
+LiteLLM sits in the `platform` namespace and serves as the unified API gateway and router for all LLM inference.
 
-### How Model Discovery Works
-1. When OpenWebUI loads, it makes an HTTP request to LiteLLM's standard `/v1/models` endpoint.
-2. LiteLLM responds with the full list of available models, which dynamically populates OpenWebUI's model dropdown. *(Note: The connection between OpenWebUI and LiteLLM is saved in OpenWebUI's internal Postgres database, not hardcoded in its Kubernetes YAML.)*
+### 1. Dynamic Model Discovery
+OpenWebUI does not hardcode backend models. On initialization and page refresh, it queries LiteLLM's standard OpenAI-compatible `/v1/models` endpoint. LiteLLM responds with the list of configured models to dynamically populate the UI dropdown.
 
-### Source of Truth for Routing
-The actual mapping of user-facing model names to backend endpoints is strictly managed inside `charts/web_services/charts/litellm/values.yaml` under `config.models`.
+### 2. Modular Model Configurations
+Model definitions are modularized under `charts/platform/charts/litellm/models/<vendor>/<model>.yaml`:
+* [`swiss-ai`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/swiss-ai): Models such as `apertus-70b-instruct` routed to Infomaniak, CSCS, or PHOENIQS.
+* [`speakleash`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/speakleash): `Bielik-11B-v3.0-Instruct`.
+* [`google`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/google), [`nvidia`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/nvidia), [`allenai`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/allenai), [`aisingapore`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/aisingapore), [`cohere`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/cohere), [`moonshotai`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/moonshotai), [`utter-project`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/utter-project), and [`zai-org`](file:///home/jungle/chat.publicai.co/charts/platform/charts/litellm/models/zai-org).
 
-LiteLLM handles all complex routing logic, including:
-* **External SaaS Providers**: Routing `meta-llama/Llama-3.2-3B-Instruct` to AWS Bedrock.
-* **Bare-Metal & Managed Partners**: Routing `swiss-ai/apertus-70b-instruct` to external endpoints like Infomaniak, CSCS, or PHOENIQS.
-* **Load Balancing**: The same model name can be defined multiple times pointing to different infrastructure endpoints. LiteLLM uses a `simple-shuffle` routing strategy to randomly distribute traffic across healthy endpoints, providing automatic load balancing and failover entirely hidden from OpenWebUI.
-
-
-### 1. How OpenWebUI Discovers Models
-OpenWebUI is designed to talk to any standard OpenAI-compatible API. In our architecture, it points to the internal `litellm-service`. 
-When OpenWebUI boots up (or when a user refreshes the page), it makes a standard HTTP GET request to LiteLLM's `/v1/models` endpoint. LiteLLM responds with a list of all configured models, and OpenWebUI dynamically populates its dropdown menu. 
-
-*(Note: The connection from OpenWebUI to LiteLLM is saved in OpenWebUI's Persistent Config within its Postgres database, rather than being hardcoded in its Kubernetes YAML.)*
-
-### 2. The Source of Truth: LiteLLM's Configuration
-The actual mapping of *what* models exist and *where* their endpoints are located is strictly managed by **LiteLLM**. 
-
-If you look at `charts/web_services/charts/litellm/values.yaml`, there is a massive `config.models` list. This is where the magic happens. LiteLLM maps a clean, user-facing `model_name` to complex backend routing logic:
-
-**Example 1: Routing to External Partners**
-```yaml
-- model_name: swiss-ai/apertus-70b-instruct
-  litellm_params:
-    model: openai/swiss-ai/Apertus-70B-Instruct-2509
-    api_base: https://api.infomaniak.com/2/ai/106744/openai/v1
-    api_key: "os.environ/INFOMANIAK_API_KEY"
-```
-
-**Example 2: Routing to AWS Bedrock**
-```yaml
-- model_name: meta-llama/Llama-3.2-3B-Instruct
-  litellm_params:
-    model: bedrock/eu.meta.llama3-2-3b-instruct-v1:0
-    aws_region_name: eu-central-1
-```
-
-### 3. Load Balancing & Failover
-Because LiteLLM sits in the middle, you'll notice in `litellm/values.yaml` that the **same `model_name`** (e.g., `swiss-ai/apertus-8b-instruct`) is defined multiple times pointing to different endpoints (like Intel, CSCS, and PHOENIQS). 
-
-LiteLLM is configured with a `routingStrategy: "simple-shuffle"`. When OpenWebUI requests a completion for `apertus-8b-instruct`, LiteLLM randomly shuffles between the available, healthy endpoints to balance the load and handle failovers automatically. OpenWebUI is completely oblivious to this complexity!
+### 3. Load Balancing & Resilience
+LiteLLM is configured with `router.routingStrategy: simple-shuffle`. Multiple endpoints for the same model name are automatically load-balanced. If an inference partner experiences latency spikes or downtime, LiteLLM manages retries, failovers, and cooldown windows transparently.
 
 ---
 
-## 🗄️ Database Architecture & State Management
+## 🗄️ AWS Managed Data Layer & Persistence
 
-In this project, we rely entirely on **AWS Managed Data Layers** (RDS, ElastiCache, S3). No stateful databases run natively as pods inside our Kubernetes cluster. This ensures high availability and easier disaster recovery.
+We maintain zero stateful databases inside Kubernetes pods. All durable state is delegated to AWS managed services:
 
-Here is the rundown of the databases used, where they run, and what they are responsible for:
-
-### 1. PostgreSQL (AWS RDS)
-We use separate logical databases (often on the same or separate RDS instances depending on the environment) for different services:
-* **OpenWebUI DB**: Uses the `pgvector` extension. It stores end-user accounts (shadow profiles linked to Cognito), chat histories, saved prompts, persistent configuration, and vector embeddings for RAG functionality.
-* **LiteLLM DB**: Uses Prisma. It stores API keys for developers, usage budgets, team mappings, and routing configurations.
-* **Lago DB**: The core database for the Lago billing engine. It stores invoicing data, customer billing metrics, and payment gateway states.
-
-### 2. Redis (AWS ElastiCache)
-Redis is heavily utilized across the stack for ephemeral state and queueing:
-* **OpenWebUI Redis**: Manages WebSocket connections for real-time chat streaming across multiple OpenWebUI replicas.
-* **LiteLLM Redis**: Acts as a high-speed caching layer for identical LLM requests and handles strict rate-limiting for developers.
-* **Lago Redis**: The backbone of Lago's worker architecture. It queues events for billing, PDF generation, webhooks, and payment processing workers.
-
-### 3. S3 (AWS Simple Storage Service)
-S3 is used globally for heavy object storage:
-* **User Uploads**: OpenWebUI stores user-uploaded files, images, and documents in S3 under the `uploads/` prefix.
-* **LLM Weights**: vLLM instances mount S3 buckets using the S3 CSI driver to load massive 70B parameter models at runtime.
-* **Billing Documents**: Lago utilizes S3 to store generated PDF invoices.
-
-### 4. EBS Volumes (Elastic Block Store)
-* **Loki Log Storage**: Loki runs in `SingleBinary` mode and utilizes a `10Gi` persistent volume backed by the AWS `ebs-sc` storage class to store aggregated logs.
+1. **Amazon Aurora PostgreSQL**:
+   * **OpenWebUI Database**: Stores user shadow accounts, chat history, system prompts, settings, and vector embeddings via the `pgvector` extension.
+   * **LiteLLM Database**: Stores API keys, team mappings, user budgets, and request metadata via Prisma.
+   * **Lago Database**: Stores invoicing rules, subscription plans, customer profiles, and billing ledgers.
+2. **Amazon ElastiCache (Valkey / Redis)**:
+   * **OpenWebUI**: Synchronizes WebSockets across replicas for real-time streaming responses.
+   * **LiteLLM**: Provides low-latency response caching and sliding-window rate limiting.
+   * **Lago**: Manages background job queues for billing, events, webhooks, and PDF workers.
+3. **Amazon S3**:
+   * **Chat Uploads**: User documents, images, and attachments stored under the `uploads/` prefix.
+   * **Billing Assets**: Generated PDF invoices from Lago.
+   * **Terraform State**: Remote state storage with DynamoDB state locking.
+4. **AWS EBS Volumes (CSI Driver)**:
+   * **Loki**: Persistent storage for indexed logs using the `ebs-sc` StorageClass.
 
 ---
 
-## 🛠 Everyday Developer Tasks
+## 🛠 Developer Cheat Sheet & Operational Workflows
 
-* **Adding a new environment variable to a web service**: Modify the corresponding block in `charts/web_services/values.yaml` (e.g. under the `open-webui` or `lago` section).
-* **Updating the Apertus model version**: Go to `charts/llm_services/values.yaml`, update the `modelURL` path pointing to the new S3 directory, and ensure the `vllmConfig` matches any new architectural requirements.
-* **Scaling behavior**: Modify the resources `requests/limits` or the autoscaling rules in the specific service's `values.yaml` configuration block.
-* **Configuring dashboards or alerting**: Grafana dashboards can be managed via `charts/web_services/values.yaml` under the `grafana.dashboards` section. Retention configuration and storage settings for Loki/Prometheus are configured under the `loki` and `prometheus` keys in the same file.
+### 1. Triggering Infrastructure Deployments (Terraform)
+* **Deploy Staging**: Create a GitHub Release with tag `vX.Y.Z` (e.g. `v0.1.0`).
+* **Deploy Production**: Create a GitHub Release with tag `prod-vX.Y.Z` (e.g. `prod-v0.0.5`).
 
-Remember, everything here ultimately deploys to AWS EKS, so look out for how we link IAM roles (via `serviceAccount.annotations`) and handle persistent storage!
+### 2. Triggering Application & Chart Deployments (GitOps)
+* **Deploy to Staging**: Push or merge changes to the **`dev`** branch. Argo CD syncs within ~3 minutes (or sync manually via the UI).
+* **Deploy to Production**: Push or merge changes to the **`main`** branch.
+
+### 3. Connecting to the EKS Clusters
+```bash
+# Staging (us-east-1)
+aws eks update-kubeconfig --region us-east-1 --name staging-main-cluster
+
+# Production (eu-central-2)
+aws eks update-kubeconfig --region eu-central-2 --name prod-main-cluster
+```
+
+### 4. Restarting Services After Config Changes
+If a configuration change or secret requires a forced pod reload:
+```bash
+# Restart LiteLLM AI Gateway
+kubectl rollout restart deployment/litellm -n platform
+
+# Restart OpenWebUI
+kubectl rollout restart deployment/open-webui -n chat
+
+# Restart Lago Workers or API
+kubectl rollout restart deployment/platform-api -n platform
+kubectl rollout restart deployment/platform-worker -n platform
+```
+
+### 5. Running Health Check & Supplier Tests
+Run the health-check test suite locally or in CI (ensure credentials from Doppler are loaded):
+```bash
+cd health-check
+python suppliers.py   # Validates external inference provider health
+python litellm.py     # Validates internal LiteLLM gateway routing & models
+```
