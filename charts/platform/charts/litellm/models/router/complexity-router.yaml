@@ -1,0 +1,20 @@
+environments:
+  - staging
+
+models:
+  - model_name: smart-router
+    litellm_params:
+      model: auto_router/complexity_router
+      drop_params: true
+      complexity_router_config:
+        classifier_type: heuristic
+        complexity_router_default_model: speakleash/Bielik-11B-v3.0-Instruct
+        tiers:
+          SIMPLE:
+            - speakleash/Bielik-11B-v3.0-Instruct
+          MEDIUM:
+            - aisingapore/Qwen-SEA-LION-v4-32B-IT
+          COMPLEX:
+            - swiss-ai/apertus-v1.5-70b
+          REASONING:
+            - swiss-ai/apertus-v1.5-70b-thinking
