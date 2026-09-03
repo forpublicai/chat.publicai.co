@@ -87,7 +87,8 @@ resource "aws_rds_cluster" "this" {
   engine_mode                         = "provisioned"
   database_name                       = null
   master_username                     = "postgres"
-  master_password                     = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
+  manage_master_user_password         = false
+  master_password                     = jsondecode(aws_secretsmanager_secret_version.rds_password.secret_string)["password"]
   db_cluster_parameter_group_name     = "default.aurora-postgresql16"
   db_subnet_group_name                = aws_db_subnet_group.db.name
   vpc_security_group_ids              = [aws_security_group.db.id]
@@ -112,10 +113,6 @@ resource "aws_rds_cluster" "this" {
   serverlessv2_scaling_configuration {
     min_capacity = 0.5
     max_capacity = 64
-  }
-
-  lifecycle {
-    ignore_changes = [master_password]
   }
 }
 
@@ -161,9 +158,6 @@ resource "aws_rds_cluster_instance" "instance_2" {
 
 
 
-data "aws_secretsmanager_secret_version" "db_password" {
-  secret_id = aws_secretsmanager_secret.rds_password.id
-}
 
 # provider "postgresql" {
 #   host     = aws_rds_cluster.this.endpoint
