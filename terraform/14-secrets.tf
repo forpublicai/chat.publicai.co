@@ -42,7 +42,7 @@ resource "aws_secretsmanager_secret_version" "open_webui_managed" {
     DB_HOST              = aws_rds_cluster.this.endpoint
     DB_PORT              = "5432"
     DB_USER              = "postgres"
-    DB_PASSWORD_ARN      = aws_rds_cluster.this.master_user_secret[0].secret_arn
+    DB_PASSWORD_ARN      = aws_secretsmanager_secret.rds_password.arn
     REDIS_URL            = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}"
     LAGO_REDIS_URL       = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}/0"
     REDIS_HOST           = aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address
@@ -130,6 +130,24 @@ resource "aws_secretsmanager_secret_version" "prometheus" {
   }
 }
 
+# 2.8 AWS Secrets Manager Secret for RDS Database Master Password
+resource "aws_secretsmanager_secret" "rds_password" {
+  name                    = "${local.env}/${local.org}/database/password"
+  description             = "Manually managed database master password"
+  recovery_window_in_days = 0
+}
+
+resource "aws_secretsmanager_secret_version" "rds_password" {
+  secret_id = aws_secretsmanager_secret.rds_password.id
+  secret_string = jsonencode({
+    password = "placeholder-replace-in-console"
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 # 3. IAM Role & Policy for External Secrets Operator (IRSA)
 resource "aws_iam_role" "external_secrets_irsa" {
   name = "${local.env}-ExternalSecrets-IRSA-Role"
@@ -178,7 +196,7 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.litellm_manual.arn,
           aws_secretsmanager_secret.grafana.arn,
           aws_secretsmanager_secret.prometheus.arn,
-          aws_rds_cluster.this.master_user_secret[0].secret_arn
+          aws_secretsmanager_secret.rds_password.arn
         ]
       }
     ]

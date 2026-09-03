@@ -10,7 +10,7 @@ litellm:
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
-    dbPasswordArn: "arn:aws:secretsmanager:us-east-1:818561370924:secret:rds!cluster-5e146098-0249-41e0-a284-6b4eec5cfe1f-UWKGpr"
+    dbPasswordArn: "staging/aichat/database/password"
   prometheus:
     enabled: true
 
