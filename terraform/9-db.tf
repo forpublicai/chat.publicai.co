@@ -87,7 +87,6 @@ resource "aws_rds_cluster" "this" {
   engine_mode                         = "provisioned"
   database_name                       = null
   master_username                     = "postgres"
-  manage_master_user_password         = false
   master_password                     = jsondecode(aws_secretsmanager_secret_version.rds_password.secret_string)["password"]
   db_cluster_parameter_group_name     = "default.aurora-postgresql16"
   db_subnet_group_name                = aws_db_subnet_group.db.name
