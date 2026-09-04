@@ -201,7 +201,7 @@ dbInitializer:
 
 # Model list service configuration
 modellist:
-  enabled: false # Disabled by default; enabled only in staging
+  enabled: false # Disabled by default; enabled per environment
   replicaCount: 1
   image:
     repository: "ghcr.io/forpublicai/chat.publicai.co/model-list"

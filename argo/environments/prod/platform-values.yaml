@@ -64,3 +64,13 @@ healthcheck:
 dbInitializer:
   enabled: false
 
+modellist:
+  enabled: true
+  image:
+    repository: "ghcr.io/forpublicai/chat.publicai.co/model-list"
+    tag: "sha-4f8522c"
+  litellmEndpoint: "http://litellm-service.platform.svc.cluster.local:4000"
+  excludeModels: "cohere,mock"
+  secrets:
+    manualSecretsName: "prod/publicai/litellm/manual-secrets"
+

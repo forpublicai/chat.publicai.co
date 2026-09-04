@@ -19,6 +19,22 @@ ingresses:
       port: 8080
 
   - enabled: true
+    name: model-list-public-ingress
+    namespace: platform
+    ingressClassName: alb
+    host: models.{{ .Values.domain }}
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/group.name: public-group
+    targetService:
+      name: model-list-service
+      port: 8000
+
+  - enabled: true
     name: litellm-public-ingress
     namespace: platform
     ingressClassName: alb
