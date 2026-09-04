@@ -1,0 +1,15 @@
+{{- if .Values.modellist.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-list-service
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+spec:
+  selector:
+    app: model-list
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: http
+{{- end }}

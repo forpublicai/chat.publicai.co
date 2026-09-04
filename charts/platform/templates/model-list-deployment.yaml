@@ -1,0 +1,38 @@
+{{- if .Values.modellist.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-list
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+spec:
+  replicas: {{ .Values.modellist.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: model-list
+  template:
+    metadata:
+      labels:
+        app: model-list
+    spec:
+      containers:
+        - name: model-list
+          image: "{{ .Values.modellist.image.repository }}:{{ .Values.modellist.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.modellist.image.pullPolicy | default "Always" | quote }}
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: LITELLM_ENDPOINT
+              value: {{ .Values.modellist.litellmEndpoint | default "http://litellm-service.platform.svc.cluster.local:4000" | quote }}
+            - name: EXCLUDE_MODELS
+              value: {{ .Values.modellist.excludeModels | default "cohere,mock" | quote }}
+            - name: CHECK_INTERVAL_SECONDS
+              value: {{ .Values.modellist.checkIntervalSeconds | default 600 | quote }}
+            - name: PORT
+              value: "8000"
+          envFrom:
+            - secretRef:
+                name: {{ .Values.modellist.secrets.name | default "model-list-secrets" }}
+          resources:
+            {{- toYaml .Values.modellist.resources | nindent 12 }}
+{{- end }}

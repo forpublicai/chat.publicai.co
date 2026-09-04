@@ -63,3 +63,12 @@ healthcheck:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
 
+modellist:
+  enabled: true
+  image:
+    repository: "ghcr.io/forpublicai/chat.publicai.co/model-list"
+    tag: "sha-dc1ec36"
+  litellmEndpoint: "http://litellm-service.platform.svc.cluster.local:4000"
+  excludeModels: "cohere,mock"
+  secrets:
+    manualSecretsName: "staging/aichat/litellm/manual-secrets"
