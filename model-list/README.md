@@ -1,6 +1,6 @@
 # Model List Service & Cache API
 
-A lightweight, Helm-compatible service that periodically queries the LiteLLM `/v1/models` endpoint (default: every 10 minutes / 600s), filters out excluded models using pattern rules, caches the models list in memory, and serves it via an HTTP API.
+A lightweight, Helm-compatible service that periodically queries the LiteLLM `/model/info` endpoint (default: every 10 minutes / 600s), filters out excluded models using pattern rules, strips internal team access IDs (`access_via_team_ids`), caches the model info data in memory, and serves it via an HTTP API.
 
 This avoids hitting the upstream LiteLLM service on every client request and prevents hardcoding model configurations into downstream applications.
 
@@ -22,13 +22,15 @@ Configuration can be supplied via **Environment Variables**, a **Config File** (
 
 ---
 
-## Model Exclusion Logic
+## Model Exclusion & Sanitization Logic
 
 - **Exclusion Rules (`EXCLUDE_MODELS` / `exclude_patterns`)**:  
-  Any model ID matching **any** of the configured substring patterns (case-insensitive) will be filtered out.
+  Any model matching **any** of the configured substring patterns (case-insensitive) across `model_name`, `litellm_params.model`, `model_info.id`, or `model_info.key` will be filtered out.
+- **Sanitization**:  
+  Internal team access IDs (`access_via_team_ids`), internal endpoint URLs (`api_base`), and internal model IDs (`model_info.id`) are automatically removed before serving on the `/info` endpoint.
 
 ### Example Filter Setting:
-- `EXCLUDE_MODELS="mock,test,rerank"`: Filters out all mock, test, or rerank models.
+- `EXCLUDE_MODELS="mock,test,rerank,cohere"`: Filters out all mock, test, rerank, or cohere models.
 
 ---
 
@@ -113,40 +115,52 @@ Mount the ConfigMap to `/etc/model-list/config.yaml` in the deployment container
 
 ## API Endpoints
 
-- **`GET /v1/models`** or **`GET /models`** or **`GET /`**  
-  Returns the filtered OpenAI-compatible JSON list of available models:
-  ```json
-  {
-    "object": "list",
-    "data": [
-      {
-        "id": "swiss-ai/apertus-70b-instruct",
-        "object": "model",
-        "owned_by": "openai"
-      }
-    ]
-  }
-  ```
-
-- **`GET /status`** or **`GET /health`**  
-  Returns the service status, filter statistics, latency, and model list:
+- **`GET /`** (and `/healthz`, `/health`)  
+  Returns the service health, exclude rules, latency, and cached model list:
   ```json
   {
     "status": "healthy",
     "last_run_timestamp": "2026-09-04T12:00:00.000000+00:00",
     "last_run_latency_seconds": 0.231,
-    "filtered_model_count": 11,
+    "filtered_model_count": 10,
     "total_unfiltered_model_count": 13,
-    "models": ["swiss-ai/apertus-70b-instruct"],
+    "models": [
+      "aisingapore/Gemma-SEA-LION-v4-27B-IT",
+      "swiss-ai/apertus-70b-instruct"
+    ],
     "last_error": null
   }
   ```
+
+- **`GET /info`** (and `/model/info`)  
+  Returns the cached LiteLLM `/model/info` JSON payload with excluded models filtered and sensitive fields (`access_via_team_ids`, `api_base`, `model_info.id`) stripped:
+  ```json
+  {
+    "data": [
+      {
+        "model_name": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
+        "litellm_params": {
+          "model": "openai/aisingapore/Gemma-SEA-LION-v4-27B-IT",
+          "supports_vision": true
+        },
+        "model_info": {
+          "input_cost_per_token": 2e-07,
+          "output_cost_per_token": 4e-07,
+          "direct_access": true
+        }
+      }
+    ]
+  }
+  ```
+
+- **`GET /docs`**  
+  Interactive Swagger UI documentation generated automatically by FastAPI.
 
 ---
 
 ## Local Manual Testing
 
-### Test model exclusion filter locally:
+### Test model info filter locally:
 ```bash
 python3 model-list/main.py \
   --url https://api-internal.ai-staging.chat \
@@ -157,6 +171,6 @@ python3 model-list/main.py \
 
 Query the filtered result:
 ```bash
-curl http://localhost:8000/v1/models
-curl http://localhost:8000/status
+curl http://localhost:8000/
+curl http://localhost:8000/info
 ```

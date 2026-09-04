@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Model List Service & Cache API
-Periodically queries the LiteLLM /v1/models endpoint, filters out excluded models based on
-substring patterns, caches the result in memory, and serves it via a lightweight HTTP API.
+Model List Service & Cache API (FastAPI)
+Periodically queries the LiteLLM /model/info endpoint, filters out excluded models based on
+substring patterns, removes internal identifiers (access_via_team_ids, api_base, model_info.id),
+caches the result in memory, and serves it via FastAPI.
 
 Configuration via Environment Variables or Config File (Helm compatible):
   - CONFIG_FILE:
@@ -23,10 +24,12 @@ Configuration via Environment Variables or Config File (Helm compatible):
       Set to 'false' or '0' to disable SSL certificate verification (default: true).
 
 API Endpoints:
-  - GET /v1/models or GET /models or GET /:
-      Returns the filtered & cached LiteLLM models JSON payload.
-  - GET /status or GET /health:
-      Returns service health, exclude rules, and cache status JSON.
+  - GET / (and /healthz, /health):
+      Returns service health, exclude rules, and cache status JSON (formerly /status).
+  - GET /info (and /model/info):
+      Returns the filtered & sanitized LiteLLM /model/info JSON payload.
+  - GET /docs:
+      FastAPI Interactive Swagger UI documentation.
 """
 
 import os
@@ -35,13 +38,20 @@ import sys
 import time
 import json
 import signal
+import asyncio
 import logging
-import threading
 import argparse
 import urllib.request
 import urllib.error
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from typing import Optional, Dict, Any, List
+
+import uvicorn
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Optional PyYAML support if installed; fallback to JSON loader if YAML not installed
 try:
@@ -63,17 +73,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("model-list")
 
-# Thread safety lock & global cache state
-cache_lock = threading.Lock()
-cached_raw_response = None
-cached_models_list = []
-total_unfiltered_count = 0
-last_run_timestamp = None
-last_run_latency = 0.0
-last_error = None
-
-# Shutdown event
-shutdown_event = threading.Event()
+# Global cache state
+cached_info_response: Optional[Dict[str, Any]] = None
+cached_models_list: List[str] = []
+total_unfiltered_count: int = 0
+last_run_timestamp: Optional[str] = None
+last_run_latency: float = 0.0
+last_error: Optional[str] = None
+app_config: Dict[str, Any] = {}
+background_task: Optional[asyncio.Task] = None
 
 
 def load_env(env_path=None, verbose=False):
@@ -152,7 +160,7 @@ def get_config(args=None):
     Priority: CLI args > Environment variables > Config file > Defaults.
     """
     config_file_path = (
-        (args and args.config)
+        (args and getattr(args, "config", None))
         or os.environ.get("CONFIG_FILE")
         or (os.path.exists("/etc/model-list/config.yaml") and "/etc/model-list/config.yaml")
         or (os.path.exists("config.yaml") and "config.yaml")
@@ -163,7 +171,7 @@ def get_config(args=None):
 
     # Endpoint
     endpoint = (
-        (args and args.endpoint)
+        (args and getattr(args, "endpoint", None))
         or os.environ.get("LITELLM_ENDPOINT")
         or os.environ.get("LITELLM_URL")
         or os.environ.get("LITELLM_API_BASE")
@@ -175,7 +183,7 @@ def get_config(args=None):
 
     # API Key
     api_key = (
-        (args and args.api_key)
+        (args and getattr(args, "api_key", None))
         or os.environ.get("LITELLM_API_KEY")
         or os.environ.get("LITELLM_KEY")
         or os.environ.get("LITELLM_MASTER_KEY")
@@ -188,7 +196,7 @@ def get_config(args=None):
 
     # Interval
     interval_raw = (
-        (args and args.interval)
+        (args and getattr(args, "interval", None))
         or os.environ.get("CHECK_INTERVAL_SECONDS")
         or os.environ.get("INTERVAL_SECONDS")
         or os.environ.get("INTERVAL")
@@ -204,7 +212,7 @@ def get_config(args=None):
 
     # Port
     port_raw = (
-        (args and args.port)
+        (args and getattr(args, "port", None))
         or os.environ.get("PORT")
         or file_cfg.get("port")
         or str(DEFAULT_PORT)
@@ -217,7 +225,7 @@ def get_config(args=None):
 
     # Exclude Patterns
     exclude_patterns_raw = (
-        (args and args.exclude)
+        (args and getattr(args, "exclude", None))
         or os.environ.get("EXCLUDE_MODELS")
         or os.environ.get("EXCLUDE_PATTERNS")
         or file_cfg.get("exclude_patterns")
@@ -228,7 +236,7 @@ def get_config(args=None):
 
     # SSL Verify
     ssl_verify = True
-    if args and args.insecure:
+    if args and getattr(args, "insecure", False):
         ssl_verify = False
     else:
         env_ssl = os.environ.get("SSL_VERIFY")
@@ -249,49 +257,141 @@ def get_config(args=None):
     }
 
 
-def normalize_models_url(base_url: str) -> str:
-    """Normalize base URL and ensure proper /v1/models path."""
+def normalize_info_url(base_url: str) -> str:
+    """Normalize base URL and ensure proper /model/info path."""
     url = base_url.rstrip("/")
     if not url.startswith("http://") and not url.startswith("https://"):
         url = f"http://{url}"
 
-    if url.endswith("/v1/models") or url.endswith("/models"):
+    if (
+        url.endswith("/model/info")
+        or url.endswith("/models/info")
+        or url.endswith("/model_info")
+        or url.endswith("/v1/model/info")
+        or url.endswith("/v1/models/info")
+    ):
         return url
+
+    if url.endswith("/v1/models"):
+        url = url[:-10].rstrip("/")
+    elif url.endswith("/models"):
+        url = url[:-7].rstrip("/")
+
     if url.endswith("/v1"):
-        return f"{url}/models"
-    return f"{url}/v1/models"
+        url = url[:-3].rstrip("/")
+
+    return f"{url}/model/info"
 
 
-def filter_models(models: list, exclude_patterns: list) -> tuple:
-    """
-    Filter model dicts to exclude models matching any of the exclude substring patterns.
-    Returns: (filtered_models, total_unfiltered_count)
-    """
-    total_count = len(models)
+def is_model_excluded(item, exclude_patterns: list) -> bool:
+    """Check if a model item matches any exclusion pattern (case-insensitive)."""
     if not exclude_patterns:
-        return models, total_count
+        return False
 
-    filtered = []
-    for m in models:
-        m_id = m.get("id", "")
-        m_id_lower = m_id.lower()
+    candidates = []
+    if isinstance(item, dict):
+        if item.get("model_name"):
+            candidates.append(str(item["model_name"]))
+        m_params = item.get("litellm_params")
+        if isinstance(m_params, dict) and m_params.get("model"):
+            candidates.append(str(m_params["model"]))
+        m_info = item.get("model_info")
+        if isinstance(m_info, dict):
+            if m_info.get("key"):
+                candidates.append(str(m_info["key"]))
+            if m_info.get("id"):
+                candidates.append(str(m_info["id"]))
+        if item.get("id"):
+            candidates.append(str(item["id"]))
+    elif isinstance(item, str):
+        candidates.append(item)
 
-        # Exclude models matching any pattern (case-insensitive)
-        matched_exclude = any(pat.lower() in m_id_lower for pat in exclude_patterns if pat)
-        if matched_exclude:
+    for pat in exclude_patterns:
+        if not pat:
+            continue
+        pat_lower = pat.lower()
+        for cand in candidates:
+            if pat_lower in cand.lower():
+                return True
+    return False
+
+
+def sanitize_model_info_item(item: dict) -> dict:
+    """
+    Remove internal / sensitive fields before serving:
+      - access_via_team_ids
+      - api_base (from litellm_params or top-level)
+      - model_info.id
+    """
+    if not isinstance(item, dict):
+        return item
+
+    cleaned = dict(item)
+    cleaned.pop("access_via_team_ids", None)
+    cleaned.pop("api_base", None)
+
+    if "litellm_params" in cleaned and isinstance(cleaned["litellm_params"], dict):
+        cleaned_params = dict(cleaned["litellm_params"])
+        cleaned_params.pop("api_base", None)
+        cleaned["litellm_params"] = cleaned_params
+
+    if "model_info" in cleaned and isinstance(cleaned["model_info"], dict):
+        cleaned_info = dict(cleaned["model_info"])
+        cleaned_info.pop("access_via_team_ids", None)
+        cleaned_info.pop("id", None)
+        cleaned_info.pop("api_base", None)
+        cleaned["model_info"] = cleaned_info
+
+    return cleaned
+
+
+def filter_and_sanitize_response(raw_data, exclude_patterns: list) -> tuple:
+    """
+    Filter model items matching exclusion patterns and strip access_via_team_ids, api_base, model_info.id.
+    Returns: (sanitized_response_dict, kept_model_names_list, total_unfiltered_count)
+    """
+    if isinstance(raw_data, dict):
+        raw_items = raw_data.get("data", [])
+        if not isinstance(raw_items, list):
+            raw_items = [raw_data]
+    elif isinstance(raw_data, list):
+        raw_items = raw_data
+    else:
+        raw_items = []
+
+    total_count = len(raw_items)
+    kept_items = []
+    kept_names = []
+
+    for item in raw_items:
+        if is_model_excluded(item, exclude_patterns):
             continue
 
-        filtered.append(m)
+        sanitized_item = sanitize_model_info_item(item)
+        kept_items.append(sanitized_item)
 
-    return filtered, total_count
+        name = ""
+        if isinstance(item, dict):
+            name = item.get("model_name") or item.get("model_info", {}).get("key") or item.get("id") or "unknown"
+        else:
+            name = str(item)
+        kept_names.append(name)
+
+    if isinstance(raw_data, dict):
+        response_obj = dict(raw_data)
+        response_obj["data"] = kept_items
+    else:
+        response_obj = {"data": kept_items}
+
+    return response_obj, kept_names, total_count
 
 
-def fetch_models(endpoint: str, api_key: str = None, ssl_verify: bool = True, timeout: int = 30):
+def fetch_model_info(endpoint: str, api_key: str = None, ssl_verify: bool = True, timeout: int = 30):
     """
-    Call LiteLLM models endpoint and return parsed model list and metadata.
-    Returns: (models_list, raw_response, latency, error_message)
+    Call LiteLLM /model/info endpoint and return parsed JSON data and latency.
+    Returns: (raw_data, latency, error_message)
     """
-    url = normalize_models_url(endpoint)
+    url = normalize_info_url(endpoint)
     headers = {
         "User-Agent": "model-list-service/1.0",
         "Accept": "application/json"
@@ -314,46 +414,7 @@ def fetch_models(endpoint: str, api_key: str = None, ssl_verify: bool = True, ti
             body_bytes = response.read()
             body_str = body_bytes.decode("utf-8")
             data = json.loads(body_str)
-
-            models = []
-            if isinstance(data, dict):
-                data_list = data.get("data", [])
-                if isinstance(data_list, list):
-                    for item in data_list:
-                        if isinstance(item, dict):
-                            models.append({
-                                "id": item.get("id", "unknown"),
-                                "owned_by": item.get("owned_by", ""),
-                                "created": item.get("created"),
-                                "raw": item
-                            })
-                        elif isinstance(item, str):
-                            models.append({
-                                "id": item,
-                                "owned_by": "",
-                                "created": None,
-                                "raw": item
-                            })
-                elif "models" in data and isinstance(data["models"], list):
-                    for item in data["models"]:
-                        model_id = item.get("id", item) if isinstance(item, dict) else str(item)
-                        models.append({
-                            "id": model_id,
-                            "owned_by": item.get("owned_by", "") if isinstance(item, dict) else "",
-                            "created": item.get("created") if isinstance(item, dict) else None,
-                            "raw": item
-                        })
-            elif isinstance(data, list):
-                for item in data:
-                    model_id = item.get("id", item) if isinstance(item, dict) else str(item)
-                    models.append({
-                        "id": model_id,
-                        "owned_by": item.get("owned_by", "") if isinstance(item, dict) else "",
-                        "created": item.get("created") if isinstance(item, dict) else None,
-                        "raw": item
-                    })
-
-            return models, data, latency, None
+            return data, latency, None
 
     except urllib.error.HTTPError as e:
         latency = time.time() - start_time
@@ -364,35 +425,35 @@ def fetch_models(endpoint: str, api_key: str = None, ssl_verify: bool = True, ti
         err_msg = f"HTTP {e.code} ({e.reason})"
         if error_body:
             err_msg += f" - Response: {error_body.strip()}"
-        return None, None, latency, err_msg
+        return None, latency, err_msg
 
     except urllib.error.URLError as e:
         latency = time.time() - start_time
-        return None, None, latency, f"URL Error: {e.reason}"
+        return None, latency, f"URL Error: {e.reason}"
 
     except json.JSONDecodeError as e:
         latency = time.time() - start_time
-        return None, None, latency, f"JSON Decode Error: {e}"
+        return None, latency, f"JSON Decode Error: {e}"
 
     except Exception as e:
         latency = time.time() - start_time
-        return None, None, latency, f"Unexpected Error ({type(e).__name__}): {e}"
+        return None, latency, f"Unexpected Error ({type(e).__name__}): {e}"
 
 
-def run_single_check(config: dict, verbose: bool = False, update_cache: bool = True) -> bool:
-    """Execute a single fetch from LiteLLM, apply exclusion filter, and update internal cache state."""
-    global cached_raw_response, cached_models_list, total_unfiltered_count, last_run_timestamp, last_run_latency, last_error
+def run_single_check(config: dict, verbose: bool = False, update_cache: bool = True) -> tuple:
+    """Execute a single fetch from LiteLLM, apply exclusion filter and sanitization, and update cache."""
+    global cached_info_response, cached_models_list, total_unfiltered_count, last_run_timestamp, last_run_latency, last_error
 
     endpoint = config["endpoint"]
     api_key = config["api_key"]
     ssl_verify = config["ssl_verify"]
     exclude_patterns = config["exclude_patterns"]
-    target_url = normalize_models_url(endpoint)
+    target_url = normalize_info_url(endpoint)
     masked_key = f"{api_key[:4]}...{api_key[-4:]}" if api_key and len(api_key) > 8 else ("***" if api_key else "[None]")
 
-    logger.info(f"Fetching LiteLLM models from: {target_url} (API Key: {masked_key}, SSL Verify: {ssl_verify})")
+    logger.info(f"Fetching LiteLLM model info from: {target_url} (API Key: {masked_key}, SSL Verify: {ssl_verify})")
 
-    raw_models, raw_data, latency, error = fetch_models(
+    raw_data, latency, error = fetch_model_info(
         endpoint=endpoint,
         api_key=api_key,
         ssl_verify=ssl_verify
@@ -400,112 +461,176 @@ def run_single_check(config: dict, verbose: bool = False, update_cache: bool = T
 
     if error:
         if update_cache:
-            with cache_lock:
-                last_run_timestamp = datetime.now(timezone.utc).isoformat()
-                last_run_latency = latency
-                last_error = error
-        logger.error(f"Failed to fetch models from LiteLLM: {error} (latency: {latency:.3f}s)")
-        return False
-
-    # Apply exclusion filter
-    filtered_models, total_count = filter_models(raw_models, exclude_patterns)
-    filtered_model_ids = [m["id"] for m in filtered_models]
-    filtered_raw_objects = [m["raw"] for m in filtered_models]
-
-    constructed_response = {
-        "object": "list",
-        "data": filtered_raw_objects
-    }
-
-    if update_cache:
-        with cache_lock:
             last_run_timestamp = datetime.now(timezone.utc).isoformat()
             last_run_latency = latency
-            last_error = None
-            cached_raw_response = constructed_response
-            cached_models_list = filtered_model_ids
-            total_unfiltered_count = total_count
+            last_error = error
+        logger.error(f"Failed to fetch model info from LiteLLM: {error} (latency: {latency:.3f}s)")
+        return False, None
+
+    # Apply exclusion filter and sanitization
+    sanitized_response, kept_names, total_count = filter_and_sanitize_response(raw_data, exclude_patterns)
+
+    if update_cache:
+        last_run_timestamp = datetime.now(timezone.utc).isoformat()
+        last_run_latency = latency
+        last_error = None
+        cached_info_response = sanitized_response
+        cached_models_list = kept_names
+        total_unfiltered_count = total_count
 
     logger.info(
-        f"Successfully updated cache: {len(filtered_models)}/{total_count} model(s) kept "
+        f"Successfully updated cache: {len(kept_names)}/{total_count} model(s) kept "
         f"(Exclude patterns: {exclude_patterns or 'None'}) in {latency:.3f}s:"
     )
-    for idx, m_id in enumerate(filtered_model_ids, start=1):
+    for idx, m_id in enumerate(kept_names, start=1):
         logger.info(f"  {idx:2d}. {m_id}")
 
-    return True
+    return True, sanitized_response
 
 
-def polling_loop(config: dict, verbose: bool = False):
-    """Background polling loop running once every config['interval'] seconds."""
-    logger.info(f"Starting background polling loop (interval: {config['interval']}s)...")
-    while not shutdown_event.is_set():
+async def background_poller():
+    """Background async polling task running once every app_config['interval'] seconds."""
+    logger.info(f"Starting background polling task (interval: {app_config['interval']}s)...")
+    while True:
         try:
-            run_single_check(config, verbose=verbose, update_cache=True)
+            run_single_check(app_config, update_cache=True)
+        except asyncio.CancelledError:
+            logger.info("Background polling task cancelled.")
+            break
         except Exception as e:
-            logger.error(f"Unhandled exception during polling cycle: {e}", exc_info=True)
+            logger.error(f"Unhandled error in polling cycle: {e}", exc_info=True)
 
-        logger.info(f"Next background check scheduled in {config['interval']} seconds...")
-        if shutdown_event.wait(timeout=config["interval"]):
+        logger.info(f"Next background check scheduled in {app_config['interval']} seconds...")
+        try:
+            await asyncio.sleep(app_config["interval"])
+        except asyncio.CancelledError:
             break
 
 
-class ModelListAPIHandler(BaseHTTPRequestHandler):
-    """HTTP Request Handler for serving cached LiteLLM models."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI Lifespan context manager for startup and shutdown events."""
+    global background_task, app_config
+    if not app_config:
+        load_env()
+        app_config = get_config()
 
-    def log_message(self, format, *args):
-        logger.info(f"API Request [{self.client_address[0]}] {format % args}")
+    logger.info("=" * 70)
+    logger.info("Starting LiteLLM Model Info Cache & API Service (FastAPI)")
+    if app_config.get("config_file"):
+        logger.info(f"Config File:     {app_config['config_file']}")
+    logger.info(f"Target Endpoint: {normalize_info_url(app_config['endpoint'])}")
+    logger.info(f"Exclude Rules:   {app_config['exclude_patterns'] or 'None'}")
+    logger.info(f"Poll Interval:   {app_config['interval']} seconds ({app_config['interval'] / 60:.1f} minute(s))")
+    logger.info(f"HTTP Server Port:{app_config['port']}")
+    logger.info(f"SSL Verify:      {app_config['ssl_verify']}")
+    logger.info("=" * 70)
 
-    def _send_json(self, status_code: int, data: dict or list):
-        payload = json.dumps(data, indent=2).encode("utf-8")
-        self.send_response(status_code)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(payload)))
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-        self.wfile.write(payload)
+    # Initial warm-up check
+    try:
+        run_single_check(app_config, update_cache=True)
+    except Exception as e:
+        logger.error(f"Initial warm-up check failed: {e}")
 
-    def do_GET(self):
-        clean_path = self.path.split("?")[0].rstrip("/")
-        if not clean_path:
-            clean_path = "/"
+    # Start background polling task
+    background_task = asyncio.create_task(background_poller())
 
-        # Models API endpoints
-        if clean_path in ("/", "/v1/models", "/models"):
-            with cache_lock:
-                if cached_raw_response is not None:
-                    self._send_json(200, cached_raw_response)
-                else:
-                    response_obj = {
-                        "object": "list",
-                        "data": [],
-                        "error": last_error or "Cache warming in progress...",
-                        "status": "cache_empty"
-                    }
-                    self._send_json(503 if last_error else 202, response_obj)
+    yield
 
-        # Status & Health endpoint
-        elif clean_path in ("/status", "/healthz", "/health"):
-            with cache_lock:
-                health_data = {
-                    "status": "healthy" if last_error is None else "degraded",
-                    "last_run_timestamp": last_run_timestamp,
-                    "last_run_latency_seconds": round(last_run_latency, 3),
-                    "filtered_model_count": len(cached_models_list),
-                    "total_unfiltered_model_count": total_unfiltered_count,
-                    "models": cached_models_list,
-                    "last_error": last_error
-                }
-                status_code = 200 if last_error is None else 500
-                self._send_json(status_code, health_data)
+    # Shutdown
+    if background_task:
+        background_task.cancel()
+        try:
+            await background_task
+        except asyncio.CancelledError:
+            pass
+    logger.info("LiteLLM Model List Service stopped cleanly.")
 
-        else:
-            self._send_json(404, {"error": "Not Found", "available_endpoints": ["/v1/models", "/models", "/", "/status"]})
+
+# Initialize FastAPI application
+app = FastAPI(
+    title="Model List Service",
+    description="Caches LiteLLM model info with exclusion filters and serves via HTTP API.",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Enable CORS for all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Custom 404 handler with available endpoints hint."""
+    if exc.status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Not Found", "available_endpoints": ["/", "/info", "/docs"]}
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
+
+
+@app.get(
+    "/",
+    summary="Health & Status Overview",
+    description="Returns the service health status, last poll timestamp, latency, and cached model names list.",
+    tags=["Status"]
+)
+@app.get("/healthz", include_in_schema=False)
+@app.get("/health", include_in_schema=False)
+async def get_status():
+    """Root endpoint returning service status & health."""
+    status_text = "healthy" if last_error is None else "degraded"
+    if last_run_timestamp is None and last_error is None:
+        status_text = "warming"
+
+    health_data = {
+        "status": status_text,
+        "last_run_timestamp": last_run_timestamp,
+        "last_run_latency_seconds": round(last_run_latency, 3),
+        "filtered_model_count": len(cached_models_list),
+        "total_unfiltered_model_count": total_unfiltered_count,
+        "models": cached_models_list,
+        "last_error": last_error
+    }
+    status_code = status.HTTP_200_OK if last_error is None else status.HTTP_500_INTERNAL_SERVER_ERROR
+    return JSONResponse(status_code=status_code, content=health_data)
+
+
+@app.get(
+    "/info",
+    summary="LiteLLM Model Info",
+    description="Returns the cached LiteLLM /model/info JSON payload with excluded models filtered and internal metadata stripped.",
+    tags=["Models"]
+)
+@app.get("/model/info", include_in_schema=False)
+async def get_info():
+    """Returns cached LiteLLM model info."""
+    if cached_info_response is not None:
+        return JSONResponse(status_code=status.HTTP_200_OK, content=cached_info_response)
+    else:
+        response_obj = {
+            "data": [],
+            "error": last_error or "Cache warming in progress...",
+            "status": "error" if last_error else "cache_empty"
+        }
+        status_code = status.HTTP_503_SERVICE_UNAVAILABLE if last_error else status.HTTP_202_ACCEPTED
+        return JSONResponse(status_code=status_code, content=response_obj)
 
 
 def main():
+    global app_config
     parser = argparse.ArgumentParser(
-        description="Model List Service - Caches LiteLLM models with exclusion filters and serves via HTTP API."
+        description="Model List Service (FastAPI) - Caches LiteLLM model info with exclusion filters and serves via HTTP API."
     )
     parser.add_argument(
         "-c", "--config",
@@ -540,7 +665,7 @@ def main():
     parser.add_argument(
         "--once",
         action="store_true",
-        help="Fetch models once, print JSON to stdout, and exit"
+        help="Fetch model info once, print JSON to stdout, and exit"
     )
     parser.add_argument(
         "--insecure",
@@ -560,53 +685,25 @@ def main():
     args = parser.parse_args()
 
     load_env(verbose=args.verbose)
-    config = get_config(args)
+    app_config = get_config(args)
 
     if args.verbose:
         logger.setLevel(logging.DEBUG)
 
     run_once = args.once or os.environ.get("RUN_ONCE", "").strip().lower() in ("true", "1", "yes")
     if run_once:
-        success = run_single_check(config, verbose=args.verbose, update_cache=False)
+        success, result_data = run_single_check(app_config, verbose=args.verbose, update_cache=False)
+        if success and result_data:
+            print(json.dumps(result_data, indent=2))
         sys.exit(0 if success else 1)
 
-    def signal_handler(signum, frame):
-        sig_name = signal.Signals(signum).name
-        logger.info(f"Received signal {sig_name}, shutting down...")
-        shutdown_event.set()
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-    logger.info("=" * 70)
-    logger.info("Starting LiteLLM Model List Cache & API Service")
-    if config['config_file']:
-        logger.info(f"Config File:     {config['config_file']}")
-    logger.info(f"Target Endpoint: {normalize_models_url(config['endpoint'])}")
-    logger.info(f"Exclude Rules:   {config['exclude_patterns'] or 'None'}")
-    logger.info(f"Poll Interval:   {config['interval']} seconds ({config['interval'] / 60:.1f} minute(s))")
-    logger.info(f"HTTP Server Port:{config['port']}")
-    logger.info(f"SSL Verify:      {config['ssl_verify']}")
-    logger.info("=" * 70)
-
-    # Start background polling thread
-    poll_thread = threading.Thread(target=polling_loop, args=(config, args.verbose), daemon=True)
-    poll_thread.start()
-
-    # Start HTTP server
-    server_address = ("", config["port"])
-    httpd = HTTPServer(server_address, ModelListAPIHandler)
-    logger.info(f"HTTP API server listening on http://0.0.0.0:{config['port']}")
-
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        logger.info("Stopping HTTP server...")
-        httpd.server_close()
-        logger.info("LiteLLM Model List Service stopped cleanly.")
+    log_level = "debug" if args.verbose else "info"
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=app_config["port"],
+        log_level=log_level
+    )
 
 
 if __name__ == "__main__":
