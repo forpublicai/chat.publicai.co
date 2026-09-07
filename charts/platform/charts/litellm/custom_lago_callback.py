@@ -154,6 +154,12 @@ class LagoCustomCallback(CustomLogger):
             "zai-org/GLM-5.2": "zai-org/GLM-5.2",
             "openai/google/gemma-4-31B-it": "google/gemma-4-31B-it",
             "google/gemma-4-31B-it": "google/gemma-4-31B-it",
+
+            # Cohere models
+            "openai/CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
+            "CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
+            "CohereLabs/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
+            "cohere/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
         }
 
         # Try direct mapping first

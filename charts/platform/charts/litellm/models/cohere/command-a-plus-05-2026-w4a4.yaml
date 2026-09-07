@@ -1,0 +1,15 @@
+environments:
+  - staging
+  - prod
+models:
+- model_name: cohere/command-a-plus-05-2026-w4a4
+  litellm_params:
+    model: openai/CohereLabs/command-a-plus-05-2026-w4a4:cohere
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_CURRENT_AI_CREDITS
+    supports_vision: true
+    extra_headers:
+      X-HF-Bill-To: current-ai-official
+fallbacks:
+- aisingapore/Qwen-SEA-LION-v4-32B-IT
+- swiss-ai/apertus-v1.5-70b

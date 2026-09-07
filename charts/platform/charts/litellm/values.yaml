@@ -26,9 +26,9 @@ serviceAccount:
     eks.amazonaws.com/role-arn: arn:aws:iam::901779868336:role/AmazonEKS_LiteLLM_Role
 config:
   litellm_settings:
-    num_retries: 3
+    num_retries: 5
     allowed_fails: 1
-    cooldown_time: 60
+    cooldown_time: 30
     cache: true
     require_auth_for_metrics_endpoint: false
     cache_params:
@@ -48,7 +48,7 @@ env:
   litellmRedisPort: '6379'
   litellmRedisNamespace: litellm
 router:
-  routingStrategy: simple-shuffle
+  routingStrategy: latency-based-routing
 autoscaling:
   enabled: true
   minReplicas: 1

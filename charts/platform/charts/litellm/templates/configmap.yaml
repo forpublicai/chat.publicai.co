@@ -167,6 +167,10 @@ data:
         {{- if hasKey .litellm_params "drop_params" }}
         drop_params: {{ .litellm_params.drop_params }}
         {{- end }}
+        {{- if .litellm_params.extra_headers }}
+        extra_headers:
+          {{- toYaml .litellm_params.extra_headers | nindent 10 }}
+        {{- end }}
         {{- if .litellm_params.complexity_router_config }}
         complexity_router_config:
           {{- toYaml .litellm_params.complexity_router_config | nindent 10 }}

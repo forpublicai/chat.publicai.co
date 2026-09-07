@@ -110,6 +110,12 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: cscs_api_key
                   optional: true
+            - name: HF_CURRENT_AI_CREDITS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: hf_current_ai_credits
+                  optional: true
             - name: SLACK_WEBHOOK_URL
               valueFrom:
                 secretKeyRef:
