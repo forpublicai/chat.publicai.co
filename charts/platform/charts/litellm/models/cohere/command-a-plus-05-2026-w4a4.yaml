@@ -1,6 +1,5 @@
 environments:
   - staging
-  - prod
 models:
 - model_name: cohere/command-a-plus-05-2026-w4a4
   litellm_params:
