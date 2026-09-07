@@ -4,6 +4,9 @@ global:
 
 open-webui:
   app:
+    image:
+      repository: ghcr.io/forpublicai/open-webui
+      tag: cognito-patch-3b58c9716-20260312-222608
     webuiUrl: "https://chat.publicai.co"
     auth:
       signoutRedirectUrl: "https://chat.publicai.co/"
