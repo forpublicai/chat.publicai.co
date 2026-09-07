@@ -5,10 +5,11 @@ global:
 open-webui:
   app:
     image:
-      tag: cognito-patch-311b5c5b8-20260901-125838
+      repository: ghcr.io/open-webui/open-webui
+      tag: main
     webuiUrl: "https://chat.ai-staging.chat"
     auth:
-      signoutRedirectUrl: "https://chat.ai-staging.chat/"
+      signoutRedirectUrl: "https://chat.ai-staging.chat/auth"
     storage:
       s3:
         bucketName: "staging-aichat-bucket"

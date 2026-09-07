@@ -161,6 +161,28 @@ spec:
             secretKeyRef:
               name: {{ .Values.secrets.name }}
               key: OPENID_REDIRECT_URI
+        - name: OPENID_END_SESSION_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.name }}
+              key: OPENID_END_SESSION_ENDPOINT
+              optional: true
+        - name: OAUTH_SCOPES
+          value: "{{ .Values.app.auth.oauthScopes | default "openid email profile" }}"
+        - name: OAUTH_USERNAME_CLAIM
+          value: "{{ .Values.app.auth.oauthUsernameClaim | default "cognito:username" }}"
+        - name: OAUTH_EMAIL_CLAIM
+          value: "{{ .Values.app.auth.oauthEmailClaim | default "email" }}"
+        - name: OAUTH_PICTURE_CLAIM
+          value: "{{ .Values.app.auth.oauthPictureClaim | default "picture" }}"
+        {{- if .Values.app.auth.oauthRolesClaim }}
+        - name: OAUTH_ROLES_CLAIM
+          value: "{{ .Values.app.auth.oauthRolesClaim }}"
+        {{- end }}
+        {{- if .Values.app.auth.oauthAdminRoles }}
+        - name: OAUTH_ADMIN_ROLES
+          value: "{{ .Values.app.auth.oauthAdminRoles }}"
+        {{- end }}
         - name: ENABLE_FORWARD_USER_INFO_HEADERS
           value: "{{ .Values.app.auth.enableForwardUserInfoHeaders }}"
         - name: OAUTH_PROVIDER_NAME

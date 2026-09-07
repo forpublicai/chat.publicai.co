@@ -5,8 +5,8 @@ app:
   name: openwebui
   replicas: 2
   image:
-    repository: ghcr.io/forpublicai/open-webui
-    tag: cognito-patch-3b58c9716-20260312-222608 # cognito-patch-8265abf73-20251221-034242 (last working) cognito-patch-6c0c999b9-20250929-193806 (2nd last working)
+    repository: ghcr.io/open-webui/open-webui
+    tag: main
   port: 8080
   webuiUrl: "http://localhost:8080" # Base local default. Override in env-specific values.yaml (e.g. staging/prod)
   vectorDb: pgvector
@@ -56,8 +56,12 @@ app:
     enableOauthRoleManagement: "false"
     enableOauthGroupManagement: "false"
     openidProviderUrl: ""
+    oauthScopes: "openid email profile"
+    oauthUsernameClaim: "cognito:username"
+    oauthEmailClaim: "email"
+    oauthPictureClaim: "picture"
     enableForwardUserInfoHeaders: "true"
-    signoutRedirectUrl: "http://localhost:8080/" # Default local redirect. Override in env-specific values.yaml
+    signoutRedirectUrl: "http://localhost:8080/auth" # Default local redirect. Override in env-specific values.yaml
     oauthProviderName: "Public AI"
     defaultUserRole: "user"
     enableAdminChatAccess: "false"
