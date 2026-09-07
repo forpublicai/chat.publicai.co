@@ -6,7 +6,7 @@ open-webui:
   app:
     image:
       repository: ghcr.io/open-webui/open-webui
-      tag: main
+      tag: v0.11.3
     webuiUrl: "https://chat.ai-staging.chat"
     auth:
       signoutRedirectUrl: "https://chat.ai-staging.chat/auth"
