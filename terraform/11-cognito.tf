@@ -272,7 +272,7 @@ resource "aws_cognito_user_pool_client" "publicai_app" {
   allowed_oauth_flows_user_pool_client          = true
   allowed_oauth_scopes                          = ["email", "openid", "phone", "profile"]
   callback_urls                                 = ["https://chat.${local.domain}/oauth/oidc/callback"]
-  logout_urls                                   = ["https://chat.${local.domain}/", "https://${local.domain}/"]
+  logout_urls                                   = ["https://chat.${local.domain}/auth", "https://chat.${local.domain}/", "https://${local.domain}/"]
   enable_propagate_additional_user_context_data = false
   enable_token_revocation                       = true
   prevent_user_existence_errors                 = "ENABLED"

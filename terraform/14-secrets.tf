@@ -50,6 +50,7 @@ resource "aws_secretsmanager_secret_version" "open_webui_managed" {
     OAUTH_CLIENT_SECRET  = aws_cognito_user_pool_client.publicai_app.client_secret
     OPENID_PROVIDER_URL  = "https://cognito-idp.${local.region}.amazonaws.com/${aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
     OPENID_REDIRECT_URI  = "https://chat.${local.domain}/oauth/oidc/callback"
+    OPENID_END_SESSION_ENDPOINT = "https://auth.${local.domain}/logout?client_id=${aws_cognito_user_pool_client.publicai_app.id}&logout_uri=https://chat.${local.domain}/auth"
   })
 }
 
