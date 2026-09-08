@@ -98,6 +98,18 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: infomaniak_api_key
                   optional: true
+            - name: FEATHERLESS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: featherless_api_key
+                  optional: true
+            - name: PHOENIQS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: phoeniqs_api_key
+                  optional: true
             - name: BIELIK_API_KEY
               valueFrom:
                 secretKeyRef:
