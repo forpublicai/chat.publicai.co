@@ -28,30 +28,16 @@ models:
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
-- model_name: swiss-ai/apertus-v1.5-70b
-  litellm_params:
-    model: openai/inference-apertus-v15-70b
-    api_base: https://maas.phoeniqs.com/v1
-    api_key: os.environ/PHOENIQS_API_KEY
-    supports_vision: true
-    weight: 1
-    temperature: 0.8
-    top_p: 0.9
-    max_tokens: 8192
-  model_info:
-    input_cost_per_token: 0.00000082
-    output_cost_per_token: 0.00000292
 #- model_name: swiss-ai/apertus-v1.5-70b
 #  litellm_params:
-#    model: openai/swiss-ai/Apertus-v1.5-70B
-#    api_base: https://api.inference.cscs.ch/v1
-#    api_key: os.environ/CSCS_API_KEY
-#    ssl_verify: false
+#    model: openai/inference-apertus-v15-70b
+#    api_base: https://maas.phoeniqs.com/v1
+#    api_key: os.environ/PHOENIQS_API_KEY
 #    supports_vision: true
-#    weight: 20
+#    weight: 1
 #    temperature: 0.8
 #    top_p: 0.9
-#    max_tokens: 16384
+#    max_tokens: 8192
 #  model_info:
 #    input_cost_per_token: 0.00000082
 #    output_cost_per_token: 0.00000292
