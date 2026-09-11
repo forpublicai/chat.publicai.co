@@ -52,7 +52,7 @@ resource "helm_release" "argocd" {
         notifiers = {
           "service.slack" = "token: $slack-token"
           "service.email" = <<-EOT
-            host: email-smtp.${local.region}.amazonaws.com
+            host: umnszkveg337.fips.wmjb.mail-manager-smtp.amazonaws.com
             port: 587
             from: ${local.alert_email}
             username: $email-username
