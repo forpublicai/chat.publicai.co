@@ -5,6 +5,12 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.searxng.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  progressDeadlineSeconds: 300
   selector:
     matchLabels:
       app: {{ .Values.searxng.name }}

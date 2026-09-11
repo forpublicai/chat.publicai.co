@@ -5,6 +5,12 @@ metadata:
   namespace: {{ .Values.global.namespace | default "web-services" }}
 spec:
   replicas: {{ .Values.app.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  progressDeadlineSeconds: 300
   minReadySeconds: {{ .Values.app.minReadySeconds | default 20 }}
   selector:
     matchLabels:

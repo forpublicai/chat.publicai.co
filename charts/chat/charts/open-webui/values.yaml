@@ -13,6 +13,32 @@ app:
   enableVersionUpdateCheck: "false"
   enablePersistentConfig: "true"
   
+  # Safe Rollout & Zero-Downtime Deployment Strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  progressDeadlineSeconds: 300
+  minReadySeconds: 10
+
+  # Health & Readiness Probes
+  probes:
+    readiness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    liveness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+
   # Affinity settings for production
   affinity:
     enabled: true

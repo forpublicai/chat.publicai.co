@@ -5,6 +5,15 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.app.replicas }}
+  strategy:
+    type: {{ .Values.app.strategy.type | default "RollingUpdate" }}
+    {{- if eq (.Values.app.strategy.type | default "RollingUpdate") "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.app.strategy.rollingUpdate.maxUnavailable | default 0 }}
+      maxSurge: {{ .Values.app.strategy.rollingUpdate.maxSurge | default 1 }}
+    {{- end }}
+  progressDeadlineSeconds: {{ .Values.app.progressDeadlineSeconds | default 300 }}
+  minReadySeconds: {{ .Values.app.minReadySeconds | default 10 }}
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -265,3 +274,23 @@ spec:
           limits:
             memory: "{{ .Values.app.resources.limits.memory }}"
             cpu: "{{ .Values.app.resources.limits.cpu }}"
+        {{- if .Values.app.probes.readiness.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.app.probes.readiness.path | default "/health" }}
+            port: {{ .Values.app.port }}
+          initialDelaySeconds: {{ .Values.app.probes.readiness.initialDelaySeconds | default 15 }}
+          periodSeconds: {{ .Values.app.probes.readiness.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.app.probes.readiness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.app.probes.readiness.failureThreshold | default 3 }}
+        {{- end }}
+        {{- if .Values.app.probes.liveness.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.app.probes.liveness.path | default "/health" }}
+            port: {{ .Values.app.port }}
+          initialDelaySeconds: {{ .Values.app.probes.liveness.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.app.probes.liveness.periodSeconds | default 15 }}
+          timeoutSeconds: {{ .Values.app.probes.liveness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.app.probes.liveness.failureThreshold | default 3 }}
+        {{- end }}
