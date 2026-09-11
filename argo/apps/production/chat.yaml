@@ -5,6 +5,10 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: "#alerts"
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: "#alerts"
+    notifications.argoproj.io/subscribe.on-health-degraded.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-sync-failed.email: "sean@publicai.co"
 spec:
   project: default
   source:

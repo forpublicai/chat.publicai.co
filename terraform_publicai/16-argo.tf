@@ -39,6 +39,22 @@ resource "helm_release" "argocd" {
     {
       name  = "global.tolerations[0].effect"
       value = "NoSchedule"
+    },
+    {
+      name  = "notifications.enabled"
+      value = "true"
+    },
+    {
+      name  = "notifications.secret.create"
+      value = "false"
+    },
+    {
+      name  = "notifications.notifiers.service\\.slack"
+      value = "token: $slack-token"
+    },
+    {
+      name  = "notifications.notifiers.service\\.email"
+      value = "host: email-smtp.${local.region}.amazonaws.com\nport: 587\nfrom: ${local.alert_email}\nusername: $email-username\npassword: $email-password"
     }
   ]
 }
