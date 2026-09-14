@@ -5,11 +5,11 @@ global:
 open-webui:
   app:
     image:
-      repository: ghcr.io/forpublicai/open-webui
-      tag: cognito-patch-3b58c9716-20260312-222608
+      repository: ghcr.io/open-webui/open-webui
+      tag: v0.11.3
     webuiUrl: "https://chat.publicai.co"
     auth:
-      signoutRedirectUrl: "https://chat.publicai.co/"
+      signoutRedirectUrl: "https://chat.publicai.co/auth"
     storage:
       s3:
         bucketName: "publicai-bucket"
