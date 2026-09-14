@@ -4,6 +4,9 @@ global:
     region: eu-central-2
 
 litellm:
+  app:
+    image:
+      tag: v1.98.0
   enabled: true # Set to false to temporarily turn off the LiteLLM deployment in prod
   secrets:
     manualSecretsName: "prod/publicai/litellm/manual-secrets"
