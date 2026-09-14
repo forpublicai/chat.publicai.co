@@ -21,7 +21,7 @@ open-webui:
       rollingUpdate:
         maxUnavailable: 0
         maxSurge: 1
-    progressDeadlineSeconds: 300
+    progressDeadlineSeconds: 1200
     minReadySeconds: 10
     probes:
       readiness:
@@ -34,7 +34,7 @@ open-webui:
       liveness:
         enabled: true
         path: /health
-        initialDelaySeconds: 30
+        initialDelaySeconds: 900
         periodSeconds: 15
         timeoutSeconds: 5
         failureThreshold: 3
