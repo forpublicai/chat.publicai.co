@@ -117,6 +117,7 @@ resource "aws_iam_role" "lite_llm" {
         Condition = {
           StringEquals = {
             "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:platform:litellm-sa"
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:router:litellm-sa"
             "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud" = "sts.amazonaws.com"
           }
         }
