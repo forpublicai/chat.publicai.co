@@ -203,6 +203,11 @@ resource "aws_iam_role" "external_secrets_irsa" {
   }
 }
 
+# Data source for existing Agent Service secret
+data "aws_secretsmanager_secret" "agent_service" {
+  name = "/agent-service"
+}
+
 resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
   name        = "${local.env}-ExternalSecrets-SecretsManager-Policy"
   description = "Allows External Secrets Operator to retrieve open-webui secrets from AWS Secrets Manager"
@@ -223,7 +228,8 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.grafana.arn,
           aws_secretsmanager_secret.prometheus.arn,
           aws_secretsmanager_secret.rds_password.arn,
-          aws_secretsmanager_secret.argocd_notifications.arn
+          aws_secretsmanager_secret.argocd_notifications.arn,
+          data.aws_secretsmanager_secret.agent_service.arn
         ]
       }
     ]
