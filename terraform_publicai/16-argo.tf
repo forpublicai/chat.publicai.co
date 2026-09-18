@@ -45,7 +45,7 @@ resource "helm_release" "argocd" {
   values = [
     yamlencode({
       notifications = {
-        enabled = false # TODO switch back on
+        enabled = true
         secret = {
           create = false
         }
