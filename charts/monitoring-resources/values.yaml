@@ -7,6 +7,10 @@ prometheus:
 grafana:
   secretsName: ""
 
+argocdNotifications:
+  enabled: true
+  secretsName: "prod/publicai/argocd/notifications"
+
 healthcheck:
   enabled: true
 

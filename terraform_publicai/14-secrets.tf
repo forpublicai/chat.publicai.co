@@ -141,6 +141,30 @@ resource "aws_secretsmanager_secret_version" "rds_password" {
   }
 }
 
+resource "aws_secretsmanager_secret" "argocd_notifications" {
+  name                    = "${local.env}/${local.org}/argocd/notifications"
+  description             = "Secrets for ArgoCD notifications (Slack webhook / token)"
+  recovery_window_in_days = 0
+
+  tags = {
+    Name        = "${local.env}-${local.org}-argocd-notifications"
+    Environment = local.env
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "argocd_notifications" {
+  secret_id = aws_secretsmanager_secret.argocd_notifications.id
+  secret_string = jsonencode({
+    slack-token    = "placeholder-replace-in-console"
+    email-username = "placeholder-replace-in-console"
+    email-password = "placeholder-replace-in-console"
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 resource "aws_iam_role" "external_secrets_irsa" {
   name = "${local.env}-ExternalSecrets-IRSA-Role"
 
@@ -188,7 +212,8 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.litellm_manual.arn,
           aws_secretsmanager_secret.grafana.arn,
           aws_secretsmanager_secret.prometheus.arn,
-          aws_secretsmanager_secret.rds_password.arn
+          aws_secretsmanager_secret.rds_password.arn,
+          aws_secretsmanager_secret.argocd_notifications.arn
         ]
       }
     ]

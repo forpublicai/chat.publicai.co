@@ -4,6 +4,10 @@ prometheus:
 grafana:
   secretsName: "staging/aichat/grafana/secrets"
 
+argocdNotifications:
+  enabled: true
+  secretsName: "staging/aichat/argocd/notifications"
+
 healthcheck:
   enabled: true
 
