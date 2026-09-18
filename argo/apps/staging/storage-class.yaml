@@ -3,6 +3,17 @@ kind: Application
 metadata:
   name: storage-class
   namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-health-degraded.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-sync-failed.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-deployed.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-deployed.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-created.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-created.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-deleted.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-deleted.email: "sean@publicai.co"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
