@@ -125,7 +125,7 @@ spec:
             - name: NEXBIT_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: { { .Values.secrets.name } }
+                  name: {{ .Values.secrets.name }}
                   key: nexbit_api_key
                   optional: true
             - name: CSCS_API_KEY
