@@ -6,7 +6,7 @@ global:
 litellm:
   app:
     image:
-      tag: v1.98.0 
+      tag: v1.98.0
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
