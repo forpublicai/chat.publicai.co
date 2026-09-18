@@ -64,7 +64,7 @@ resource "helm_release" "argocd" {
             - description: Application is synced and healthy.
               oncePer: app.status.sync.revision
               send: [app-deployed]
-              when: app.status.operationState.phase in ["Succeeded"] and app.status.health.status == "Healthy"
+              when: app.status.operationState != nil and app.status.operationState.phase in ["Succeeded"] and app.status.health.status == "Healthy"
           EOT
           "trigger.on-health-degraded" = <<-EOT
             - description: Application has degraded
@@ -74,7 +74,19 @@ resource "helm_release" "argocd" {
           "trigger.on-sync-failed"     = <<-EOT
             - description: Application syncing has failed
               send: [app-sync-failed]
-              when: app.status.operationState.phase in ["Error", "Failed"]
+              when: app.status.operationState != nil and app.status.operationState.phase in ["Error", "Failed"]
+          EOT
+          "trigger.on-created"         = <<-EOT
+            - description: Application is created
+              oncePer: app.metadata.name
+              send: [app-created]
+              when: "true"
+          EOT
+          "trigger.on-deleted"         = <<-EOT
+            - description: Application is deleted
+              oncePer: app.metadata.name
+              send: [app-deleted]
+              when: app.metadata.deletionTimestamp != nil
           EOT
         }
         templates = {
@@ -125,6 +137,36 @@ resource "helm_release" "argocd" {
                   "fields": [
                     {"title": "Sync Status", "value": "{{.app.status.operationState.phase}}", "short": true}
                   ]
+                }]
+          EOT
+          "template.app-created"         = <<-EOT
+            email:
+              subject: Application {{.app.metadata.name}} has been created
+            message: |
+              Application {{.app.metadata.name}} has been created.
+            slack:
+              attachments: |
+                [{
+                  "title": "{{ .app.metadata.name}} created",
+                  "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+                  "color": "#18be52",
+                  "fields": [
+                    {"title": "Sync Status", "value": "{{.app.status.sync.status}}", "short": true},
+                    {"title": "Health Status", "value": "{{.app.status.health.status}}", "short": true}
+                  ]
+                }]
+          EOT
+          "template.app-deleted"         = <<-EOT
+            email:
+              subject: Application {{.app.metadata.name}} has been deleted
+            message: |
+              Application {{.app.metadata.name}} has been deleted.
+            slack:
+              attachments: |
+                [{
+                  "title": "ALERT: {{ .app.metadata.name}} deleted",
+                  "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+                  "color": "#E96D76"
                 }]
           EOT
         }
