@@ -99,6 +99,8 @@ class LagoCustomCallback(CustomLogger):
             "Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
             "swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
             "openai/swiss-ai/Apertus-8B-Instruct-2509:featherless-ai": "swiss-ai/apertus-8b-instruct",
+            "openai/swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
+            "swiss-ai/apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
             "apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
             "Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
@@ -134,6 +136,7 @@ class LagoCustomCallback(CustomLogger):
             "/root/.cache/huggingface/ALIA-40b-instruct_Q8_0/ALIA-40b-instruct_bos_Q8_0.gguf": "BSC-LT/ALIA-40b-instruct_Q8_0",
             "BSC-LT/salamandra-7b-instruct-tools-16k": "BSC-LT/salamandra-7b-instruct-tools-16k",
             "BSC-LT/salamandra-7b-instruct": "BSC-LT/salamandra-7b-instruct",
+            "BSC-LT/ALIA-40b-instruct": "BSC-LT/ALIA-40b-instruct",
 
             # Mistral
             "mistral-small-3-1": "mistralai/mistral-small-3-1",
