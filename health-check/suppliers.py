@@ -209,18 +209,30 @@ def main():
                 os.path.join(base_path, 'charts/platform/charts/litellm/models'),
                 os.path.join(base_path, 'charts/litellm/models'),
                 os.path.join(base_path, 'charts/web_services/charts/litellm/models'),
+                os.path.join(base_path, 'litellm/models'),
+                os.path.join(base_path, 'models'),
+                base_path
             ]
             for c in candidates:
                 if os.path.isdir(c):
-                    return c
+                    for _, _, files in os.walk(c):
+                        if any(f.endswith(('.yaml', '.yml')) for f in files):
+                            return c
             return None
 
-        models_dir = os.environ.get("MODELS_DIR")
-        if not models_dir or not os.path.exists(models_dir):
-            # First check if local repository root already contains models
+        log(f"Loading environment from: {env_path}")
+        load_env(env_path, verbose=not json_mode)
+
+        model_dirs = []
+
+        # 1. Primary models directory
+        primary_models_dir = os.environ.get("MODELS_DIR")
+        if primary_models_dir and os.path.exists(primary_models_dir):
+            model_dirs.append(primary_models_dir)
+        else:
             local_candidate = find_models_dir(repo_root)
             if local_candidate and os.environ.get("FORCE_GIT_CLONE", "").lower() not in ("true", "1", "yes"):
-                models_dir = local_candidate
+                model_dirs.append(local_candidate)
             else:
                 try:
                     import shutil
@@ -232,28 +244,75 @@ def main():
                         except Exception:
                             pass
                     repo_url = os.environ.get("MODELS_REPO_URL", "https://github.com/forpublicai/chat.publicai.co.git")
-                    log(f"Cloning latest models dynamically from {repo_url}...")
+                    log(f"Cloning primary models dynamically from {repo_url}...")
                     subprocess.run(
                         ["git", "clone", "--depth", "1", repo_url, repo_dir],
                         check=True,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL
                     )
-                    models_dir = find_models_dir(repo_dir) or os.path.join(repo_dir, 'charts/platform/charts/litellm/models')
+                    found = find_models_dir(repo_dir)
+                    if found:
+                        model_dirs.append(found)
                 except Exception as e:
-                    log(f"Dynamic clone failed: {e}. Falling back to local directory.")
-                    models_dir = find_models_dir(repo_root) or os.path.join(repo_root, 'charts/platform/charts/litellm/models')
-        
-        log(f"Loading environment from: {env_path}")
-        load_env(env_path, verbose=not json_mode)
-        
-        log(f"Parsing active endpoints from: {models_dir}")
-        active_endpoints = parse_active_endpoints(models_dir, verbose=not json_mode)
-        
+                    log(f"Primary dynamic clone failed: {e}. Falling back to local directory.")
+                    local_cand = find_models_dir(repo_root)
+                    if local_cand:
+                        model_dirs.append(local_cand)
+
+        # 2. Extra models directory (currentai-org/infra)
+        extra_models_dir = os.environ.get("EXTRA_MODELS_DIR")
+        if extra_models_dir and os.path.exists(extra_models_dir):
+            model_dirs.append(extra_models_dir)
+        else:
+            extra_repo_url = os.environ.get("EXTRA_MODELS_REPO_URL", "https://github.com/currentai-org/infra.git")
+            extra_branch = os.environ.get("EXTRA_MODELS_REPO_BRANCH", "dev")
+            if extra_repo_url:
+                try:
+                    import shutil
+                    import subprocess
+                    extra_repo_dir = "/tmp/infra_models"
+                    if os.path.exists(extra_repo_dir):
+                        try:
+                            shutil.rmtree(extra_repo_dir)
+                        except Exception:
+                            pass
+                    log(f"Cloning extra models dynamically from {extra_repo_url} (branch: {extra_branch})...")
+                    subprocess.run(
+                        ["git", "clone", "--depth", "1", "-b", extra_branch, extra_repo_url, extra_repo_dir],
+                        check=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                    found_extra = find_models_dir(extra_repo_dir)
+                    if found_extra:
+                        model_dirs.append(found_extra)
+                except Exception as e:
+                    log(f"Extra repo clone failed: {e}")
+
+        # Parse all models from discovered directories
+        all_endpoints = []
+        for m_dir in model_dirs:
+            log(f"Parsing active endpoints from: {m_dir}")
+            try:
+                endpoints = parse_active_endpoints(m_dir, verbose=not json_mode)
+                all_endpoints.extend(endpoints)
+            except Exception as e:
+                log(f"Warning: Failed to parse endpoints from {m_dir}: {e}")
+
+        # Deduplicate endpoints by (model_name, api_base)
+        seen_targets = set()
+        active_endpoints = []
+        for ep in all_endpoints:
+            target_key = (ep.get('model_name'), ep.get('litellm_params', {}).get('api_base', '').rstrip('/'))
+            if target_key not in seen_targets:
+                seen_targets.add(target_key)
+                active_endpoints.append(ep)
+
         if not active_endpoints:
-            raise RuntimeError("No active HTTP endpoints found in models directory.")
+            raise RuntimeError("No active HTTP endpoints found across configured model directories.")
             
-        log(f"Found {len(active_endpoints)} active HTTP endpoints. Starting tests in parallel using {args.workers} workers...")
+        log(f"Found {len(active_endpoints)} unique active HTTP endpoints (from {len(all_endpoints)} parsed). Starting tests in parallel using {args.workers} workers...")
         log("-" * 120)
         
         results = [None] * len(active_endpoints)

@@ -49,9 +49,13 @@ suppliers_results = []
 suppliers_last_run_timestamp = 0.0
 suppliers_last_error = None
 
-litellm_results = []
-litellm_last_run_timestamp = 0.0
-litellm_last_error = None
+publicai_results = []
+publicai_last_run_timestamp = 0.0
+publicai_last_error = None
+
+currentai_results = []
+currentai_last_run_timestamp = 0.0
+currentai_last_error = None
 
 zuplo_results = []
 zuplo_last_run_timestamp = 0.0
@@ -185,15 +189,15 @@ def run_suppliers_check():
             "error": suppliers_last_error
         })
 
-def run_litellm_check():
-    global litellm_results, litellm_last_run_timestamp, litellm_last_error
+def run_publicai_router_check():
+    global publicai_results, publicai_last_run_timestamp, publicai_last_error
     litellm_script = "/app/litellm.py"
     if not os.path.exists(litellm_script):
         litellm_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "litellm.py"))
         
     try:
         result = subprocess.run(
-            [sys.executable, litellm_script, "-json"],
+            [sys.executable, litellm_script, "--router-name", "publicai_router", "-json"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -202,50 +206,113 @@ def run_litellm_check():
         try:
             data = json.loads(result.stdout)
             with data_lock:
-                litellm_results = data.get("results", [])
-                litellm_last_run_timestamp = time.time()
+                publicai_results = data.get("results", [])
+                publicai_last_run_timestamp = time.time()
                 error_obj = data.get("error")
                 if error_obj:
-                    litellm_last_error = error_obj.get("message")
+                    publicai_last_error = error_obj.get("message")
                 else:
-                    litellm_last_error = None
-            logger.info("LiteLLM health check completed", extra={
-                "check_type": "litellm",
-                "success": litellm_last_error is None,
-                "results": litellm_results,
-                "error": litellm_last_error
+                    publicai_last_error = None
+            logger.info("PublicAI Router health check completed", extra={
+                "check_type": "publicai_router",
+                "success": publicai_last_error is None,
+                "results": publicai_results,
+                "error": publicai_last_error
             })
         except json.JSONDecodeError:
             with data_lock:
-                litellm_results = []
-                litellm_last_run_timestamp = time.time()
-                litellm_last_error = f"Invalid JSON output from litellm.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            logger.error("Failed to decode JSON from litellm.py", extra={
-                "check_type": "litellm",
+                publicai_results = []
+                publicai_last_run_timestamp = time.time()
+                publicai_last_error = f"Invalid JSON output from litellm.py (publicai_router). Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
+            logger.error("Failed to decode JSON from litellm.py (publicai_router)", extra={
+                "check_type": "publicai_router",
                 "success": False,
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "error": litellm_last_error
+                "error": publicai_last_error
             })
     except subprocess.TimeoutExpired:
         with data_lock:
-            litellm_results = []
-            litellm_last_run_timestamp = time.time()
-            litellm_last_error = f"LiteLLM health check timed out after {CHECK_TIMEOUT_SECONDS}s"
-        logger.error(f"LiteLLM health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
-            "check_type": "litellm",
+            publicai_results = []
+            publicai_last_run_timestamp = time.time()
+            publicai_last_error = f"PublicAI Router health check timed out after {CHECK_TIMEOUT_SECONDS}s"
+        logger.error(f"PublicAI Router health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
+            "check_type": "publicai_router",
             "success": False,
-            "error": litellm_last_error
+            "error": publicai_last_error
         })
     except Exception as e:
         with data_lock:
-            litellm_results = []
-            litellm_last_run_timestamp = time.time()
-            litellm_last_error = f"Exception running litellm.py: {e}"
-        logger.error(f"Exception running litellm.py: {e}", exc_info=True, extra={
-            "check_type": "litellm",
+            publicai_results = []
+            publicai_last_run_timestamp = time.time()
+            publicai_last_error = f"Exception running litellm.py (publicai_router): {e}"
+        logger.error(f"Exception running litellm.py (publicai_router): {e}", exc_info=True, extra={
+            "check_type": "publicai_router",
             "success": False,
-            "error": litellm_last_error
+            "error": publicai_last_error
+        })
+
+def run_currentai_router_check():
+    global currentai_results, currentai_last_run_timestamp, currentai_last_error
+    litellm_script = "/app/litellm.py"
+    if not os.path.exists(litellm_script):
+        litellm_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "litellm.py"))
+        
+    try:
+        result = subprocess.run(
+            [sys.executable, litellm_script, "--router-name", "currentai_router", "-json"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=CHECK_TIMEOUT_SECONDS
+        )
+        try:
+            data = json.loads(result.stdout)
+            with data_lock:
+                currentai_results = data.get("results", [])
+                currentai_last_run_timestamp = time.time()
+                error_obj = data.get("error")
+                if error_obj:
+                    currentai_last_error = error_obj.get("message")
+                else:
+                    currentai_last_error = None
+            logger.info("CurrentAI Router health check completed", extra={
+                "check_type": "currentai_router",
+                "success": currentai_last_error is None,
+                "results": currentai_results,
+                "error": currentai_last_error
+            })
+        except json.JSONDecodeError:
+            with data_lock:
+                currentai_results = []
+                currentai_last_run_timestamp = time.time()
+                currentai_last_error = f"Invalid JSON output from litellm.py (currentai_router). Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
+            logger.error("Failed to decode JSON from litellm.py (currentai_router)", extra={
+                "check_type": "currentai_router",
+                "success": False,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "error": currentai_last_error
+            })
+    except subprocess.TimeoutExpired:
+        with data_lock:
+            currentai_results = []
+            currentai_last_run_timestamp = time.time()
+            currentai_last_error = f"CurrentAI Router health check timed out after {CHECK_TIMEOUT_SECONDS}s"
+        logger.error(f"CurrentAI Router health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
+            "check_type": "currentai_router",
+            "success": False,
+            "error": currentai_last_error
+        })
+    except Exception as e:
+        with data_lock:
+            currentai_results = []
+            currentai_last_run_timestamp = time.time()
+            currentai_last_error = f"Exception running litellm.py (currentai_router): {e}"
+        logger.error(f"Exception running litellm.py (currentai_router): {e}", exc_info=True, extra={
+            "check_type": "currentai_router",
+            "success": False,
+            "error": currentai_last_error
         })
 
 def run_zuplo_check():
@@ -316,13 +383,16 @@ def minutely_scheduler_loop():
     while True:
         start_time = time.time()
         try:
-            logger.info("Running minutely health checks (Suppliers, LiteLLM)...")
+            logger.info("Running minutely health checks (Suppliers, PublicAI Router, CurrentAI Router)...")
             t_sup = threading.Thread(target=run_suppliers_check)
-            t_lite = threading.Thread(target=run_litellm_check)
+            t_pub = threading.Thread(target=run_publicai_router_check)
+            t_cur = threading.Thread(target=run_currentai_router_check)
             t_sup.start()
-            t_lite.start()
+            t_pub.start()
+            t_cur.start()
             t_sup.join()
-            t_lite.join()
+            t_pub.join()
+            t_cur.join()
         except Exception as e:
             logger.error(f"Error in minutely_scheduler_loop: {e}", exc_info=True)
         elapsed = time.time() - start_time
@@ -416,32 +486,59 @@ class MetricsHandler(BaseHTTPRequestHandler):
                     else:
                         lines.append(f'suppliers_model_ttft_seconds{{model="{model}"}} NaN')
 
-                # --- LiteLLM Metrics ---
-                lines.append("# HELP litellm_router_last_run_timestamp_seconds Unix timestamp of the last health check run")
-                lines.append("# TYPE litellm_router_last_run_timestamp_seconds gauge")
-                lines.append(f"litellm_router_last_run_timestamp_seconds {litellm_last_run_timestamp}")
+                # --- PublicAI Router (LiteLLM) Metrics ---
+                lines.append("# HELP publicai_router_last_run_timestamp_seconds Unix timestamp of the last health check run")
+                lines.append("# TYPE publicai_router_last_run_timestamp_seconds gauge")
+                lines.append(f"publicai_router_last_run_timestamp_seconds {publicai_last_run_timestamp}")
 
-                litellm_global_success = 1 if litellm_last_error is None else 0
-                lines.append("# HELP litellm_router_test_global_success Overall status of the health checks (1 = success, 0 = failure)")
-                lines.append("# TYPE litellm_router_test_global_success gauge")
-                lines.append(f"litellm_router_test_global_success {litellm_global_success}")
+                publicai_global_success = 1 if publicai_last_error is None else 0
+                lines.append("# HELP publicai_router_test_global_success Overall status of the health checks (1 = success, 0 = failure)")
+                lines.append("# TYPE publicai_router_test_global_success gauge")
+                lines.append(f"publicai_router_test_global_success {publicai_global_success}")
 
-                lines.append("# HELP litellm_router_model_test_success Success status of individual model test (1 = success, 0 = failure)")
-                lines.append("# TYPE litellm_router_model_test_success gauge")
-                for r in litellm_results:
+                lines.append("# HELP publicai_router_model_test_success Success status of individual model test (1 = success, 0 = failure)")
+                lines.append("# TYPE publicai_router_model_test_success gauge")
+                for r in publicai_results:
                     model = r.get("model", "")
                     success_val = 1 if r.get("success", False) else 0
-                    lines.append(f'litellm_router_model_test_success{{model="{model}"}} {success_val}')
+                    lines.append(f'publicai_router_model_test_success{{model="{model}"}} {success_val}')
 
-                lines.append("# HELP litellm_router_model_ttft_seconds Time to First Token (TTFT) in seconds for model")
-                lines.append("# TYPE litellm_router_model_ttft_seconds gauge")
-                for r in litellm_results:
+                lines.append("# HELP publicai_router_model_ttft_seconds Time to First Token (TTFT) in seconds for model")
+                lines.append("# TYPE publicai_router_model_ttft_seconds gauge")
+                for r in publicai_results:
                     model = r.get("model", "")
                     ttft = r.get("ttft")
                     if ttft is not None:
-                        lines.append(f'litellm_router_model_ttft_seconds{{model="{model}"}} {ttft}')
+                        lines.append(f'publicai_router_model_ttft_seconds{{model="{model}"}} {ttft}')
                     else:
-                        lines.append(f'litellm_router_model_ttft_seconds{{model="{model}"}} NaN')
+                        lines.append(f'publicai_router_model_ttft_seconds{{model="{model}"}} NaN')
+
+                # --- CurrentAI Router (LiteLLM) Metrics ---
+                lines.append("# HELP currentai_router_last_run_timestamp_seconds Unix timestamp of the last health check run")
+                lines.append("# TYPE currentai_router_last_run_timestamp_seconds gauge")
+                lines.append(f"currentai_router_last_run_timestamp_seconds {currentai_last_run_timestamp}")
+
+                currentai_global_success = 1 if currentai_last_error is None else 0
+                lines.append("# HELP currentai_router_test_global_success Overall status of the health checks (1 = success, 0 = failure)")
+                lines.append("# TYPE currentai_router_test_global_success gauge")
+                lines.append(f"currentai_router_test_global_success {currentai_global_success}")
+
+                lines.append("# HELP currentai_router_model_test_success Success status of individual model test (1 = success, 0 = failure)")
+                lines.append("# TYPE currentai_router_model_test_success gauge")
+                for r in currentai_results:
+                    model = r.get("model", "")
+                    success_val = 1 if r.get("success", False) else 0
+                    lines.append(f'currentai_router_model_test_success{{model="{model}"}} {success_val}')
+
+                lines.append("# HELP currentai_router_model_ttft_seconds Time to First Token (TTFT) in seconds for model")
+                lines.append("# TYPE currentai_router_model_ttft_seconds gauge")
+                for r in currentai_results:
+                    model = r.get("model", "")
+                    ttft = r.get("ttft")
+                    if ttft is not None:
+                        lines.append(f'currentai_router_model_ttft_seconds{{model="{model}"}} {ttft}')
+                    else:
+                        lines.append(f'currentai_router_model_ttft_seconds{{model="{model}"}} NaN')
 
                 # --- Zuplo Metrics ---
                 lines.append("# HELP zuplo_last_run_timestamp_seconds Unix timestamp of the last health check run")
@@ -478,9 +575,9 @@ class MetricsHandler(BaseHTTPRequestHandler):
             self.end_headers()
             with data_lock:
                 status = {
-                    "last_run_timestamp": max(last_run_timestamp, suppliers_last_run_timestamp, litellm_last_run_timestamp, zuplo_last_run_timestamp),
-                    "last_error": last_error or suppliers_last_error or litellm_last_error or zuplo_last_error,
-                    "success": last_error is None and suppliers_last_error is None and litellm_last_error is None and zuplo_last_error is None,
+                    "last_run_timestamp": max(last_run_timestamp, suppliers_last_run_timestamp, publicai_last_run_timestamp, currentai_last_run_timestamp, zuplo_last_run_timestamp),
+                    "last_error": last_error or suppliers_last_error or publicai_last_error or currentai_last_error or zuplo_last_error,
+                    "success": last_error is None and suppliers_last_error is None and publicai_last_error is None and currentai_last_error is None and zuplo_last_error is None,
                     "huggingface": {
                         "last_run_timestamp": last_run_timestamp,
                         "last_error": last_error,
@@ -491,10 +588,15 @@ class MetricsHandler(BaseHTTPRequestHandler):
                         "last_error": suppliers_last_error,
                         "success": suppliers_last_error is None
                     },
-                    "litellm_router": {
-                        "last_run_timestamp": litellm_last_run_timestamp,
-                        "last_error": litellm_last_error,
-                        "success": litellm_last_error is None
+                    "publicai_router": {
+                        "last_run_timestamp": publicai_last_run_timestamp,
+                        "last_error": publicai_last_error,
+                        "success": publicai_last_error is None
+                    },
+                    "currentai_router": {
+                        "last_run_timestamp": currentai_last_run_timestamp,
+                        "last_error": currentai_last_error,
+                        "success": currentai_last_error is None
                     },
                     "zuplo": {
                         "last_run_timestamp": zuplo_last_run_timestamp,

@@ -188,15 +188,15 @@ def measure_ttft(base_url, model_name, api_key, ssl_verify=True):
 
 def main():
     parser = argparse.ArgumentParser(description="Test LiteLLM endpoints")
+    parser.add_argument("--router-name", default="publicai_router", choices=["publicai_router", "currentai_router"], help="Name of router to test (publicai_router or currentai_router)")
     parser.add_argument("--staging", action="store_true", help="Use staging endpoint (api-internal.ai-staging.chat) instead of production")
     parser.add_argument("--insecure", action="store_true", help="Bypass SSL verification")
-    parser.add_argument("--url", default="https://api-internal.publicai.co", help="Base URL of LiteLLM proxy")
+    parser.add_argument("--url", default=None, help="Base URL of LiteLLM proxy")
+    parser.add_argument("--api-key", default=None, help="Direct API key for the LiteLLM proxy")
+    parser.add_argument("--api-key-env", default=None, help="Environment variable name for the API key")
     parser.add_argument("--workers", type=int, default=10, help="Number of parallel workers to use")
     parser.add_argument("-json", "--json", action="store_true", help="Output results in JSON format")
     args = parser.parse_args()
-
-    if args.staging:
-        args.url = args.url.replace("api-internal.publicai.co", "api-internal.ai-staging.chat")
 
     json_mode = args.json
 
@@ -216,22 +216,43 @@ def main():
         env_path = os.path.join(root_dir, '.env')
         load_env(env_path, verbose=not json_mode)
         
-        api_key = os.environ.get("LITELLM_API_KEY")
+        # Determine URL and API Key based on router-name or arguments
+        target_url = args.url
+        api_key = args.api_key
+
+        if not target_url:
+            if args.router_name == "currentai_router":
+                target_url = os.environ.get("CURRENTAI_ROUTER_URL") or os.environ.get("CURRENT_AI_ROUTER_URL") or "https://api-internal.currentai.co"
+            else:
+                target_url = os.environ.get("PUBLICAI_ROUTER_URL") or "https://api-internal.publicai.co"
+
+        if args.staging and "api-internal.publicai.co" in target_url:
+            target_url = target_url.replace("api-internal.publicai.co", "api-internal.ai-staging.chat")
+
         if not api_key:
-            raise ValueError("LITELLM_API_KEY not found in environment or .env file.")
+            if args.api_key_env:
+                api_key = os.environ.get(args.api_key_env)
+            elif args.router_name == "currentai_router":
+                api_key = os.environ.get("CURRENTAI_ROUTER_API_KEY") or os.environ.get("CURRENT_AI_ROUTER_API_KEY") or os.environ.get("CURRENTAI_LITELLM_API_KEY")
+            else:
+                api_key = os.environ.get("PUBLICAI_ROUTER_API_KEY") or os.environ.get("LITELLM_API_KEY")
+
+        if not api_key:
+            key_name = args.api_key_env or ("CURRENTAI_ROUTER_API_KEY" if args.router_name == "currentai_router" else "LITELLM_API_KEY")
+            raise ValueError(f"{key_name} not found in environment or .env file for router '{args.router_name}'.")
             
         ssl_verify = not args.insecure
         
-        log(f"Connecting to LiteLLM at: {args.url}")
+        log(f"Connecting to {args.router_name} at: {target_url}")
         log(f"SSL verification: {'ENABLED' if ssl_verify else 'DISABLED'}")
         log("Listing models...")
         
-        models, err = list_models(args.url, api_key, ssl_verify=ssl_verify)
+        models, err = list_models(target_url, api_key, ssl_verify=ssl_verify)
         if err:
-            raise RuntimeError(f"Error listing models: {err}")
+            raise RuntimeError(f"Error listing models from {args.router_name}: {err}")
             
         if not models:
-            raise RuntimeError("No models returned by LiteLLM.")
+            raise RuntimeError(f"No models returned by {args.router_name}.")
             
         log(f"Found {len(models)} models: {', '.join(models)}")
         log(f"Testing {len(models)} models in parallel using {args.workers} workers...")
@@ -240,7 +261,7 @@ def main():
         results = [None] * len(models)
         
         def test_single_model(idx, model):
-            success, ttft, error = measure_ttft(args.url, model, api_key, ssl_verify=ssl_verify)
+            success, ttft, error = measure_ttft(target_url, model, api_key, ssl_verify=ssl_verify)
             if success:
                 log(f"[{idx}/{len(models)}] {model}: SUCCESS (TTFT: {ttft:.3f}s)")
             else:
