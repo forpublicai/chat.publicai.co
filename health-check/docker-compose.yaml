@@ -1,0 +1,55 @@
+services:
+  health-check:
+    build:
+      context: ..
+      dockerfile: health-check/Dockerfile
+    container_name: health-check
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HF_TEST_TOKEN=${HF_TEST_TOKEN:-}
+      - ZUPLO_TEST=${ZUPLO_TEST:-}
+      - LITELLM_API_KEY=${LITELLM_API_KEY:-}
+      - SEALION_API_KEY=${SEALION_API_KEY:-}
+      - BIELIK_API_KEY=${BIELIK_API_KEY:-}
+      - INFOMANIAK_API_KEY=${INFOMANIAK_API_KEY:-}
+      - FEATHERLESS_API_KEY=${FEATHERLESS_API_KEY:-}
+      - PHOENIQS_API_KEY=${PHOENIQS_API_KEY:-}
+      - NEXBIT_API_KEY=${NEXBIT_API_KEY:-}
+      - MODELS_DIR=${MODELS_DIR:-}
+      - MODELS_REPO_URL=${MODELS_REPO_URL:-https://github.com/forpublicai/chat.publicai.co.git}
+    volumes:
+      - ../charts:/charts:ro
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped

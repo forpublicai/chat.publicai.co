@@ -167,37 +167,58 @@ def main():
         # Determine directory paths relative to the script
         script_dir = os.path.dirname(os.path.abspath(__file__))
         
-        # Locate project root containing .env
-        root_dir = script_dir
-        while root_dir != os.path.dirname(root_dir):
-            if os.path.exists(os.path.join(root_dir, '.env')):
+        # Locate project root
+        repo_root = script_dir
+        while repo_root != os.path.dirname(repo_root):
+            if os.path.exists(os.path.join(repo_root, 'charts')) or os.path.exists(os.path.join(repo_root, '.git')):
                 break
-            root_dir = os.path.dirname(root_dir)
+            repo_root = os.path.dirname(repo_root)
             
-        env_path = os.path.join(root_dir, '.env')
+        env_path = os.path.join(script_dir, '.env')
+        if not os.path.exists(env_path):
+            env_path = os.path.join(repo_root, '.env')
         
+        def find_models_dir(base_path):
+            if not base_path:
+                return None
+            candidates = [
+                os.path.join(base_path, 'charts/platform/charts/litellm/models'),
+                os.path.join(base_path, 'charts/litellm/models'),
+                os.path.join(base_path, 'charts/web_services/charts/litellm/models'),
+            ]
+            for c in candidates:
+                if os.path.isdir(c):
+                    return c
+            return None
+
         models_dir = os.environ.get("MODELS_DIR")
-        if not models_dir:
-            try:
-                import shutil
-                import subprocess
-                repo_dir = "/tmp/chat.publicai.co"
-                if os.path.exists(repo_dir):
-                    try:
-                        shutil.rmtree(repo_dir)
-                    except Exception:
-                        pass
-                log("Cloning latest models dynamically from public repository...")
-                subprocess.run(
-                    ["git", "clone", "--depth", "1", "https://github.com/forpublicai/chat.publicai.co.git", repo_dir],
-                    check=True,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                models_dir = os.path.join(repo_dir, 'charts/web_services/charts/litellm/models')
-            except Exception as e:
-                log(f"Dynamic clone failed: {e}. Falling back to local directory.")
-                models_dir = os.path.join(root_dir, 'charts/web_services/charts/litellm/models')
+        if not models_dir or not os.path.exists(models_dir):
+            # First check if local repository root already contains models
+            local_candidate = find_models_dir(repo_root)
+            if local_candidate and os.environ.get("FORCE_GIT_CLONE", "").lower() not in ("true", "1", "yes"):
+                models_dir = local_candidate
+            else:
+                try:
+                    import shutil
+                    import subprocess
+                    repo_dir = "/tmp/chat.publicai.co"
+                    if os.path.exists(repo_dir):
+                        try:
+                            shutil.rmtree(repo_dir)
+                        except Exception:
+                            pass
+                    repo_url = os.environ.get("MODELS_REPO_URL", "https://github.com/forpublicai/chat.publicai.co.git")
+                    log(f"Cloning latest models dynamically from {repo_url}...")
+                    subprocess.run(
+                        ["git", "clone", "--depth", "1", repo_url, repo_dir],
+                        check=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                    models_dir = find_models_dir(repo_dir) or os.path.join(repo_dir, 'charts/platform/charts/litellm/models')
+                except Exception as e:
+                    log(f"Dynamic clone failed: {e}. Falling back to local directory.")
+                    models_dir = find_models_dir(repo_root) or os.path.join(repo_root, 'charts/platform/charts/litellm/models')
         
         log(f"Loading environment from: {env_path}")
         load_env(env_path, verbose=not json_mode)
