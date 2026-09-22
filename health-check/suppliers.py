@@ -8,6 +8,24 @@ import json
 import argparse
 import urllib.request
 import urllib.error
+import urllib.parse
+import concurrent.futures
+
+def extract_supplier_name(api_base):
+    """Extract supplier name from api_base URL as the domain segment before the TLD."""
+    try:
+        parsed = urllib.parse.urlparse(api_base)
+        hostname = parsed.hostname or api_base
+        hostname = hostname.split(':')[0].lower()
+        parts = hostname.split('.')
+        if len(parts) >= 2:
+            two_part_tlds = {'co.uk', 'com.au', 'com.pl', 'org.uk', 'gov.uk', 'co.ch'}
+            if len(parts) >= 3 and f"{parts[-2]}.{parts[-1]}" in two_part_tlds:
+                return parts[-3]
+            return parts[-2]
+        return parts[0]
+    except Exception:
+        return "unknown"
 
 def load_env(env_path, verbose=True):
     """Load environment variables from a .env file."""
@@ -50,8 +68,13 @@ def parse_active_endpoints(models_dir, verbose=True):
                         litellm_params = m.get('litellm_params', {})
                         # Only test endpoints that have api_base
                         if 'api_base' in litellm_params:
+                            api_base = litellm_params['api_base']
+                            supplier_name = extract_supplier_name(api_base)
+                            target_name = f"{model_name}:{supplier_name}"
                             models.append({
                                 'model_name': model_name,
+                                'supplier_name': supplier_name,
+                                'target_name': target_name,
                                 'litellm_params': litellm_params
                             })
                 except Exception as e:
@@ -155,6 +178,7 @@ def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=Tr
 def main():
     parser = argparse.ArgumentParser(description="Test Provider endpoints")
     parser.add_argument("-json", "--json", action="store_true", help="Output results in JSON format")
+    parser.add_argument("--workers", "-w", type=int, default=10, help="Number of concurrent worker threads (default: 10)")
     args = parser.parse_args()
     
     json_mode = args.json
@@ -229,12 +253,15 @@ def main():
         if not active_endpoints:
             raise RuntimeError("No active HTTP endpoints found in models directory.")
             
-        log(f"Found {len(active_endpoints)} active HTTP endpoints. Starting tests...")
+        log(f"Found {len(active_endpoints)} active HTTP endpoints. Starting tests in parallel using {args.workers} workers...")
         log("-" * 120)
         
-        results = []
-        for idx, ep in enumerate(active_endpoints, 1):
+        results = [None] * len(active_endpoints)
+
+        def test_single_endpoint(idx, ep):
             model_name = ep['model_name']
+            supplier_name = ep.get('supplier_name') or extract_supplier_name(ep['litellm_params'].get('api_base', ''))
+            target_name = ep.get('target_name') or f"{model_name}:{supplier_name}"
             litellm_model = ep['litellm_params'].get('model', '')
             api_base = ep['litellm_params'].get('api_base', '')
             api_key_str = ep['litellm_params'].get('api_key', '')
@@ -245,25 +272,48 @@ def main():
             else:
                 ssl_verify = bool(ssl_verify_val)
             
-            log(f"[{idx}/{len(active_endpoints)}] Testing model: {model_name} at {api_base} ...")
+            log(f"[{idx}/{len(active_endpoints)}] Testing endpoint: {target_name} at {api_base} ...")
             success, ttft, error = measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify)
-            
-            results.append({
-                'model': model_name,
+            return {
+                'model': target_name,
                 'model_name': model_name,
+                'supplier': supplier_name,
                 'api_base': api_base,
                 'success': success,
                 'ttft': ttft,
                 'error': error
-            })
+            }
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
+            futures = {executor.submit(test_single_endpoint, idx, ep): idx - 1 for idx, ep in enumerate(active_endpoints, 1)}
+            for future in concurrent.futures.as_completed(futures):
+                idx_zero = futures[future]
+                try:
+                    results[idx_zero] = future.result()
+                except Exception as e:
+                    ep = active_endpoints[idx_zero]
+                    model_name = ep['model_name']
+                    supplier_name = ep.get('supplier_name') or extract_supplier_name(ep['litellm_params'].get('api_base', ''))
+                    target_name = ep.get('target_name') or f"{model_name}:{supplier_name}"
+                    api_base = ep['litellm_params'].get('api_base', '')
+                    log(f"[{idx_zero+1}/{len(active_endpoints)}] {target_name}: FAILED (Exception: {e})")
+                    results[idx_zero] = {
+                        'model': target_name,
+                        'model_name': model_name,
+                        'supplier': supplier_name,
+                        'api_base': api_base,
+                        'success': False,
+                        'ttft': None,
+                        'error': f"Thread Exception: {e}"
+                    }
             
         failures = [r for r in results if not r['success']]
         
         if json_mode:
             if failures:
-                err_msgs = [f"{f['model_name']}: {f['error']}" for f in failures]
+                err_msgs = [f"{f['model']}: {f['error']}" for f in failures]
                 err_obj = {
-                    "message": f"{len(failures)} model(s) failed testing: {', '.join(err_msgs)}",
+                    "message": f"{len(failures)} endpoint(s) failed testing: {', '.join(err_msgs)}",
                     "code": "MODEL_TESTS_FAILED"
                 }
                 output = {
@@ -284,13 +334,13 @@ def main():
                 sys.exit(0)
                 
         log("\n" + "=" * 120)
-        log(f"{'Model Name':<45} | {'Status':<12} | {'TTFT (s)':<10} | {'Endpoint URL':<50}")
+        log(f"{'Endpoint (Model:Supplier)':<55} | {'Status':<12} | {'TTFT (s)':<10} | {'Endpoint URL':<50}")
         log("-" * 120)
         
         for res in results:
             status_str = "SUCCESS" if res['success'] else "FAILED"
             ttft_str = f"{res['ttft']:.3f}s" if res['success'] else "N/A"
-            log(f"{res['model_name']:<45} | {status_str:<12} | {ttft_str:<10} | {res['api_base']:<50}")
+            log(f"{res['model']:<55} | {status_str:<12} | {ttft_str:<10} | {res['api_base']:<50}")
             
         log("=" * 120)
         
@@ -299,9 +349,9 @@ def main():
             log("FAILURE DETAILS:")
             log("-" * 120)
             for idx, f in enumerate(failures, 1):
-                log(f"{idx}. Model: {f['model_name']}")
-                log(f"   URL: {f['api_base']}")
-                log(f"   Error: {f['error']}")
+                log(f"{idx}. Endpoint: {f['model']}")
+                log(f"   URL:      {f['api_base']}")
+                log(f"   Error:    {f['error']}")
                 log("-" * 120)
             sys.exit(1)
         else:

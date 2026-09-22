@@ -57,15 +57,10 @@ zuplo_results = []
 zuplo_last_run_timestamp = 0.0
 zuplo_last_error = None
 
-def run_health_check():
+CHECK_TIMEOUT_SECONDS = int(os.environ.get("CHECK_TIMEOUT_SECONDS", 50))
+
+def run_huggingface_check():
     global latest_results, last_run_timestamp, last_error
-    global suppliers_results, suppliers_last_run_timestamp, suppliers_last_error
-    global litellm_results, litellm_last_run_timestamp, litellm_last_error
-    global zuplo_results, zuplo_last_run_timestamp, zuplo_last_error
-    
-    logger.info("Running health checks...")
-    
-    # 1. Run Hugging Face Check
     hf_script = "/app/huggingface.py"
     if not os.path.exists(hf_script):
         hf_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "huggingface.py"))
@@ -75,7 +70,8 @@ def run_health_check():
             [sys.executable, hf_script, "-json"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            timeout=CHECK_TIMEOUT_SECONDS
         )
         try:
             data = json.loads(result.stdout)
@@ -105,6 +101,16 @@ def run_health_check():
                 "stderr": result.stderr,
                 "error": last_error
             })
+    except subprocess.TimeoutExpired:
+        with data_lock:
+            latest_results = []
+            last_run_timestamp = time.time()
+            last_error = f"HuggingFace health check timed out after {CHECK_TIMEOUT_SECONDS}s"
+        logger.error(f"HuggingFace health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
+            "check_type": "huggingface",
+            "success": False,
+            "error": last_error
+        })
     except Exception as e:
         with data_lock:
             latest_results = []
@@ -116,7 +122,8 @@ def run_health_check():
             "error": last_error
         })
 
-    # 2. Run Suppliers Check
+def run_suppliers_check():
+    global suppliers_results, suppliers_last_run_timestamp, suppliers_last_error
     suppliers_script = "/app/suppliers.py"
     if not os.path.exists(suppliers_script):
         suppliers_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "suppliers.py"))
@@ -126,7 +133,8 @@ def run_health_check():
             [sys.executable, suppliers_script, "-json"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            timeout=CHECK_TIMEOUT_SECONDS
         )
         try:
             data = json.loads(result.stdout)
@@ -156,6 +164,16 @@ def run_health_check():
                 "stderr": result.stderr,
                 "error": suppliers_last_error
             })
+    except subprocess.TimeoutExpired:
+        with data_lock:
+            suppliers_results = []
+            suppliers_last_run_timestamp = time.time()
+            suppliers_last_error = f"Suppliers health check timed out after {CHECK_TIMEOUT_SECONDS}s"
+        logger.error(f"Suppliers health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
+            "check_type": "suppliers",
+            "success": False,
+            "error": suppliers_last_error
+        })
     except Exception as e:
         with data_lock:
             suppliers_results = []
@@ -167,7 +185,8 @@ def run_health_check():
             "error": suppliers_last_error
         })
 
-    # 3. Run LiteLLM Check
+def run_litellm_check():
+    global litellm_results, litellm_last_run_timestamp, litellm_last_error
     litellm_script = "/app/litellm.py"
     if not os.path.exists(litellm_script):
         litellm_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "litellm.py"))
@@ -177,7 +196,8 @@ def run_health_check():
             [sys.executable, litellm_script, "-json"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            timeout=CHECK_TIMEOUT_SECONDS
         )
         try:
             data = json.loads(result.stdout)
@@ -207,6 +227,16 @@ def run_health_check():
                 "stderr": result.stderr,
                 "error": litellm_last_error
             })
+    except subprocess.TimeoutExpired:
+        with data_lock:
+            litellm_results = []
+            litellm_last_run_timestamp = time.time()
+            litellm_last_error = f"LiteLLM health check timed out after {CHECK_TIMEOUT_SECONDS}s"
+        logger.error(f"LiteLLM health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
+            "check_type": "litellm",
+            "success": False,
+            "error": litellm_last_error
+        })
     except Exception as e:
         with data_lock:
             litellm_results = []
@@ -218,7 +248,8 @@ def run_health_check():
             "error": litellm_last_error
         })
 
-    # 4. Run Zuplo Check
+def run_zuplo_check():
+    global zuplo_results, zuplo_last_run_timestamp, zuplo_last_error
     zuplo_script = "/app/zuplo.py"
     if not os.path.exists(zuplo_script):
         zuplo_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "zuplo.py"))
@@ -228,7 +259,8 @@ def run_health_check():
             [sys.executable, zuplo_script, "-json"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            timeout=CHECK_TIMEOUT_SECONDS
         )
         try:
             data = json.loads(result.stdout)
@@ -258,6 +290,16 @@ def run_health_check():
                 "stderr": result.stderr,
                 "error": zuplo_last_error
             })
+    except subprocess.TimeoutExpired:
+        with data_lock:
+            zuplo_results = []
+            zuplo_last_run_timestamp = time.time()
+            zuplo_last_error = f"Zuplo health check timed out after {CHECK_TIMEOUT_SECONDS}s"
+        logger.error(f"Zuplo health check timed out after {CHECK_TIMEOUT_SECONDS}s", extra={
+            "check_type": "zuplo",
+            "success": False,
+            "error": zuplo_last_error
+        })
     except Exception as e:
         with data_lock:
             zuplo_results = []
@@ -269,10 +311,41 @@ def run_health_check():
             "error": zuplo_last_error
         })
 
-def scheduler_loop():
+def minutely_scheduler_loop():
+    interval = 60.0
     while True:
-        run_health_check()
-        time.sleep(3600)
+        start_time = time.time()
+        try:
+            logger.info("Running minutely health checks (Suppliers, LiteLLM)...")
+            t_sup = threading.Thread(target=run_suppliers_check)
+            t_lite = threading.Thread(target=run_litellm_check)
+            t_sup.start()
+            t_lite.start()
+            t_sup.join()
+            t_lite.join()
+        except Exception as e:
+            logger.error(f"Error in minutely_scheduler_loop: {e}", exc_info=True)
+        elapsed = time.time() - start_time
+        sleep_time = max(0.0, interval - elapsed)
+        time.sleep(sleep_time)
+
+def hourly_scheduler_loop():
+    interval = 3600.0
+    while True:
+        start_time = time.time()
+        try:
+            logger.info("Running hourly health checks (HuggingFace, Zuplo)...")
+            t_hf = threading.Thread(target=run_huggingface_check)
+            t_zup = threading.Thread(target=run_zuplo_check)
+            t_hf.start()
+            t_zup.start()
+            t_hf.join()
+            t_zup.join()
+        except Exception as e:
+            logger.error(f"Error in hourly_scheduler_loop: {e}", exc_info=True)
+        elapsed = time.time() - start_time
+        sleep_time = max(0.0, interval - elapsed)
+        time.sleep(sleep_time)
 
 class MetricsHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -436,8 +509,11 @@ class MetricsHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Not Found")
 
 def main():
-    t = threading.Thread(target=scheduler_loop, daemon=True)
-    t.start()
+    t_min = threading.Thread(target=minutely_scheduler_loop, daemon=True)
+    t_min.start()
+
+    t_hour = threading.Thread(target=hourly_scheduler_loop, daemon=True)
+    t_hour.start()
 
     port = int(os.environ.get("PORT", 8000))
     server_address = ("", port)
