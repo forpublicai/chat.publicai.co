@@ -276,8 +276,8 @@ export function StatusDashboard({ initialData }) {
         {/* Header */}
         <header className="mb-8 border-b border-border pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Public AI System Status</h1>
-            <p className="text-muted-foreground mt-1">Real-time status updates and service availability</p>
+            <h1 className="text-3xl font-bold tracking-tight">Inference API Status</h1>
+            <p className="text-muted-foreground mt-1">30 day uptime and realtime service availability</p>
           </div>
           <div className="flex items-center gap-3">
             {!hasOutages ? (

@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Public AI Status',
+  title: 'Inference API Status',
   description: 'System Status and Service Health Dashboard',
 };
 
