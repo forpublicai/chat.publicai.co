@@ -151,13 +151,16 @@ def measure_ttft(base_url, model_name, api_key, ssl_verify=True):
             try:
                 return execute_request(url, payload, stream_mode=True)
             except urllib.error.HTTPError as e:
-                # If streaming fails, retry non-streaming
+                # Only retry non-streaming if not a client rejection (e.g. 400, 401, 403, 429)
                 error_body = ""
                 try:
                     error_body = e.read().decode('utf-8')
                 except Exception:
                     pass
                 
+                if e.code in (400, 401, 403, 429):
+                    return False, None, f"HTTP Error {e.code}: {e.reason} - Details: {error_body}"
+
                 payload["stream"] = False
                 try:
                     return execute_request(url, payload, stream_mode=False)
@@ -194,7 +197,7 @@ def main():
     parser.add_argument("--url", default=None, help="Base URL of LiteLLM proxy")
     parser.add_argument("--api-key", default=None, help="Direct API key for the LiteLLM proxy")
     parser.add_argument("--api-key-env", default=None, help="Environment variable name for the API key")
-    parser.add_argument("--workers", type=int, default=10, help="Number of parallel workers to use")
+    parser.add_argument("--workers", type=int, default=20, help="Number of parallel workers to use")
     parser.add_argument("-json", "--json", action="store_true", help="Output results in JSON format")
     args = parser.parse_args()
 

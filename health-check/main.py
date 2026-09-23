@@ -61,7 +61,7 @@ zuplo_results = []
 zuplo_last_run_timestamp = 0.0
 zuplo_last_error = None
 
-CHECK_TIMEOUT_SECONDS = int(os.environ.get("CHECK_TIMEOUT_SECONDS", 50))
+CHECK_TIMEOUT_SECONDS = int(os.environ.get("CHECK_TIMEOUT_SECONDS", 100))
 
 def run_huggingface_check():
     global latest_results, last_run_timestamp, last_error
@@ -379,11 +379,11 @@ def run_zuplo_check():
         })
 
 def minutely_scheduler_loop():
-    interval = 60.0
+    interval = 120.0
     while True:
         start_time = time.time()
         try:
-            logger.info("Running minutely health checks (Suppliers, PublicAI Router, CurrentAI Router)...")
+            logger.info("Running 2-minute health checks (Suppliers, PublicAI Router, CurrentAI Router)...")
             t_sup = threading.Thread(target=run_suppliers_check)
             t_pub = threading.Thread(target=run_publicai_router_check)
             t_cur = threading.Thread(target=run_currentai_router_check)
