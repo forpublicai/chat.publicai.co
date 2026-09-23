@@ -97,10 +97,12 @@ def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=Tr
     """Call the LLM endpoint and measure Time to First Token (TTFT) with a 30s timeout."""
     api_key = resolve_api_key(api_key_str)
     
-    # Strip OpenAI provider prefix if present
+    # Strip provider prefixes if present (openai/, huggingface/)
     backend_model = litellm_model
     if backend_model.startswith("openai/"):
         backend_model = backend_model[len("openai/"):]
+    if backend_model.startswith("huggingface/"):
+        backend_model = backend_model[len("huggingface/"):]
         
     url = api_base.rstrip('/') + '/chat/completions'
     
