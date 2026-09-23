@@ -1,0 +1,12 @@
+services:
+  status:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: publicai-status
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped

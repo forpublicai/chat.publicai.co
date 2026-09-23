@@ -227,70 +227,73 @@ def main():
 
         model_dirs = []
 
-        # 1. Primary models directory
-        primary_models_dir = os.environ.get("MODELS_DIR")
-        if primary_models_dir and os.path.exists(primary_models_dir):
-            model_dirs.append(primary_models_dir)
-        else:
-            local_candidate = find_models_dir(repo_root)
-            if local_candidate and os.environ.get("FORCE_GIT_CLONE", "").lower() not in ("true", "1", "yes"):
-                model_dirs.append(local_candidate)
-            else:
-                try:
-                    import shutil
-                    import subprocess
-                    repo_dir = "/tmp/chat.publicai.co"
-                    if os.path.exists(repo_dir):
-                        try:
-                            shutil.rmtree(repo_dir)
-                        except Exception:
-                            pass
-                    repo_url = os.environ.get("MODELS_REPO_URL", "https://github.com/forpublicai/chat.publicai.co.git")
-                    log(f"Cloning primary models dynamically from {repo_url}...")
-                    subprocess.run(
-                        ["git", "clone", "--depth", "1", repo_url, repo_dir],
-                        check=True,
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                    )
-                    found = find_models_dir(repo_dir)
-                    if found:
-                        model_dirs.append(found)
-                except Exception as e:
-                    log(f"Primary dynamic clone failed: {e}. Falling back to local directory.")
-                    local_cand = find_models_dir(repo_root)
-                    if local_cand:
-                        model_dirs.append(local_cand)
+        import shutil
+        import subprocess
 
-        # 2. Extra models directory (currentai-org/infra)
-        extra_models_dir = os.environ.get("EXTRA_MODELS_DIR")
-        if extra_models_dir and os.path.exists(extra_models_dir):
-            model_dirs.append(extra_models_dir)
-        else:
-            extra_repo_url = os.environ.get("EXTRA_MODELS_REPO_URL", "https://github.com/currentai-org/infra.git")
-            extra_branch = os.environ.get("EXTRA_MODELS_REPO_BRANCH", "dev")
-            if extra_repo_url:
+        # 1. Primary models directory (Always pull dynamically from Git)
+        repo_url = os.environ.get("MODELS_REPO_URL", "https://github.com/forpublicai/chat.publicai.co.git")
+        repo_branch = os.environ.get("MODELS_REPO_BRANCH", "main")
+        repo_dir = "/tmp/chat.publicai.co"
+        if os.path.exists(repo_dir):
+            try:
+                shutil.rmtree(repo_dir)
+            except Exception as e:
+                log(f"Warning: Failed to clean {repo_dir}: {e}")
+
+        log(f"Cloning primary models from {repo_url} (branch: {repo_branch})...")
+        try:
+            clone_cmd = ["git", "clone", "--depth", "1"]
+            if repo_branch:
+                clone_cmd.extend(["-b", repo_branch])
+            clone_cmd.extend([repo_url, repo_dir])
+            subprocess.run(
+                clone_cmd,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            found_primary = find_models_dir(repo_dir)
+            if found_primary:
+                model_dirs.append(found_primary)
+            else:
+                log(f"Warning: No models directory found in cloned repo at {repo_dir}")
+        except Exception as e:
+            log(f"Error cloning primary repo {repo_url}: {e}")
+            if not json_mode:
+                raise RuntimeError(f"Failed to clone primary models repository {repo_url}: {e}")
+
+        # 2. Extra models directory (Always pull dynamically from Git)
+        extra_repo_url = os.environ.get("EXTRA_MODELS_REPO_URL", "https://github.com/currentai-org/infra.git")
+        extra_branch = os.environ.get("EXTRA_MODELS_REPO_BRANCH", "dev")
+        if extra_repo_url:
+            extra_repo_dir = "/tmp/infra_models"
+            if os.path.exists(extra_repo_dir):
                 try:
-                    import shutil
-                    import subprocess
-                    extra_repo_dir = "/tmp/infra_models"
-                    if os.path.exists(extra_repo_dir):
-                        try:
-                            shutil.rmtree(extra_repo_dir)
-                        except Exception:
-                            pass
-                    log(f"Cloning extra models dynamically from {extra_repo_url} (branch: {extra_branch})...")
-                    subprocess.run(
-                        ["git", "clone", "--depth", "1", "-b", extra_branch, extra_repo_url, extra_repo_dir],
-                        check=True,
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
-                    )
-                    found_extra = find_models_dir(extra_repo_dir)
-                    if found_extra:
-                        model_dirs.append(found_extra)
+                    shutil.rmtree(extra_repo_dir)
                 except Exception as e:
-                    log(f"Extra repo clone failed: {e}")
+                    log(f"Warning: Failed to clean {extra_repo_dir}: {e}")
+
+            log(f"Cloning extra models from {extra_repo_url} (branch: {extra_branch})...")
+            try:
+                extra_clone_cmd = ["git", "clone", "--depth", "1"]
+                if extra_branch:
+                    extra_clone_cmd.extend(["-b", extra_branch])
+                extra_clone_cmd.extend([extra_repo_url, extra_repo_dir])
+                subprocess.run(
+                    extra_clone_cmd,
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                found_extra = find_models_dir(extra_repo_dir)
+                if found_extra:
+                    model_dirs.append(found_extra)
+                else:
+                    log(f"Warning: No models directory found in extra repo at {extra_repo_dir}")
+            except Exception as e:
+                log(f"Error cloning extra repo {extra_repo_url}: {e}")
+                if not json_mode:
+                    raise RuntimeError(f"Failed to clone extra models repository {extra_repo_url}: {e}")
 
         # Parse all models from discovered directories
         all_endpoints = []
