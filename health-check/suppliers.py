@@ -61,6 +61,24 @@ def parse_active_endpoints(models_dir, verbose=True):
                         data = yaml.safe_load(f)
                     if not data or 'models' not in data:
                         continue
+
+                    # If an environment section exists, only use models that are in production
+                    env_section = data.get('environments') if 'environments' in data else data.get('environment')
+                    if env_section is not None:
+                        prod_identifiers = {'prod', 'production', 'prd'}
+                        if isinstance(env_section, str):
+                            env_list = [env_section]
+                        elif isinstance(env_section, (list, tuple, set)):
+                            env_list = list(env_section)
+                        else:
+                            env_list = [str(env_section)]
+                        
+                        env_names = {str(e).strip().lower() for e in env_list if e is not None}
+                        if not env_names.intersection(prod_identifiers):
+                            if verbose:
+                                print(f"Skipping non-production model file {file_path} (environments: {env_names})", file=sys.stderr)
+                            continue
+
                     for m in data['models']:
                         model_name = m.get('model_name')
                         if not model_name:
