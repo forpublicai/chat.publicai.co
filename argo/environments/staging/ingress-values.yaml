@@ -44,6 +44,7 @@ ingresses:
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/healthcheck-path: /health/readiness
       alb.ingress.kubernetes.io/group.name: api-group
     targetService:
       name: litellm-service
