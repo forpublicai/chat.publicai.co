@@ -54,10 +54,7 @@ data:
 
     router_settings:
       routing_strategy: "{{ .Values.router.routingStrategy }}"
-      # Redis disabled - using simple-shuffle strategy doesn't require persistent state
-      # redis_host: "{{ .Values.secrets.redisHost }}"
-      # redis_port: {{ .Values.env.litellmRedisPort }}
-      # redis_url: "{{ .Values.secrets.redisUrl }}"
+      redis_url: "{{ .Values.router.redisUrl | default "os.environ/REDIS_URL" }}"
       {{- if $allFallbacks }}
       fallbacks:
         {{- range $fallbackMap := $allFallbacks }}

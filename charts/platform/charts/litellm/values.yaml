@@ -101,6 +101,7 @@ env:
   litellmRedisNamespace: litellm
 router:
   routingStrategy: latency-based-routing
+  redisUrl: "os.environ/REDIS_URL"
 autoscaling:
   enabled: true
   minReplicas: 2
