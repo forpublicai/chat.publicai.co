@@ -4,9 +4,31 @@ app:
     repository: ghcr.io/forpublicai/litellm-database
     tag: v1.92.0
     pullPolicy: Always
-  replicas: 1
-  minReadySeconds: 20
+  replicas: 2
+  minReadySeconds: 30
+  terminationGracePeriodSeconds: 30
   port: 4000
+  startupProbe:
+    enabled: true
+    path: /health/liveliness
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 20
+  livenessProbe:
+    enabled: true
+    path: /health/liveliness
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    path: /health/readiness
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
   resources:
     requests:
       memory: 3Gi
@@ -14,6 +36,36 @@ app:
     limits:
       memory: 4Gi
       cpu: 1000m
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - litellm
+            topologyKey: kubernetes.io/hostname
+        - weight: 50
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - litellm
+            topologyKey: topology.kubernetes.io/zone
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: litellm
+  nodeSelector: {}
+  tolerations: []
 service:
   name: litellm-service
   type: ClusterIP
@@ -49,10 +101,11 @@ env:
   litellmRedisNamespace: litellm
 router:
   routingStrategy: latency-based-routing
+  redisUrl: "os.environ/REDIS_URL"
 autoscaling:
   enabled: true
-  minReplicas: 1
-  maxReplicas: 3
+  minReplicas: 2
+  maxReplicas: 4
   targetCPUUtilizationPercentage: 75
   targetMemoryUtilizationPercentage: 85
   behavior:
@@ -75,3 +128,6 @@ lago:
   apiBase: https://lago-api.publicai.co
 prometheus:
   enabled: false
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

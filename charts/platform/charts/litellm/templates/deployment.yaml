@@ -11,7 +11,7 @@ spec:
       maxUnavailable: 0
       maxSurge: 1
   progressDeadlineSeconds: 300
-  minReadySeconds: {{ .Values.app.minReadySeconds | default 20 }}
+  minReadySeconds: {{ .Values.app.minReadySeconds | default 30 }}
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -26,8 +26,25 @@ spec:
         prometheus.io/path: "/metrics"
       {{- end }}
     spec:
+      terminationGracePeriodSeconds: {{ .Values.app.terminationGracePeriodSeconds | default 30 }}
       {{- if .Values.serviceAccount.enabled }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- end }}
+      {{- with .Values.app.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: {{ .Values.app.name }}
@@ -164,6 +181,40 @@ spec:
               readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sleep", "5"]
+          {{- if .Values.app.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.app.startupProbe.path | default "/health/liveliness" }}
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: {{ .Values.app.startupProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .Values.app.startupProbe.periodSeconds | default 5 }}
+            timeoutSeconds: {{ .Values.app.startupProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.app.startupProbe.failureThreshold | default 20 }}
+          {{- end }}
+          {{- if .Values.app.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.livenessProbe.path | default "/health/liveliness" }}
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: {{ .Values.app.livenessProbe.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ .Values.app.livenessProbe.periodSeconds | default 15 }}
+            timeoutSeconds: {{ .Values.app.livenessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.app.livenessProbe.failureThreshold | default 3 }}
+          {{- end }}
+          {{- if .Values.app.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.readinessProbe.path | default "/health/readiness" }}
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: {{ .Values.app.readinessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ .Values.app.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.app.readinessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.app.readinessProbe.failureThreshold | default 3 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.app.resources | nindent 12 }}
       volumes:
