@@ -1,0 +1,81 @@
+name: Synthetic probes
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/probes/**'
+      - 'tests/test_probe.py'
+      - '.github/workflows/synthetic-probes.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python -m pip install pytest
+      - run: python -m pytest
+
+  probe:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run external probes
+        id: run-probes
+        continue-on-error: true
+        run: python scripts/probes/probe.py
+      - name: Upload probe results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-results
+          path: probe-results.json
+          if-no-files-found: warn
+      - name: Mark failed probe run
+        if: steps.run-probes.outcome == 'failure'
+        run: exit 1
+
+  report-scheduled-failure:
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'probe-failure';
+            const { owner, repo } = context.repo;
+            let issue;
+            try {
+              const result = await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: label, per_page: 100 });
+              issue = result.data.find(item => !item.pull_request);
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const body = `Scheduled external synthetic probe failed. [View run](${runUrl}) and inspect its probe-results artifact.`;
+            if (issue) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body });
+            } else {
+              try {
+                await github.rest.issues.create({ owner, repo, title: 'Synthetic probe failure', body, labels: [label] });
+              } catch (error) {
+                if (error.status !== 422) throw error;
+                core.warning('Could not create probe issue (the label may not exist yet).');
+              }
+            }
