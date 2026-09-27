@@ -62,6 +62,12 @@ jobs:
             const { owner, repo } = context.repo;
             let issue;
             try {
+              await github.rest.issues.getLabel({ owner, repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({ owner, repo, name: label, color: 'd73a4a', description: 'External synthetic probe failure' });
+            }
+            try {
               const result = await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: label, per_page: 100 });
               issue = result.data.find(item => !item.pull_request);
             } catch (error) {
