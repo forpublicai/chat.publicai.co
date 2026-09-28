@@ -28,7 +28,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}/status
           tags: |
             type=raw,value=latest
-            type=raw,value=run-${{ github.run_number }}
+            type=raw,value=build-${{ github.run_number }}
             type=sha,format=short
 
       - name: Build and push Docker image
