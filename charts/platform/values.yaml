@@ -178,6 +178,13 @@ healthcheck:
     repository: "ghcr.io/forpublicai/chat.publicai.co/health-check"
     tag: "latest"
     pullPolicy: "Always"
+  port: 8000
+  modelsDir: ""
+  modelsRepoUrl: "https://github.com/forpublicai/chat.publicai.co.git"
+  extraModelsDir: ""
+  extraModelsRepoUrl: "https://github.com/currentai-org/infra.git"
+  extraModelsRepoBranch: "dev"
+  currentaiRouterUrl: "https://api-internal.currentai.co"
   resources:
     requests:
       memory: "256Mi"

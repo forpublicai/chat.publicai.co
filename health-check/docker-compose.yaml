@@ -22,7 +22,7 @@ services:
       - EXTRA_MODELS_DIR=${EXTRA_MODELS_DIR:-}
       - EXTRA_MODELS_REPO_URL=${EXTRA_MODELS_REPO_URL:-https://github.com/currentai-org/infra.git}
       - EXTRA_MODELS_REPO_BRANCH=${EXTRA_MODELS_REPO_BRANCH:-dev}
-      - CURRENTAI_ROUTER_URL=${CURRENTAI_ROUTER_URL:-https://api-internal.currentai.co}
+      - CURRENTAI_ROUTER_URL=${CURRENTAI_ROUTER_URL:-https://router.stg.aipotluck.org}
       - CURRENTAI_ROUTER_API_KEY=${CURRENTAI_ROUTER_API_KEY:-}
     volumes:
       - ../charts:/charts:ro
