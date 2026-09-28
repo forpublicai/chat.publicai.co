@@ -3,13 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { UptimeItem } from "@/components/ui/uptime-item";
 import {
-  CheckCircle2,
-  AlertTriangle,
-  RefreshCw,
   Loader2,
   Cpu,
   Boxes,
@@ -25,7 +21,6 @@ export function StatusDashboard({ initialData }) {
     }
   );
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
@@ -36,12 +31,9 @@ export function StatusDashboard({ initialData }) {
     }
   }, [initialData]);
 
-  const fetchMetrics = async (isManual = false) => {
-    if (isManual) setRefreshing(true);
+  const fetchMetrics = async () => {
     try {
-      // If manual refresh, pass refresh=true to prompt fresh data check
-      const url = isManual ? "/api/metrics?refresh=true" : "/api/metrics";
-      const res = await fetch(url);
+      const res = await fetch("/api/metrics");
       if (res.ok) {
         const json = await res.json();
         setData({
@@ -56,7 +48,6 @@ export function StatusDashboard({ initialData }) {
       console.error("Failed to fetch live Prometheus metrics:", err);
     } finally {
       setLoading(false);
-      if (isManual) setRefreshing(false);
     }
   };
 
@@ -68,21 +59,6 @@ export function StatusDashboard({ initialData }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Compute global operational status across router and supply checks
-  const allCurrentItems = [
-    ...(data.publicai_router || []),
-    ...(data.currentai_router || []),
-    ...(data.supply_model || []),
-  ];
-  const hasOutages = allCurrentItems.some((item) => !item.isOperational);
-  const operationalPercentage =
-    allCurrentItems.length > 0
-      ? (
-          (allCurrentItems.filter((i) => i.isOperational).length /
-            allCurrentItems.length) *
-          100
-        ).toFixed(1)
-      : "100.0";
 
   // Standard flat list renderer for Router tabs
   const renderUptimeList = (items, emptyMessage = "No metrics available") => {
@@ -279,19 +255,6 @@ export function StatusDashboard({ initialData }) {
             <h1 className="text-3xl font-bold tracking-tight">Inference API Status</h1>
             <p className="text-muted-foreground mt-1">30 day uptime and realtime service availability</p>
           </div>
-          <div className="flex items-center gap-3">
-            {!hasOutages ? (
-              <Badge variant="success" className="w-fit text-sm py-1.5 px-3 flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                All Systems Operational
-              </Badge>
-            ) : (
-              <Badge variant="destructive" className="w-fit text-sm py-1.5 px-3 flex items-center gap-1.5">
-                <AlertTriangle className="h-4 w-4" />
-                {operationalPercentage}% Operational
-              </Badge>
-            )}
-          </div>
         </header>
 
         {/* Status Category Tabs */}
@@ -299,29 +262,17 @@ export function StatusDashboard({ initialData }) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <TabsList className="grid w-full sm:w-auto grid-cols-2 md:grid-cols-4 h-auto p-1 gap-1">
               <TabsTrigger value="publicai-router" className="py-2 text-xs sm:text-sm font-medium">
-                publicai router
-              </TabsTrigger>
+                Public AI API              </TabsTrigger>
               <TabsTrigger value="current-ai-router" className="py-2 text-xs sm:text-sm font-medium">
-                current ai router
+                Current AI Router
               </TabsTrigger>
               <TabsTrigger value="supply-model" className="py-2 text-xs sm:text-sm font-medium">
-                supply(model)
+                Suppliers by Model
               </TabsTrigger>
               <TabsTrigger value="supply-supplier" className="py-2 text-xs sm:text-sm font-medium">
-                supply(supplier)
+                Suppliers
               </TabsTrigger>
             </TabsList>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchMetrics(true)}
-              disabled={refreshing}
-              className="gap-2 shrink-0 self-end sm:self-auto text-xs"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-              {refreshing ? "Updating..." : "Refresh"}
-            </Button>
           </div>
 
           <TabsContent value="publicai-router">
