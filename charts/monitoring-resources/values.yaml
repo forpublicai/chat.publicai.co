@@ -28,6 +28,11 @@ status:
     type: ClusterIP
     port: 3000
   prometheusUrl: "http://prometheus-server.monitoring.svc.cluster.local:80"
+  prometheusAuth:
+    enabled: true
+    secretName: "prometheus-web-config"
+    userKey: "admin-user"
+    passwordKey: "admin-password"
   livenessProbe:
     enabled: true
     path: /
