@@ -45,7 +45,7 @@ spec:
             - name: EXTRA_MODELS_REPO_BRANCH
               value: {{ .Values.healthcheck.extraModelsRepoBranch | default "dev" | quote }}
             - name: CURRENTAI_ROUTER_URL
-              value: {{ .Values.healthcheck.currentaiRouterUrl | default "https://api-internal.currentai.co" | quote }}
+              value: {{ .Values.healthcheck.currentaiRouterUrl | default "https://router.stg.aipotluck.org" | quote }}
           envFrom:
             - secretRef:
                 name: {{ .Values.healthcheck.secrets.name | default "health-check-secrets" }}

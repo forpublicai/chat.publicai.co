@@ -184,7 +184,7 @@ healthcheck:
   extraModelsDir: ""
   extraModelsRepoUrl: "https://github.com/currentai-org/infra.git"
   extraModelsRepoBranch: "dev"
-  currentaiRouterUrl: "https://api-internal.currentai.co"
+  currentaiRouterUrl: "https://router.stg.aipotluck.org"
   resources:
     requests:
       memory: "256Mi"
