@@ -63,13 +63,29 @@ function filterIgnoredItems(items) {
   return items.filter((item) => !isModelIgnored(item, ignoredList));
 }
 
+const PROMETHEUS_USER = process.env.PROMETHEUS_USER || "";
+const PROMETHEUS_PASSWORD = process.env.PROMETHEUS_PASSWORD || "";
+
+function getPrometheusHeaders() {
+  const headers = {};
+  if (PROMETHEUS_USER || PROMETHEUS_PASSWORD) {
+    const credentials = Buffer.from(`${PROMETHEUS_USER}:${PROMETHEUS_PASSWORD}`).toString("base64");
+    headers["Authorization"] = `Basic ${credentials}`;
+  }
+  return headers;
+}
+
 async function fetchPrometheusInstant(query) {
   try {
     const url = `${PROMETHEUS_URL}/api/v1/query?query=${encodeURIComponent(query)}`;
     const res = await fetch(url, {
+      headers: getPrometheusHeaders(),
       next: { revalidate: METRICS_REVALIDATE_SECONDS, tags: ["prometheus-metrics"] },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`Prometheus instant query failed: ${res.status} ${res.statusText} (${query})`);
+      return [];
+    }
     const data = await res.json();
     return data?.data?.result || [];
   } catch (err) {
@@ -84,9 +100,13 @@ async function fetchPrometheusRange(query, start, end, step = 300) {
       query
     )}&start=${start}&end=${end}&step=${step}`;
     const res = await fetch(url, {
+      headers: getPrometheusHeaders(),
       next: { revalidate: METRICS_REVALIDATE_SECONDS, tags: ["prometheus-metrics"] },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`Prometheus range query failed: ${res.status} ${res.statusText} (${query})`);
+      return [];
+    }
     const data = await res.json();
     return data?.data?.result || [];
   } catch (err) {
