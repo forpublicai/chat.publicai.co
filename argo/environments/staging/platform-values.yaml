@@ -58,13 +58,13 @@ grafana:
   secretsName: "staging/aichat/grafana/secrets"
 
 healthcheck:
-  enabled: true
+  enabled: false
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
 
 modellist:
-  enabled: true
+  enabled: false
   image:
     repository: "ghcr.io/forpublicai/chat.publicai.co/model-list"
     tag: "sha-4f8522c"
