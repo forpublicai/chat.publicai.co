@@ -115,6 +115,8 @@ class LagoCustomCallback(CustomLogger):
             "swiss-ai/apertus-v1.5-8b-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
             "openai/swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
             "swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
+            "openai/alias-apertus": "swiss-ai/apertus-v1.5-8b",
+            "openai/alias-apertus-70b": "swiss-ai/apertus-v1.5-70b",
             "openai/swiss-ai/Apertus-v1.5-70B-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
             "swiss-ai/apertus-v1.5-70b-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
 
