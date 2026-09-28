@@ -379,11 +379,11 @@ def run_zuplo_check():
         })
 
 def minutely_scheduler_loop():
-    interval = 120.0
+    interval = 300.0
     while True:
         start_time = time.time()
         try:
-            logger.info("Running 2-minute health checks (Suppliers, PublicAI Router, CurrentAI Router)...")
+            logger.info("Running 5-minute health checks (Suppliers, PublicAI Router, CurrentAI Router)...")
             t_sup = threading.Thread(target=run_suppliers_check)
             t_pub = threading.Thread(target=run_publicai_router_check)
             t_cur = threading.Thread(target=run_currentai_router_check)
