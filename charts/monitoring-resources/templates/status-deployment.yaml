@@ -1,0 +1,64 @@
+{{- if .Values.status.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: status
+  namespace: {{ .Values.status.namespace | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: status
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.status.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: status
+  template:
+    metadata:
+      labels:
+        app: status
+        app.kubernetes.io/name: status
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: status
+          image: "{{ .Values.status.image.repository }}:{{ .Values.status.image.tag }}"
+          imagePullPolicy: {{ .Values.status.image.pullPolicy | default "Always" | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.status.port | default 3000 }}
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: {{ .Values.status.port | default 3000 | quote }}
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: PROMETHEUS_URL
+              value: {{ .Values.status.prometheusUrl | default "http://prometheus-server.monitoring.svc.cluster.local:80" | quote }}
+            {{- if .Values.status.extraEnv }}
+            {{- toYaml .Values.status.extraEnv | nindent 12 }}
+            {{- end }}
+          {{- if .Values.status.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.status.livenessProbe.path | default "/" }}
+              port: http
+            initialDelaySeconds: {{ .Values.status.livenessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ .Values.status.livenessProbe.periodSeconds | default 20 }}
+            timeoutSeconds: {{ .Values.status.livenessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.status.livenessProbe.failureThreshold | default 3 }}
+          {{- end }}
+          {{- if .Values.status.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.status.readinessProbe.path | default "/" }}
+              port: http
+            initialDelaySeconds: {{ .Values.status.readinessProbe.initialDelaySeconds | default 5 }}
+            periodSeconds: {{ .Values.status.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.status.readinessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.status.readinessProbe.failureThreshold | default 3 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.status.resources | nindent 12 }}
+{{- end }}

@@ -14,13 +14,14 @@ nodeExporter:
 server:
   enableConfigReloader: false
   tcpSocketProbeEnabled: true
+  retention: "40d"
   persistentVolume:
     enabled: true
-    size: 10Gi
+    size: 50Gi
     storageClass: "ebs-sc"
   extraFlags:
     - "web.config.file=/etc/prometheus/web.config"
-    - "storage.tsdb.retention.size=5GB"
+    - "storage.tsdb.retention.size=45GB"
   extraVolumes:
     - name: web-config
       secret:

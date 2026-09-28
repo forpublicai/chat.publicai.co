@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: health-check
-  namespace: {{ .Values.global.namespace | default "web-services" }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
 spec:
   replicas: {{ .Values.healthcheck.replicaCount | default 1 }}
   strategy:
@@ -25,12 +25,31 @@ spec:
           image: "{{ .Values.healthcheck.image.repository }}:{{ .Values.healthcheck.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.healthcheck.image.pullPolicy | default "Always" | quote }}
           ports:
-            - containerPort: 8000
+            - containerPort: {{ .Values.healthcheck.port | default 8000 }}
               name: http
-          resources:
-            {{- toYaml .Values.healthcheck.resources | nindent 12 }}
+          env:
+            - name: PORT
+              value: {{ .Values.healthcheck.port | default 8000 | quote }}
+            {{- if .Values.healthcheck.modelsDir }}
+            - name: MODELS_DIR
+              value: {{ .Values.healthcheck.modelsDir | quote }}
+            {{- end }}
+            - name: MODELS_REPO_URL
+              value: {{ .Values.healthcheck.modelsRepoUrl | default "https://github.com/forpublicai/chat.publicai.co.git" | quote }}
+            {{- if .Values.healthcheck.extraModelsDir }}
+            - name: EXTRA_MODELS_DIR
+              value: {{ .Values.healthcheck.extraModelsDir | quote }}
+            {{- end }}
+            - name: EXTRA_MODELS_REPO_URL
+              value: {{ .Values.healthcheck.extraModelsRepoUrl | default "https://github.com/currentai-org/infra.git" | quote }}
+            - name: EXTRA_MODELS_REPO_BRANCH
+              value: {{ .Values.healthcheck.extraModelsRepoBranch | default "dev" | quote }}
+            - name: CURRENTAI_ROUTER_URL
+              value: {{ .Values.healthcheck.currentaiRouterUrl | default "https://api-internal.currentai.co" | quote }}
           envFrom:
             - secretRef:
-                name: health-check-secrets
+                name: {{ .Values.healthcheck.secrets.name | default "health-check-secrets" }}
+          resources:
+            {{- toYaml .Values.healthcheck.resources | nindent 12 }}
 {{- end }}
 

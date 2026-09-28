@@ -8,6 +8,24 @@ import json
 import argparse
 import urllib.request
 import urllib.error
+import urllib.parse
+import concurrent.futures
+
+def extract_supplier_name(api_base):
+    """Extract supplier name from api_base URL as the domain segment before the TLD."""
+    try:
+        parsed = urllib.parse.urlparse(api_base)
+        hostname = parsed.hostname or api_base
+        hostname = hostname.split(':')[0].lower()
+        parts = hostname.split('.')
+        if len(parts) >= 2:
+            two_part_tlds = {'co.uk', 'com.au', 'com.pl', 'org.uk', 'gov.uk', 'co.ch'}
+            if len(parts) >= 3 and f"{parts[-2]}.{parts[-1]}" in two_part_tlds:
+                return parts[-3]
+            return parts[-2]
+        return parts[0]
+    except Exception:
+        return "unknown"
 
 def load_env(env_path, verbose=True):
     """Load environment variables from a .env file."""
@@ -43,6 +61,24 @@ def parse_active_endpoints(models_dir, verbose=True):
                         data = yaml.safe_load(f)
                     if not data or 'models' not in data:
                         continue
+
+                    # If an environment section exists, only use models that are in production
+                    env_section = data.get('environments') if 'environments' in data else data.get('environment')
+                    if env_section is not None:
+                        prod_identifiers = {'prod', 'production', 'prd'}
+                        if isinstance(env_section, str):
+                            env_list = [env_section]
+                        elif isinstance(env_section, (list, tuple, set)):
+                            env_list = list(env_section)
+                        else:
+                            env_list = [str(env_section)]
+                        
+                        env_names = {str(e).strip().lower() for e in env_list if e is not None}
+                        if not env_names.intersection(prod_identifiers):
+                            if verbose:
+                                print(f"Skipping non-production model file {file_path} (environments: {env_names})", file=sys.stderr)
+                            continue
+
                     for m in data['models']:
                         model_name = m.get('model_name')
                         if not model_name:
@@ -50,8 +86,13 @@ def parse_active_endpoints(models_dir, verbose=True):
                         litellm_params = m.get('litellm_params', {})
                         # Only test endpoints that have api_base
                         if 'api_base' in litellm_params:
+                            api_base = litellm_params['api_base']
+                            supplier_name = extract_supplier_name(api_base)
+                            target_name = f"{model_name}:{supplier_name}"
                             models.append({
                                 'model_name': model_name,
+                                'supplier_name': supplier_name,
+                                'target_name': target_name,
                                 'litellm_params': litellm_params
                             })
                 except Exception as e:
@@ -74,10 +115,12 @@ def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=Tr
     """Call the LLM endpoint and measure Time to First Token (TTFT) with a 30s timeout."""
     api_key = resolve_api_key(api_key_str)
     
-    # Strip OpenAI provider prefix if present
+    # Strip provider prefixes if present (openai/, huggingface/)
     backend_model = litellm_model
     if backend_model.startswith("openai/"):
         backend_model = backend_model[len("openai/"):]
+    if backend_model.startswith("huggingface/"):
+        backend_model = backend_model[len("huggingface/"):]
         
     url = api_base.rstrip('/') + '/chat/completions'
     
@@ -155,6 +198,7 @@ def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=Tr
 def main():
     parser = argparse.ArgumentParser(description="Test Provider endpoints")
     parser.add_argument("-json", "--json", action="store_true", help="Output results in JSON format")
+    parser.add_argument("--workers", "-w", type=int, default=10, help="Number of concurrent worker threads (default: 10)")
     args = parser.parse_args()
     
     json_mode = args.json
@@ -167,53 +211,139 @@ def main():
         # Determine directory paths relative to the script
         script_dir = os.path.dirname(os.path.abspath(__file__))
         
-        # Locate project root containing .env
-        root_dir = script_dir
-        while root_dir != os.path.dirname(root_dir):
-            if os.path.exists(os.path.join(root_dir, '.env')):
+        # Locate project root
+        repo_root = script_dir
+        while repo_root != os.path.dirname(repo_root):
+            if os.path.exists(os.path.join(repo_root, 'charts')) or os.path.exists(os.path.join(repo_root, '.git')):
                 break
-            root_dir = os.path.dirname(root_dir)
+            repo_root = os.path.dirname(repo_root)
             
-        env_path = os.path.join(root_dir, '.env')
+        env_path = os.path.join(script_dir, '.env')
+        if not os.path.exists(env_path):
+            env_path = os.path.join(repo_root, '.env')
         
-        models_dir = os.environ.get("MODELS_DIR")
-        if not models_dir:
+        def find_models_dir(base_path):
+            if not base_path:
+                return None
+            candidates = [
+                os.path.join(base_path, 'charts/platform/charts/litellm/models'),
+                os.path.join(base_path, 'charts/litellm/models'),
+                os.path.join(base_path, 'charts/web_services/charts/litellm/models'),
+                os.path.join(base_path, 'litellm/models'),
+                os.path.join(base_path, 'models'),
+                base_path
+            ]
+            for c in candidates:
+                if os.path.isdir(c):
+                    for _, _, files in os.walk(c):
+                        if any(f.endswith(('.yaml', '.yml')) for f in files):
+                            return c
+            return None
+
+        log(f"Loading environment from: {env_path}")
+        load_env(env_path, verbose=not json_mode)
+
+        model_dirs = []
+
+        import shutil
+        import subprocess
+
+        # 1. Primary models directory (Always pull dynamically from Git)
+        repo_url = os.environ.get("MODELS_REPO_URL", "https://github.com/forpublicai/chat.publicai.co.git")
+        repo_branch = os.environ.get("MODELS_REPO_BRANCH", "main")
+        repo_dir = "/tmp/chat.publicai.co"
+        if os.path.exists(repo_dir):
             try:
-                import shutil
-                import subprocess
-                repo_dir = "/tmp/chat.publicai.co"
-                if os.path.exists(repo_dir):
-                    try:
-                        shutil.rmtree(repo_dir)
-                    except Exception:
-                        pass
-                log("Cloning latest models dynamically from public repository...")
+                shutil.rmtree(repo_dir)
+            except Exception as e:
+                log(f"Warning: Failed to clean {repo_dir}: {e}")
+
+        log(f"Cloning primary models from {repo_url} (branch: {repo_branch})...")
+        try:
+            clone_cmd = ["git", "clone", "--depth", "1"]
+            if repo_branch:
+                clone_cmd.extend(["-b", repo_branch])
+            clone_cmd.extend([repo_url, repo_dir])
+            subprocess.run(
+                clone_cmd,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            found_primary = find_models_dir(repo_dir)
+            if found_primary:
+                model_dirs.append(found_primary)
+            else:
+                log(f"Warning: No models directory found in cloned repo at {repo_dir}")
+        except Exception as e:
+            log(f"Error cloning primary repo {repo_url}: {e}")
+            if not json_mode:
+                raise RuntimeError(f"Failed to clone primary models repository {repo_url}: {e}")
+
+        # 2. Extra models directory (Always pull dynamically from Git)
+        extra_repo_url = os.environ.get("EXTRA_MODELS_REPO_URL", "https://github.com/currentai-org/infra.git")
+        extra_branch = os.environ.get("EXTRA_MODELS_REPO_BRANCH", "dev")
+        if extra_repo_url:
+            extra_repo_dir = "/tmp/infra_models"
+            if os.path.exists(extra_repo_dir):
+                try:
+                    shutil.rmtree(extra_repo_dir)
+                except Exception as e:
+                    log(f"Warning: Failed to clean {extra_repo_dir}: {e}")
+
+            log(f"Cloning extra models from {extra_repo_url} (branch: {extra_branch})...")
+            try:
+                extra_clone_cmd = ["git", "clone", "--depth", "1"]
+                if extra_branch:
+                    extra_clone_cmd.extend(["-b", extra_branch])
+                extra_clone_cmd.extend([extra_repo_url, extra_repo_dir])
                 subprocess.run(
-                    ["git", "clone", "--depth", "1", "https://github.com/forpublicai/chat.publicai.co.git", repo_dir],
+                    extra_clone_cmd,
                     check=True,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )
-                models_dir = os.path.join(repo_dir, 'charts/web_services/charts/litellm/models')
+                found_extra = find_models_dir(extra_repo_dir)
+                if found_extra:
+                    model_dirs.append(found_extra)
+                else:
+                    log(f"Warning: No models directory found in extra repo at {extra_repo_dir}")
             except Exception as e:
-                log(f"Dynamic clone failed: {e}. Falling back to local directory.")
-                models_dir = os.path.join(root_dir, 'charts/web_services/charts/litellm/models')
-        
-        log(f"Loading environment from: {env_path}")
-        load_env(env_path, verbose=not json_mode)
-        
-        log(f"Parsing active endpoints from: {models_dir}")
-        active_endpoints = parse_active_endpoints(models_dir, verbose=not json_mode)
-        
+                log(f"Error cloning extra repo {extra_repo_url}: {e}")
+                if not json_mode:
+                    raise RuntimeError(f"Failed to clone extra models repository {extra_repo_url}: {e}")
+
+        # Parse all models from discovered directories
+        all_endpoints = []
+        for m_dir in model_dirs:
+            log(f"Parsing active endpoints from: {m_dir}")
+            try:
+                endpoints = parse_active_endpoints(m_dir, verbose=not json_mode)
+                all_endpoints.extend(endpoints)
+            except Exception as e:
+                log(f"Warning: Failed to parse endpoints from {m_dir}: {e}")
+
+        # Deduplicate endpoints by (model_name, api_base)
+        seen_targets = set()
+        active_endpoints = []
+        for ep in all_endpoints:
+            target_key = (ep.get('model_name'), ep.get('litellm_params', {}).get('api_base', '').rstrip('/'))
+            if target_key not in seen_targets:
+                seen_targets.add(target_key)
+                active_endpoints.append(ep)
+
         if not active_endpoints:
-            raise RuntimeError("No active HTTP endpoints found in models directory.")
+            raise RuntimeError("No active HTTP endpoints found across configured model directories.")
             
-        log(f"Found {len(active_endpoints)} active HTTP endpoints. Starting tests...")
+        log(f"Found {len(active_endpoints)} unique active HTTP endpoints (from {len(all_endpoints)} parsed). Starting tests in parallel using {args.workers} workers...")
         log("-" * 120)
         
-        results = []
-        for idx, ep in enumerate(active_endpoints, 1):
+        results = [None] * len(active_endpoints)
+
+        def test_single_endpoint(idx, ep):
             model_name = ep['model_name']
+            supplier_name = ep.get('supplier_name') or extract_supplier_name(ep['litellm_params'].get('api_base', ''))
+            target_name = ep.get('target_name') or f"{model_name}:{supplier_name}"
             litellm_model = ep['litellm_params'].get('model', '')
             api_base = ep['litellm_params'].get('api_base', '')
             api_key_str = ep['litellm_params'].get('api_key', '')
@@ -224,25 +354,48 @@ def main():
             else:
                 ssl_verify = bool(ssl_verify_val)
             
-            log(f"[{idx}/{len(active_endpoints)}] Testing model: {model_name} at {api_base} ...")
+            log(f"[{idx}/{len(active_endpoints)}] Testing endpoint: {target_name} at {api_base} ...")
             success, ttft, error = measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify)
-            
-            results.append({
-                'model': model_name,
+            return {
+                'model': target_name,
                 'model_name': model_name,
+                'supplier': supplier_name,
                 'api_base': api_base,
                 'success': success,
                 'ttft': ttft,
                 'error': error
-            })
+            }
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
+            futures = {executor.submit(test_single_endpoint, idx, ep): idx - 1 for idx, ep in enumerate(active_endpoints, 1)}
+            for future in concurrent.futures.as_completed(futures):
+                idx_zero = futures[future]
+                try:
+                    results[idx_zero] = future.result()
+                except Exception as e:
+                    ep = active_endpoints[idx_zero]
+                    model_name = ep['model_name']
+                    supplier_name = ep.get('supplier_name') or extract_supplier_name(ep['litellm_params'].get('api_base', ''))
+                    target_name = ep.get('target_name') or f"{model_name}:{supplier_name}"
+                    api_base = ep['litellm_params'].get('api_base', '')
+                    log(f"[{idx_zero+1}/{len(active_endpoints)}] {target_name}: FAILED (Exception: {e})")
+                    results[idx_zero] = {
+                        'model': target_name,
+                        'model_name': model_name,
+                        'supplier': supplier_name,
+                        'api_base': api_base,
+                        'success': False,
+                        'ttft': None,
+                        'error': f"Thread Exception: {e}"
+                    }
             
         failures = [r for r in results if not r['success']]
         
         if json_mode:
             if failures:
-                err_msgs = [f"{f['model_name']}: {f['error']}" for f in failures]
+                err_msgs = [f"{f['model']}: {f['error']}" for f in failures]
                 err_obj = {
-                    "message": f"{len(failures)} model(s) failed testing: {', '.join(err_msgs)}",
+                    "message": f"{len(failures)} endpoint(s) failed testing: {', '.join(err_msgs)}",
                     "code": "MODEL_TESTS_FAILED"
                 }
                 output = {
@@ -263,13 +416,13 @@ def main():
                 sys.exit(0)
                 
         log("\n" + "=" * 120)
-        log(f"{'Model Name':<45} | {'Status':<12} | {'TTFT (s)':<10} | {'Endpoint URL':<50}")
+        log(f"{'Endpoint (Model:Supplier)':<55} | {'Status':<12} | {'TTFT (s)':<10} | {'Endpoint URL':<50}")
         log("-" * 120)
         
         for res in results:
             status_str = "SUCCESS" if res['success'] else "FAILED"
             ttft_str = f"{res['ttft']:.3f}s" if res['success'] else "N/A"
-            log(f"{res['model_name']:<45} | {status_str:<12} | {ttft_str:<10} | {res['api_base']:<50}")
+            log(f"{res['model']:<55} | {status_str:<12} | {ttft_str:<10} | {res['api_base']:<50}")
             
         log("=" * 120)
         
@@ -278,9 +431,9 @@ def main():
             log("FAILURE DETAILS:")
             log("-" * 120)
             for idx, f in enumerate(failures, 1):
-                log(f"{idx}. Model: {f['model_name']}")
-                log(f"   URL: {f['api_base']}")
-                log(f"   Error: {f['error']}")
+                log(f"{idx}. Endpoint: {f['model']}")
+                log(f"   URL:      {f['api_base']}")
+                log(f"   Error:    {f['error']}")
                 log("-" * 120)
             sys.exit(1)
         else:

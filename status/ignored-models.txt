@@ -1,0 +1,5 @@
+# List model names to ignore across all display tabs in the status dashboard
+# One model name per line. Comments (#) and empty lines are ignored.
+# Matching is case-insensitive.
+
+Cohere/rerank-v3.5

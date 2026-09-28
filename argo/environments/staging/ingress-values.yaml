@@ -130,3 +130,19 @@ ingresses:
     targetService:
       name: prometheus-server
       port: 80
+
+  - enabled: true
+    name: status-public-ingress
+    namespace: monitoring
+    ingressClassName: alb
+    host: status.{{ .Values.domain }}
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
+      alb.ingress.kubernetes.io/group.name: public-group
+    targetService:
+      name: status-service
+      port: 3000
