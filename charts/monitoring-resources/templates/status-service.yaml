@@ -1,0 +1,19 @@
+{{- if .Values.status.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: status-service
+  namespace: {{ .Values.status.namespace | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: status
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.status.service.type | default "ClusterIP" }}
+  selector:
+    app: status
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.status.service.port | default 3000 }}
+      targetPort: {{ .Values.status.port | default 3000 }}
+{{- end }}
