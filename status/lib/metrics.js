@@ -193,19 +193,35 @@ function processMetricData(successInstant, ttftInstant, successRange, ttftRange)
       }
     }
 
-    // Last received bar determines operational status
-    let lastReceivedSuccess = item.value?.[1] === "1";
+    // Operational status determined by the last 3 checks:
+    // Operational: last 3 checks were ok
+    // Down: last 3 checks were fails
+    // Degraded: in-between
+    let status = "Operational";
+    let isOperational = true;
+
     if (rawSuccessValues.length > 0) {
-      const lastBar = rawSuccessValues[rawSuccessValues.length - 1];
-      lastReceivedSuccess = lastBar[1] === "1";
+      const recentChecks = rawSuccessValues.slice(-3);
+      const recentSuccessCount = recentChecks.filter((v) => v[1] === "1").length;
+      if (recentSuccessCount === recentChecks.length) {
+        status = "Operational";
+        isOperational = true;
+      } else if (recentSuccessCount === 0) {
+        status = "Down";
+        isOperational = false;
+      } else {
+        status = "Degraded";
+        isOperational = false;
+      }
+    } else {
+      const lastReceivedSuccess = item.value?.[1] === "1";
+      status = lastReceivedSuccess ? "Operational" : "Down";
+      isOperational = lastReceivedSuccess;
     }
 
     // Exact formula: number of test success = 1 / 8640 * 100
     const percentageVal = (successfulCount / TOTAL_30_DAYS_SLOTS) * 100;
     const uptimePercentage = `${percentageVal.toFixed(2)}%`;
-
-    const isOperational = lastReceivedSuccess;
-    const status = isOperational ? "Operational" : "Down";
 
     // Build the 30-day timeline across visual bars
     const historyBars = [];

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UptimeGraph } from "@/components/ui/uptime-graph";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 
 export function UptimeItem({
   title,
@@ -15,7 +15,7 @@ export function UptimeItem({
   currentLatency = "~99ms",
   avgLatency,
   isOperational = true,
-  status = "Operational",
+  status,
   historyData = [],
   startLabel = "30 days ago",
   endLabel = "Today",
@@ -23,14 +23,21 @@ export function UptimeItem({
 }) {
   const displayCurrentLatency = currentLatency || latency || null;
 
+  const currentStatus = status || (isOperational ? "Operational" : "Down");
+  const isDown = currentStatus.toLowerCase() === "down";
+  const isDegraded = currentStatus.toLowerCase() === "degraded";
+  const isOp = !isDown && !isDegraded;
+
   return (
     <Card className={cn("transition-all hover:border-muted-foreground/30 bg-card/60 backdrop-blur-sm", className)}>
       <CardContent className="p-5 flex flex-col gap-4">
         {/* Title row with percentage stat & latency stats on the right */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            {isOperational ? (
+            {isOp ? (
               <CheckCircle2 className="h-4 w-4 text-[#00D26A] shrink-0" />
+            ) : isDegraded ? (
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
             ) : (
               <XCircle className="h-4 w-4 text-rose-500 shrink-0" />
             )}
@@ -63,15 +70,15 @@ export function UptimeItem({
             <div className="flex items-center gap-2">
               <span className={cn(
                 "text-sm font-semibold font-mono",
-                isOperational ? "text-[#00D26A]" : "text-rose-400"
+                isOp ? "text-[#00D26A]" : isDegraded ? "text-amber-400" : "text-rose-400"
               )}>
                 {uptimePercentage}
               </span>
               <Badge
-                variant={isOperational ? "success" : "destructive"}
+                variant={isOp ? "success" : isDegraded ? "warning" : "destructive"}
                 className="text-[11px] px-2.5 py-0.5 font-medium"
               >
-                {isOperational ? "Operational" : "Down"}
+                {currentStatus}
               </Badge>
             </div>
           </div>
