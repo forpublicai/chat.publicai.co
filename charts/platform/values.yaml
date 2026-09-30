@@ -176,7 +176,7 @@ healthcheck:
   replicaCount: 1
   image:
     repository: "ghcr.io/forpublicai/chat.publicai.co/health-check"
-    tag: "build-8"
+    tag: "build-9"
     pullPolicy: "Always"
   port: 8000
   modelsDir: ""
