@@ -44,34 +44,58 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(JsonFormatter())
 logger.addHandler(handler)
 
-def log_check_failures(check_type, results, last_error, default_api_base=None):
+def log_check_results(check_type, results, last_error, default_api_base=None):
     """
-    Log failures only, outputting exactly one structured JSON log line per failed endpoint.
-    If results exist, log each failed endpoint.
-    If results are empty and a global error occurred, log one global failure error.
+    Log results:
+    - Emits exactly one structured JSON ERROR log line for each failed endpoint.
+    - Emits a concise structured JSON INFO log line summarizing the check results.
+    - If execution failed before results could be generated, emits an ERROR log with the failure.
     """
     failed_items = [r for r in results if not r.get("success", False)] if results else []
     
-    if failed_items:
-        for item in failed_items:
-            model_name = item.get("model_name") or item.get("model")
-            supplier = item.get("supplier")
-            api_base = item.get("api_base") or default_api_base
-            error = item.get("error")
-            
-            extra_payload = {
-                "type": check_type,
-                "model_name": model_name,
-                "error": error,
-            }
-            if supplier:
-                extra_payload["supplier"] = supplier
-            if api_base:
-                extra_payload["api_base"] = api_base
+    if results:
+        passed_count = len(results) - len(failed_items)
+        if failed_items:
+            for item in failed_items:
+                model_name = item.get("model_name") or item.get("model")
+                supplier = item.get("supplier")
+                api_base = item.get("api_base") or default_api_base
+                error = item.get("error")
                 
-            logger.error(
-                f"Health check endpoint failed for {model_name or check_type}",
-                extra=extra_payload
+                extra_payload = {
+                    "type": check_type,
+                    "model_name": model_name,
+                    "error": error,
+                }
+                if supplier:
+                    extra_payload["supplier"] = supplier
+                if api_base:
+                    extra_payload["api_base"] = api_base
+                    
+                logger.error(
+                    f"Health check endpoint failed for {model_name or check_type}",
+                    extra=extra_payload
+                )
+            logger.info(
+                f"{check_type} health check finished with failures ({passed_count}/{len(results)} passed)",
+                extra={
+                    "type": check_type,
+                    "status": "failed",
+                    "total": len(results),
+                    "passed": passed_count,
+                    "failed": len(failed_items)
+                }
+            )
+        else:
+            logger.info(
+                f"{check_type} health check completed successfully ({passed_count}/{len(results)} passed)",
+                extra={
+                    "type": check_type,
+                    "status": "success",
+                    "total": len(results),
+                    "passed": passed_count,
+                    "failed": 0
+                }
             )
     elif last_error:
         extra_payload = {
@@ -133,25 +157,25 @@ def run_huggingface_check():
                     last_error = error_obj.get("message")
                 else:
                     last_error = None
-            log_check_failures("huggingface", latest_results, last_error, default_api_base="https://router.huggingface.co/v1")
+            log_check_results("huggingface", latest_results, last_error, default_api_base="https://router.huggingface.co/v1")
         except json.JSONDecodeError:
             with data_lock:
                 latest_results = []
                 last_run_timestamp = time.time()
                 last_error = f"Invalid JSON output from huggingface.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            log_check_failures("huggingface", [], last_error, default_api_base="https://router.huggingface.co/v1")
+            log_check_results("huggingface", [], last_error, default_api_base="https://router.huggingface.co/v1")
     except subprocess.TimeoutExpired:
         with data_lock:
             latest_results = []
             last_run_timestamp = time.time()
             last_error = f"HuggingFace health check timed out after {CHECK_TIMEOUT_SECONDS}s"
-        log_check_failures("huggingface", [], last_error, default_api_base="https://router.huggingface.co/v1")
+        log_check_results("huggingface", [], last_error, default_api_base="https://router.huggingface.co/v1")
     except Exception as e:
         with data_lock:
             latest_results = []
             last_run_timestamp = time.time()
             last_error = f"Exception running huggingface.py: {e}"
-        log_check_failures("huggingface", [], last_error, default_api_base="https://router.huggingface.co/v1")
+        log_check_results("huggingface", [], last_error, default_api_base="https://router.huggingface.co/v1")
 
 def run_suppliers_check():
     global suppliers_results, suppliers_last_run_timestamp, suppliers_last_error
@@ -177,25 +201,25 @@ def run_suppliers_check():
                     suppliers_last_error = error_obj.get("message")
                 else:
                     suppliers_last_error = None
-            log_check_failures("supplier", suppliers_results, suppliers_last_error)
+            log_check_results("supplier", suppliers_results, suppliers_last_error)
         except json.JSONDecodeError:
             with data_lock:
                 suppliers_results = []
                 suppliers_last_run_timestamp = time.time()
                 suppliers_last_error = f"Invalid JSON output from suppliers.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            log_check_failures("supplier", [], suppliers_last_error)
+            log_check_results("supplier", [], suppliers_last_error)
     except subprocess.TimeoutExpired:
         with data_lock:
             suppliers_results = []
             suppliers_last_run_timestamp = time.time()
             suppliers_last_error = f"Suppliers health check timed out after {CHECK_TIMEOUT_SECONDS}s"
-        log_check_failures("supplier", [], suppliers_last_error)
+        log_check_results("supplier", [], suppliers_last_error)
     except Exception as e:
         with data_lock:
             suppliers_results = []
             suppliers_last_run_timestamp = time.time()
             suppliers_last_error = f"Exception running suppliers.py: {e}"
-        log_check_failures("supplier", [], suppliers_last_error)
+        log_check_results("supplier", [], suppliers_last_error)
 
 def run_publicai_router_check():
     global publicai_results, publicai_last_run_timestamp, publicai_last_error
@@ -222,25 +246,25 @@ def run_publicai_router_check():
                     publicai_last_error = error_obj.get("message")
                 else:
                     publicai_last_error = None
-            log_check_failures("publicai-router", publicai_results, publicai_last_error, default_api_base=default_url)
+            log_check_results("publicai-router", publicai_results, publicai_last_error, default_api_base=default_url)
         except json.JSONDecodeError:
             with data_lock:
                 publicai_results = []
                 publicai_last_run_timestamp = time.time()
                 publicai_last_error = f"Invalid JSON output from litellm.py (publicai_router). Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            log_check_failures("publicai-router", [], publicai_last_error, default_api_base=default_url)
+            log_check_results("publicai-router", [], publicai_last_error, default_api_base=default_url)
     except subprocess.TimeoutExpired:
         with data_lock:
             publicai_results = []
             publicai_last_run_timestamp = time.time()
             publicai_last_error = f"PublicAI Router health check timed out after {CHECK_TIMEOUT_SECONDS}s"
-        log_check_failures("publicai-router", [], publicai_last_error, default_api_base=default_url)
+        log_check_results("publicai-router", [], publicai_last_error, default_api_base=default_url)
     except Exception as e:
         with data_lock:
             publicai_results = []
             publicai_last_run_timestamp = time.time()
             publicai_last_error = f"Exception running litellm.py (publicai_router): {e}"
-        log_check_failures("publicai-router", [], publicai_last_error, default_api_base=default_url)
+        log_check_results("publicai-router", [], publicai_last_error, default_api_base=default_url)
 
 def run_currentai_router_check():
     global currentai_results, currentai_last_run_timestamp, currentai_last_error
@@ -267,25 +291,25 @@ def run_currentai_router_check():
                     currentai_last_error = error_obj.get("message")
                 else:
                     currentai_last_error = None
-            log_check_failures("currentai-router", currentai_results, currentai_last_error, default_api_base=default_url)
+            log_check_results("currentai-router", currentai_results, currentai_last_error, default_api_base=default_url)
         except json.JSONDecodeError:
             with data_lock:
                 currentai_results = []
                 currentai_last_run_timestamp = time.time()
                 currentai_last_error = f"Invalid JSON output from litellm.py (currentai_router). Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            log_check_failures("currentai-router", [], currentai_last_error, default_api_base=default_url)
+            log_check_results("currentai-router", [], currentai_last_error, default_api_base=default_url)
     except subprocess.TimeoutExpired:
         with data_lock:
             currentai_results = []
             currentai_last_run_timestamp = time.time()
             currentai_last_error = f"CurrentAI Router health check timed out after {CHECK_TIMEOUT_SECONDS}s"
-        log_check_failures("currentai-router", [], currentai_last_error, default_api_base=default_url)
+        log_check_results("currentai-router", [], currentai_last_error, default_api_base=default_url)
     except Exception as e:
         with data_lock:
             currentai_results = []
             currentai_last_run_timestamp = time.time()
             currentai_last_error = f"Exception running litellm.py (currentai_router): {e}"
-        log_check_failures("currentai-router", [], currentai_last_error, default_api_base=default_url)
+        log_check_results("currentai-router", [], currentai_last_error, default_api_base=default_url)
 
 def run_zuplo_check():
     global zuplo_results, zuplo_last_run_timestamp, zuplo_last_error
@@ -311,31 +335,32 @@ def run_zuplo_check():
                     zuplo_last_error = error_obj.get("message")
                 else:
                     zuplo_last_error = None
-            log_check_failures("zuplo", zuplo_results, zuplo_last_error, default_api_base="https://api.publicai.co")
+            log_check_results("zuplo", zuplo_results, zuplo_last_error, default_api_base="https://api.publicai.co")
         except json.JSONDecodeError:
             with data_lock:
                 zuplo_results = []
                 zuplo_last_run_timestamp = time.time()
                 zuplo_last_error = f"Invalid JSON output from zuplo.py. Stdout: {result.stdout[:500]} Stderr: {result.stderr[:500]}"
-            log_check_failures("zuplo", [], zuplo_last_error, default_api_base="https://api.publicai.co")
+            log_check_results("zuplo", [], zuplo_last_error, default_api_base="https://api.publicai.co")
     except subprocess.TimeoutExpired:
         with data_lock:
             zuplo_results = []
             zuplo_last_run_timestamp = time.time()
             zuplo_last_error = f"Zuplo health check timed out after {CHECK_TIMEOUT_SECONDS}s"
-        log_check_failures("zuplo", [], zuplo_last_error, default_api_base="https://api.publicai.co")
+        log_check_results("zuplo", [], zuplo_last_error, default_api_base="https://api.publicai.co")
     except Exception as e:
         with data_lock:
             zuplo_results = []
             zuplo_last_run_timestamp = time.time()
             zuplo_last_error = f"Exception running zuplo.py: {e}"
-        log_check_failures("zuplo", [], zuplo_last_error, default_api_base="https://api.publicai.co")
+        log_check_results("zuplo", [], zuplo_last_error, default_api_base="https://api.publicai.co")
 
 def minutely_scheduler_loop():
     interval = 300.0
     while True:
         start_time = time.time()
         try:
+            logger.info("Starting 5-minute health checks (Suppliers, PublicAI Router, CurrentAI Router)...", extra={"type": "scheduler"})
             t_sup = threading.Thread(target=run_suppliers_check)
             t_pub = threading.Thread(target=run_publicai_router_check)
             t_cur = threading.Thread(target=run_currentai_router_check)
@@ -356,6 +381,7 @@ def hourly_scheduler_loop():
     while True:
         start_time = time.time()
         try:
+            logger.info("Starting hourly health checks (HuggingFace, Zuplo)...", extra={"type": "scheduler"})
             t_hf = threading.Thread(target=run_huggingface_check)
             t_zup = threading.Thread(target=run_zuplo_check)
             t_hf.start()
