@@ -3,5 +3,6 @@
   {"url": "https://chat.publicai.co", "expected_status": {"min_status": 200, "max_status": 399}},
   {"url": "https://platform.publicai.co", "expected_status": {"min_status": 200, "max_status": 399}},
   {"url": "https://api.publicai.co/v1/models", "expected_status": {"min_status": 100, "max_status": 499}},
+  {"url": "https://api.publicai.co/v1/developer/pricing", "expected_status": {"min_status": 200, "max_status": 299}},
   {"url": "https://publicai.network", "expected_status": {"min_status": 200, "max_status": 399}}
 ]
