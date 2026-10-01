@@ -1,0 +1,49 @@
+name: Test Cognito Cleanup
+
+on:
+  pull_request:
+    paths:
+      - 'modules/cognito-cleanup/**'
+      - 'terraform/**'
+      - 'terraform_publicai/**'
+      - '.github/workflows/test-cognito-cleanup.yaml'
+  push:
+    branches: [main, dev]
+    paths:
+      - 'modules/cognito-cleanup/**'
+      - 'terraform/**'
+      - 'terraform_publicai/**'
+      - '.github/workflows/test-cognito-cleanup.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Test cleanup
+        run: python -B -m unittest discover -s modules/cognito-cleanup -v
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform formatting
+        run: |
+          terraform fmt -check -recursive modules/cognito-cleanup
+          terraform fmt -check terraform/1-terraform.tf terraform/11-cognito.tf terraform_publicai/1-terraform.tf terraform_publicai/11-cognito.tf
+
+      - name: Validate staging and production configuration
+        run: |
+          terraform -chdir=terraform init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=terraform validate
+          terraform -chdir=terraform_publicai init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=terraform_publicai validate
