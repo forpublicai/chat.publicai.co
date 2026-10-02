@@ -1,7 +1,9 @@
 services:
   openwebui-backend:
     build:
-      context: ../open-webui/backend
+      # OPENWEBUI_SRC lets you point this at a different clone/fork — see
+      # .env.example. Defaults to a sibling checkout next to this repo.
+      context: ${OPENWEBUI_SRC:-../open-webui}/backend
       dockerfile_inline: |
         FROM python:3.12-slim
         WORKDIR /app
@@ -12,6 +14,7 @@ services:
         EXPOSE 8080
         CMD ["python3", "-m", "uvicorn", "open_webui.main:app", "--host", "0.0.0.0", "--port", "8080", "--forwarded-allow-ips", "*", "--reload"]
     container_name: publicai-openwebui-backend
+    working_dir: /repo/backend
     ports:
       - "8080:8080"
     environment:
@@ -20,11 +23,15 @@ services:
       OPENAI_API_BASE_URL: http://litellm:4000/v1
       OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
       WEBUI_SECRET_KEY: local-dev-secret
+      # Keeps env vars authoritative instead of letting OpenWebUI persist them to
+      # its database after first run, where later env var changes stop applying.
+      ENABLE_PERSISTENT_CONFIG: "false"
     volumes:
-      - ../open-webui/backend:/app
-      # env.py reads this via pkgutil at import time; it lives at the repo root,
-      # not inside backend/, so it needs its own mount or the backend crashes on startup.
-      - ../open-webui/CHANGELOG.md:/app/open_webui/CHANGELOG.md:ro
+      # Whole repo, not just backend/ — env.py's BASE_DIR (two dirs above itself)
+      # needs to land on the real repo root to find CHANGELOG.md and package.json
+      # directly; mounting only backend/ makes both silently fall back (missing
+      # changelog, version reported as "0.0.0").
+      - ${OPENWEBUI_SRC:-../open-webui}:/repo
     depends_on:
       - litellm
 
@@ -42,7 +49,7 @@ services:
     environment:
       WEBUI_BACKEND_URL: http://openwebui-backend:8080
     volumes:
-      - ../open-webui:/app
+      - ${OPENWEBUI_SRC:-../open-webui}:/app
       - openwebui-frontend-node-modules:/app/node_modules
     depends_on:
       - openwebui-backend

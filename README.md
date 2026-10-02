@@ -104,6 +104,37 @@ To get involved with the Public AI Inference Utility:
 
 Together, we're building infrastructure that democratizes access to AI capabilities for everyone.
 
+## Local Development
+
+A Docker Compose setup for running OpenWebUI + LiteLLM locally, with LiteLLM
+configured from the `charts/platform/charts/litellm` Helm chart rendered automatically by a `render_config` service
+before `litellm` starts.
+
+**Setup:**
+```bash
+cp .env.example .env
+# Get a key from https://platform.publicai.co and set PUBLICAI_API_KEY in .env
+# (without it, the stack still starts, but no model responds)
+docker compose -f docker-compose.base.yml up -d --build
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+**After editing the chart** (`charts/platform/charts/litellm/...`), restart the containers to pick up the change:
+```bash
+docker compose -f docker-compose.base.yml restart render_config litellm
+```
+
+**Hot-reload overlay** for editing OpenWebUI itself — requires a local clone of
+[forpublicai/open-webui](https://github.com/forpublicai/open-webui) as a sibling
+directory (`../open-webui`), or point `OPENWEBUI_SRC` in `.env` at a different path:
+```bash
+docker compose -f docker-compose.base.yml -f docker-compose.dev-openwebui.yml \
+  up -d --build litellm openwebui-backend openwebui-frontend
+```
+Backend hot-reloads on [http://localhost:8080](http://localhost:8080), frontend
+(with live HMR) on [http://localhost:5173](http://localhost:5173).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
