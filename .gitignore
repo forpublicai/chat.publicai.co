@@ -19,6 +19,14 @@ charts/*/charts/*.tgz
 *.swp
 *.swo
 
+# Local agentic-development scratch (ledgers, briefs, review packages)
+.superpowers/
+
+# Local dev environment: generated/copied, never hand-edited in place
+scripts/litellm-config.rendered.yaml
+scripts/custom_auth.py
+scripts/custom_lago_callback.py
+
 # Backup files
 *.bak
 *.backup
