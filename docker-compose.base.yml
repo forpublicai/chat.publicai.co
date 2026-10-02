@@ -1,0 +1,11 @@
+services:
+  litellm:
+    build: ./litellm
+    container_name: publicai-litellm
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
