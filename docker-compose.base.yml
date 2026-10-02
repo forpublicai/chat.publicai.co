@@ -10,3 +10,24 @@ services:
     volumes:
       - ./litellm-config.yaml:/app/config.yaml:ro
     restart: unless-stopped
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.11.3
+    container_name: publicai-openwebui
+    ports:
+      - "3000:8080"
+    environment:
+      OPENAI_API_BASE_URL: http://litellm:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      ENABLE_OLLAMA_API: "false"
+      ENABLE_FORWARD_USER_INFO_HEADERS: "true"
+      WEBUI_SECRET_KEY: local-dev-secret
+      ENABLE_VERSION_UPDATE_CHECK: "false"
+    volumes:
+      - openwebui-data:/app/backend/data
+    depends_on:
+      - litellm
+    restart: unless-stopped
+
+volumes:
+  openwebui-data:

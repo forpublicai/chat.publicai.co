@@ -14,7 +14,28 @@
 # and edit the `model: openai/<id>` lines below to match what that returns.
 
 model_list:
+  # --- AI Singapore SEA-LION: default for dev work, consistently fast and reliable ---
+  - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
+    litellm_params:
+      model: openai/aisingapore/Gemma-SEA-LION-v4-27B-IT
+      api_base: https://api.publicai.co/v1
+      api_key: os.environ/PUBLICAI_API_KEY
+      extra_headers:
+        User-Agent: public-ai-local/0.1
+    model_info:
+      input_cost_per_token: 0.00000020
+      output_cost_per_token: 0.00000040
+
+  # --- Offline mock: works with no API key, for testing the plumbing ---
+  - model_name: local/mock
+    litellm_params:
+      model: openai/mock
+      mock_response: "Hello from the local LiteLLM mock. The plumbing works."
+
   # --- Swiss AI Apertus (same public name as production) ---
+  # Flagged as intermittently unhealthy on status.publicai.co as of this investigation
+  # (see public-ai-kit/notes/slowness-investigation.md) — left available but not the
+  # default, so dev work isn't blocked by hangs on this specific model.
   - model_name: swiss-ai/apertus-v1.5-8b
     litellm_params:
       model: openai/swiss-ai/apertus-v1.5-8b      # "openai/" = speak the OpenAI-compatible protocol
@@ -29,33 +50,11 @@ model_list:
       input_cost_per_token: 0.00000010
       output_cost_per_token: 0.0000002
 
-  # --- AI Singapore SEA-LION ---
-  # TEMPORARY: commented out so the only model in OpenWebUI's dropdown is the faulty one.
-  # - model_name: aisingapore/Gemma-SEA-LION-v4-27B-IT
-  #   litellm_params:
-  #     model: openai/aisingapore/Gemma-SEA-LION-v4-27B-IT
-  #     api_base: https://api.publicai.co/v1
-  #     api_key: os.environ/PUBLICAI_API_KEY
-  #     extra_headers:
-  #       User-Agent: public-ai-local/0.1
-  #   model_info:
-  #     input_cost_per_token: 0.00000020
-  #     output_cost_per_token: 0.00000040
-
-  # --- Offline mock: works with no API key, for testing the plumbing ---
-  # TEMPORARY: commented out, same reason.
-  # - model_name: local/mock
-  #   litellm_params:
-  #     model: openai/mock
-  #     mock_response: "Hello from the local LiteLLM mock. The plumbing works."
-
 router_settings:
   routing_strategy: simple-shuffle        # same as production
-  # TEMPORARY: fallback removed so we can see swiss-ai/apertus-v1.5-8b's raw timing,
-  # unmasked by failover, while its production status shows "Down".
-  # fallbacks:
-  #   - swiss-ai/apertus-v1.5-8b:
-  #       - aisingapore/Gemma-SEA-LION-v4-27B-IT
+  fallbacks:                              # production declares these per model file
+    - swiss-ai/apertus-v1.5-8b:
+        - aisingapore/Gemma-SEA-LION-v4-27B-IT
 
 litellm_settings:
   drop_params: true                       # same as production
