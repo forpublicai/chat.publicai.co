@@ -1,7 +1,8 @@
 services:
   litellm:
-    build: ./litellm
+    image: ghcr.io/berriai/litellm-database:v1.98.0
     container_name: publicai-litellm
+    command: ["--port", "4000", "--config", "/app/config.yaml"]
     ports:
       - "4000:4000"
     env_file:
