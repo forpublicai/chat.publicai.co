@@ -1,4 +1,31 @@
+volumes:
+  openwebui-data:
+
 services:
+  # Renders Public AI's real LiteLLM chart into litellm-config.rendered.yaml before
+  # litellm starts. To pick up a chart edit, force-recreate render_config + litellm.
+  render_config:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        RUN apt-get update && apt-get install -y curl ca-certificates && \
+            curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash && \
+            rm -rf /var/lib/apt/lists/*
+        RUN pip install --no-cache-dir pyyaml
+    working_dir: /repo/scripts
+    volumes:
+      - .:/repo
+    command: ["python3", "render_litellm_config.py"]
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    container_name: publicai-redis
+    restart: unless-stopped
+
   litellm:
     image: ghcr.io/berriai/litellm-database:v1.98.0
     container_name: publicai-litellm
@@ -7,8 +34,15 @@ services:
       - "4000:4000"
     env_file:
       - .env
+    environment:
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      render_config:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
     volumes:
-      - ./litellm-config.yaml:/app/config.yaml:ro
+      - ./litellm-config.rendered.yaml:/app/config.yaml:ro
       # Real custom code from Public AI's own chart — not agnostic LiteLLM.
       # Edit either file and restart this service to pick up changes.
       - ./charts/platform/charts/litellm/custom_auth.py:/app/custom_auth.py:ro
@@ -33,6 +67,3 @@ services:
     depends_on:
       - litellm
     restart: unless-stopped
-
-volumes:
-  openwebui-data:
