@@ -9,6 +9,11 @@ services:
       - .env
     volumes:
       - ./litellm-config.yaml:/app/config.yaml:ro
+      # Real custom code from Public AI's own chart — not agnostic LiteLLM.
+      # Edit either file and restart this service to pick up changes.
+      - ./charts/platform/charts/litellm/custom_auth.py:/app/custom_auth.py:ro
+      - ./charts/platform/charts/litellm/custom_lago_callback.py:/app/custom_lago_callback.py:ro
+    working_dir: /app
     restart: unless-stopped
 
   openwebui:

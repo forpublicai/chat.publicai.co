@@ -70,3 +70,7 @@ general_settings:
   user_header_mappings:
     - header_name: X-OpenWebUI-User-Id
       litellm_user_role: customer
+  # Same as production: real custom_auth.py, bind-mounted below. Safe without a
+  # database locally — it always falls through to normal key auth, the budget-
+  # tracking HTTP calls just fail gracefully and get logged.
+  custom_auth: custom_auth.user_api_key_auth
