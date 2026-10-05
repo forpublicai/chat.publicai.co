@@ -18,6 +18,7 @@ services:
       - PHOENIQS_API_KEY=${PHOENIQS_API_KEY:-}
       - NEXBIT_API_KEY=${NEXBIT_API_KEY:-}
       - JUELICH_API_KEY=${JUELICH_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
       - MODELS_DIR=${MODELS_DIR:-}
       - MODELS_REPO_URL=${MODELS_REPO_URL:-https://github.com/forpublicai/chat.publicai.co.git}
       - EXTRA_MODELS_DIR=${EXTRA_MODELS_DIR:-}
