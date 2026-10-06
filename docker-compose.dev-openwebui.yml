@@ -26,6 +26,7 @@ services:
       # Keeps env vars authoritative instead of letting OpenWebUI persist them to
       # its database after first run, where later env var changes stop applying.
       ENABLE_PERSISTENT_CONFIG: "false"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
     volumes:
       # Whole repo, not just backend/ — env.py's BASE_DIR (two dirs above itself)
       # needs to land on the real repo root to find CHANGELOG.md and package.json
@@ -33,7 +34,10 @@ services:
       # changelog, version reported as "0.0.0").
       - ${OPENWEBUI_SRC:-../open-webui}:/repo
     depends_on:
-      - litellm
+      litellm:
+        condition: service_started
+      postgres:
+        condition: service_healthy
 
   openwebui-frontend:
     build:
