@@ -22,6 +22,14 @@ litellm:
 lago:
   enabled: true
 
+  # Secrets configuration for Lago encryption keys
+  secrets:
+    manualSecretsName: ""
+
+  # Encryption configuration
+  encryption:
+    existingSecret: ""
+
   # Service Account configuration for IRSA (IAM Roles for Service Accounts)
   serviceAccount:
     roleArn: ""

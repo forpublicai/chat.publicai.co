@@ -25,6 +25,10 @@ litellm:
       maximum_spend_logs_retention_interval: "1d"
 
 lago:
+  encryption:
+    existingSecret: lago-encryption-secrets
+  secrets:
+    manualSecretsName: "prod/publicai/lago/manual-secrets"
   serviceAccount:
     roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
   apiUrl: "https://lago-api.publicai.co"
