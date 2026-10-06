@@ -165,13 +165,18 @@ class LagoCustomCallback(CustomLogger):
             "CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
             "CohereLabs/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
             "cohere/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
+
+            # Routers
+            "smart-router": "smart-router",
+            "auto_router/complexity_router": "smart-router",
         }
 
         # Try direct mapping first
         if model in model_mapping:
             return model_mapping[model]
 
-        # If it's already in the correct format (org/model), return as-is
+        # If it's already in the correct format (org/model), return as-is with debug notice
+        verbose_logger.debug(f"ℹ️ Model '{model}' not explicitly mapped in model_mapping, passing through")
         return model
 
     def _create_event(self, subscription_id: str, model: str, tokens: int, event_type: str) -> dict:

@@ -149,7 +149,7 @@ spec:
                   optional: true
             {{- if .Values.lago.enabled }}
             - name: LAGO_API_BASE
-              value: "http://platform-api-svc.platform.svc.cluster.local:3000"
+              value: {{ .Values.lago.apiBase | default "http://platform-api-svc.platform.svc.cluster.local:3000" | quote }}
             - name: LAGO_API_KEY
               valueFrom:
                 secretKeyRef:
