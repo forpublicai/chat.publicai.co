@@ -18,6 +18,11 @@ litellm:
     dbPasswordArn: "prod/publicai/database/password"
   prometheus:
     enabled: true
+  config:
+    general_settings:
+      store_prompts_in_spend_logs: false
+      maximum_spend_logs_retention_period: "7d"
+      maximum_spend_logs_retention_interval: "1d"
 
 lago:
   serviceAccount:

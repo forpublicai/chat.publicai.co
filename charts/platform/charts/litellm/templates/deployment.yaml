@@ -11,7 +11,7 @@ spec:
       maxUnavailable: 0
       maxSurge: 1
   progressDeadlineSeconds: 300
-  minReadySeconds: {{ .Values.app.minReadySeconds | default 30 }}
+  minReadySeconds: {{ .Values.app.minReadySeconds | default 35 }}
   selector:
     matchLabels:
       app: {{ .Values.app.name }}
@@ -46,6 +46,52 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: litellm-migration
+          image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          args:
+            - "--config"
+            - "/app/config.yaml"
+            - "--skip_server_startup"
+          env:
+            - name: AWS_REGION
+              value: {{ .Values.env.aws_region | quote }}
+            - name: LITELLM_MODE
+              value: "PRODUCTION"
+            - name: USE_PRISMA_MIGRATE
+              value: "True"
+            - name: LITELLM_SALT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: litellm_salt_key
+            - name: LITELLM_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: litellm_master_key
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: database_url
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          resources:
+            {{- if and .Values.initMigration .Values.initMigration.resources }}
+            {{- toYaml .Values.initMigration.resources | nindent 12 }}
+            {{- else }}
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+            {{- end }}
       containers:
         - name: {{ .Values.app.name }}
           image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
@@ -64,7 +110,7 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: litellm_salt_key
             - name: USE_PRISMA_MIGRATE
-              value: "True"
+              value: "False"
             - name: LITELLM_MASTER_KEY
               valueFrom:
                 secretKeyRef:
@@ -187,19 +233,21 @@ spec:
               readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
+          {{- if and .Values.app.preStop .Values.app.preStop.enabled }}
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sleep", "5"]
-          {{- if .Values.app.startupProbe.enabled }}
+                command: ["/bin/sleep", "{{ .Values.app.preStop.sleepSeconds | default 5 }}"]
+          {{- end }}
+          {{- if and .Values.app.startupProbe .Values.app.startupProbe.enabled }}
           startupProbe:
             httpGet:
               path: {{ .Values.app.startupProbe.path | default "/health/liveliness" }}
               port: {{ .Values.app.port }}
-            initialDelaySeconds: {{ .Values.app.startupProbe.initialDelaySeconds | default 10 }}
+            initialDelaySeconds: {{ .Values.app.startupProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.app.startupProbe.periodSeconds | default 5 }}
             timeoutSeconds: {{ .Values.app.startupProbe.timeoutSeconds | default 5 }}
-            failureThreshold: {{ .Values.app.startupProbe.failureThreshold | default 20 }}
+            failureThreshold: {{ .Values.app.startupProbe.failureThreshold | default 60 }}
           {{- end }}
           {{- if .Values.app.livenessProbe.enabled }}
           livenessProbe:
