@@ -108,7 +108,8 @@ Together, we're building infrastructure that democratizes access to AI capabilit
 
 A Docker Compose setup for running OpenWebUI + LiteLLM locally, with LiteLLM
 configured from the `charts/platform/charts/litellm` Helm chart rendered automatically by a `render_config` service
-before `litellm` starts.
+before `litellm` starts. OpenWebUI's data lives in a real local Postgres
+(`postgres` service).
 
 **Setup:**
 ```bash

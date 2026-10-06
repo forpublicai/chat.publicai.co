@@ -1,7 +1,24 @@
 volumes:
   openwebui-data:
+  postgres-data:
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: publicai-postgres
+    environment:
+      POSTGRES_DB: openwebui
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d openwebui"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   # Renders Public AI's real LiteLLM chart into litellm-config.rendered.yaml before
   # litellm starts. To pick up a chart edit, force-recreate render_config + litellm.
   render_config:
@@ -65,8 +82,12 @@ services:
       # Keeps env vars authoritative instead of letting OpenWebUI persist them to
       # its database after first run, where later env var changes stop applying.
       ENABLE_PERSISTENT_CONFIG: "false"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
     volumes:
       - openwebui-data:/app/backend/data
     depends_on:
-      - litellm
+      litellm:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
