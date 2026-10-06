@@ -112,4 +112,6 @@ services:
     depends_on:
       openwebui:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     restart: "no"
