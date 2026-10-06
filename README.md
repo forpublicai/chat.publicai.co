@@ -135,6 +135,20 @@ docker compose -f docker-compose.base.yml -f docker-compose.dev-openwebui.yml \
 Backend hot-reloads on [http://localhost:8080](http://localhost:8080), frontend
 (with live HMR) on [http://localhost:5173](http://localhost:5173).
 
+For editing LiteLLM itself — requires a local clone of
+[BerriAI/litellm](https://github.com/BerriAI/litellm) as a sibling directory
+(`../litellm`), or point `LITELLM_SRC` in `.env` at a different path:
+```bash
+docker compose -f docker-compose.base.yml -f docker-compose.dev-litellm.yml \
+  up -d --build
+```
+LiteLLM hot-reloads on [http://localhost:4001](http://localhost:4001); this
+points the published-image OpenWebUI at it automatically. Combining this with
+the OpenWebUI hot-reload overlay above works too, but `openwebui-backend`
+still defaults to the base `litellm` service — add
+`OPENAI_API_BASE_URL=http://litellm-dev:4000/v1` yourself if you want both
+hot-reloading at once.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
