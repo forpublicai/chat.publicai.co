@@ -91,3 +91,25 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+
+  # Seeds a ready-to-use admin account + sample users/chats so a fresh stack
+  # doesn't need the signup wizard. Idempotent by email; re-run anytime with
+  # `docker compose -f docker-compose.base.yml run --rm seed_db --reset`.
+  seed_db:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        RUN pip install --no-cache-dir psycopg2-binary bcrypt
+    working_dir: /repo
+    volumes:
+      - ./scripts/seed_db.py:/repo/scripts/seed_db.py:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
+    entrypoint: ["python3", "scripts/seed_db.py"]
+    depends_on:
+      openwebui:
+        condition: service_healthy
+    restart: "no"

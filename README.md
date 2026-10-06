@@ -121,6 +121,15 @@ docker compose -f docker-compose.base.yml up -d --build
 
 Open [http://localhost:3000](http://localhost:3000).
 
+A one-shot `seed_db` service runs automatically on first `up`, seeding a ready
+admin account (`admin@local.test` / `admin123`) and two regular users
+(`user1@local.test`, `user2@local.test`, both `user123`) with sample chats, so
+there's no signup wizard to click through. Safe to re-run anytime (skips
+accounts that already exist); pass `--reset` to delete and recreate them:
+```bash
+docker compose -f docker-compose.base.yml run --rm seed_db --reset
+```
+
 **After editing the chart** (`charts/platform/charts/litellm/...`), restart the containers to pick up the change:
 ```bash
 docker compose -f docker-compose.base.yml restart render_config litellm
