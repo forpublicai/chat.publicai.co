@@ -52,6 +52,9 @@ lago:
   billingWorker:
     livenessProbe:
       initialDelaySeconds: 90
+  clock:
+    extraEnv:
+      SIDEKIQ_CLOCK: "true"
   clockWorker:
     livenessProbe:
       initialDelaySeconds: 90
