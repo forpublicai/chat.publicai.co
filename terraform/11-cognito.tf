@@ -372,3 +372,11 @@ resource "aws_lambda_permission" "cognito_pre_signup" {
   principal     = "cognito-idp.amazonaws.com"
   source_arn    = aws_cognito_user_pool.this.arn
 }
+
+module "cognito_cleanup" {
+  source = "../modules/cognito-cleanup"
+
+  name_prefix   = "${local.env}-${local.org}"
+  user_pool_id  = aws_cognito_user_pool.this.id
+  user_pool_arn = aws_cognito_user_pool.this.arn
+}
