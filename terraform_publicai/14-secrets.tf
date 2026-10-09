@@ -165,6 +165,32 @@ resource "aws_secretsmanager_secret_version" "argocd_notifications" {
   }
 }
 
+resource "aws_secretsmanager_secret" "lago_manual" {
+  name                    = "${local.env}/${local.org}/lago/manual-secrets"
+  description             = "Manually managed encryption keys and secrets for Lago"
+  recovery_window_in_days = 0
+
+  tags = {
+    Name        = "${local.env}-${local.org}-lago-manual-secrets"
+    Environment = local.env
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "lago_manual" {
+  secret_id = aws_secretsmanager_secret.lago_manual.id
+  secret_string = jsonencode({
+    LAGO_ENCRYPTION_PRIMARY_KEY         = "placeholder-replace-in-console"
+    LAGO_ENCRYPTION_DETERMINISTIC_KEY   = "placeholder-replace-in-console"
+    LAGO_ENCRYPTION_KEY_DERIVATION_SALT = "placeholder-replace-in-console"
+    LAGO_SECRET_KEY_BASE                = "placeholder-replace-in-console"
+    LAGO_RSA_PRIVATE_KEY                = "placeholder-replace-in-console"
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 resource "aws_iam_role" "external_secrets_irsa" {
   name = "${local.env}-ExternalSecrets-IRSA-Role"
 

@@ -18,8 +18,17 @@ litellm:
     dbPasswordArn: "prod/publicai/database/password"
   prometheus:
     enabled: true
+  config:
+    general_settings:
+      store_prompts_in_spend_logs: false
+      maximum_spend_logs_retention_period: "7d"
+      maximum_spend_logs_retention_interval: "1d"
 
 lago:
+  encryption:
+    existingSecret: lago-encryption-secrets
+  secrets:
+    manualSecretsName: "prod/publicai/lago/manual-secrets"
   serviceAccount:
     roleArn: "arn:aws:iam::901779868336:role/Lago-IRSA-Role"
   apiUrl: "https://lago-api.publicai.co"
@@ -43,6 +52,9 @@ lago:
   billingWorker:
     livenessProbe:
       initialDelaySeconds: 90
+  clock:
+    extraEnv:
+      SIDEKIQ_CLOCK: "true"
   clockWorker:
     livenessProbe:
       initialDelaySeconds: 90

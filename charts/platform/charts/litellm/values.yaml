@@ -5,16 +5,19 @@ app:
     tag: v1.92.0
     pullPolicy: Always
   replicas: 2
-  minReadySeconds: 30
+  minReadySeconds: 35
   terminationGracePeriodSeconds: 30
   port: 4000
+  preStop:
+    enabled: true
+    sleepSeconds: 5
   startupProbe:
     enabled: true
     path: /health/liveliness
-    initialDelaySeconds: 10
+    initialDelaySeconds: 15
     periodSeconds: 5
     timeoutSeconds: 5
-    failureThreshold: 20
+    failureThreshold: 60
   livenessProbe:
     enabled: true
     path: /health/liveliness
@@ -36,6 +39,7 @@ app:
     limits:
       memory: 4Gi
       cpu: 1000m
+
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
@@ -66,6 +70,15 @@ app:
           app: litellm
   nodeSelector: {}
   tolerations: []
+
+initMigration:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
 service:
   name: litellm-service
   type: ClusterIP
@@ -77,6 +90,10 @@ serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::901779868336:role/AmazonEKS_LiteLLM_Role
 config:
+  general_settings:
+    store_prompts_in_spend_logs: true
+    maximum_spend_logs_retention_period: "7d"
+    maximum_spend_logs_retention_interval: "1d"
   litellm_settings:
     num_retries: 5
     allowed_fails: 1

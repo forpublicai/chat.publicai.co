@@ -22,6 +22,14 @@ litellm:
 lago:
   enabled: true
 
+  # Secrets configuration for Lago encryption keys
+  secrets:
+    manualSecretsName: ""
+
+  # Encryption configuration
+  encryption:
+    existingSecret: ""
+
   # Service Account configuration for IRSA (IAM Roles for Service Accounts)
   serviceAccount:
     roleArn: ""
@@ -108,6 +116,18 @@ lago:
         memory: "1Gi"
         cpu: "1000m"
 
+  clock:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    extraEnv:
+      SIDEKIQ_CLOCK: "true"
+
   clockWorker:
     replicaCount: 1
     resources:
@@ -176,7 +196,7 @@ healthcheck:
   replicaCount: 1
   image:
     repository: "ghcr.io/forpublicai/chat.publicai.co/health-check"
-    tag: "latest"
+    tag: "build-9"
     pullPolicy: "Always"
   port: 8000
   modelsDir: ""
@@ -184,7 +204,7 @@ healthcheck:
   extraModelsDir: ""
   extraModelsRepoUrl: "https://github.com/currentai-org/infra.git"
   extraModelsRepoBranch: "dev"
-  currentaiRouterUrl: "https://api-internal.currentai.co"
+  currentaiRouterUrl: "https://router.stg.aipotluck.org"
   resources:
     requests:
       memory: "256Mi"

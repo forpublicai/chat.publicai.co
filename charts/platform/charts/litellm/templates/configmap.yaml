@@ -18,7 +18,17 @@ data:
         # - header_name: X-OpenWebUI-User-Email
         #   litellm_user_role: customer
       enforce_user_param: false
+      {{- if and .Values.config (hasKey .Values.config "general_settings") (hasKey .Values.config.general_settings "store_prompts_in_spend_logs") }}
+      store_prompts_in_spend_logs: {{ .Values.config.general_settings.store_prompts_in_spend_logs }}
+      {{- else }}
       store_prompts_in_spend_logs: true
+      {{- end }}
+      {{- if and .Values.config (hasKey .Values.config "general_settings") .Values.config.general_settings.maximum_spend_logs_retention_period }}
+      maximum_spend_logs_retention_period: {{ .Values.config.general_settings.maximum_spend_logs_retention_period | quote }}
+      {{- end }}
+      {{- if and .Values.config (hasKey .Values.config "general_settings") .Values.config.general_settings.maximum_spend_logs_retention_interval }}
+      maximum_spend_logs_retention_interval: {{ .Values.config.general_settings.maximum_spend_logs_retention_interval | quote }}
+      {{- end }}
       custom_auth: custom_auth.user_api_key_auth
       custom_auth_settings:
         mode: "auto"

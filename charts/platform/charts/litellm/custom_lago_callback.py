@@ -115,6 +115,8 @@ class LagoCustomCallback(CustomLogger):
             "swiss-ai/apertus-v1.5-8b-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
             "openai/swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
             "swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
+            "openai/alias-apertus": "swiss-ai/apertus-v1.5-8b",
+            "openai/alias-apertus-70b": "swiss-ai/apertus-v1.5-70b",
             "openai/swiss-ai/Apertus-v1.5-70B-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
             "swiss-ai/apertus-v1.5-70b-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
 
@@ -163,13 +165,18 @@ class LagoCustomCallback(CustomLogger):
             "CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
             "CohereLabs/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
             "cohere/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
+
+            # Routers
+            "smart-router": "smart-router",
+            "auto_router/complexity_router": "smart-router",
         }
 
         # Try direct mapping first
         if model in model_mapping:
             return model_mapping[model]
 
-        # If it's already in the correct format (org/model), return as-is
+        # If it's already in the correct format (org/model), return as-is with debug notice
+        verbose_logger.debug(f"ℹ️ Model '{model}' not explicitly mapped in model_mapping, passing through")
         return model
 
     def _create_event(self, subscription_id: str, model: str, tokens: int, event_type: str) -> dict:

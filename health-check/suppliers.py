@@ -108,10 +108,20 @@ def resolve_api_key(api_key_str):
         return ""
     if api_key_str.startswith("os.environ/"):
         env_var = api_key_str.split("/", 1)[1]
-        return os.environ.get(env_var, "")
+        key = os.environ.get(env_var, "")
+        if not key:
+            # Fallback for Hugging Face tokens
+            if env_var in ("HF_TOKEN", "HF_TEST_TOKEN", "HF_CURRENT_AI_CREDITS"):
+                key = (
+                    os.environ.get("HF_CURRENT_AI_CREDITS")
+                    or os.environ.get("HF_TOKEN")
+                    or os.environ.get("HF_TEST_TOKEN")
+                    or ""
+                )
+        return key
     return api_key_str
 
-def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=True):
+def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=True, extra_headers=None):
     """Call the LLM endpoint and measure Time to First Token (TTFT) with a 30s timeout."""
     api_key = resolve_api_key(api_key_str)
     
@@ -139,6 +149,9 @@ def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=Tr
     }
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
+    if extra_headers and isinstance(extra_headers, dict):
+        for hk, hv in extra_headers.items():
+            headers[hk] = str(hv)
         
     req = urllib.request.Request(
         url,
@@ -354,8 +367,10 @@ def main():
             else:
                 ssl_verify = bool(ssl_verify_val)
             
+            extra_headers = ep['litellm_params'].get('extra_headers')
+            
             log(f"[{idx}/{len(active_endpoints)}] Testing endpoint: {target_name} at {api_base} ...")
-            success, ttft, error = measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify)
+            success, ttft, error = measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify, extra_headers=extra_headers)
             return {
                 'model': target_name,
                 'model_name': model_name,

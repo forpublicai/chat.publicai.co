@@ -36,6 +36,18 @@ spec:
               value: "0.0.0.0"
             - name: PROMETHEUS_URL
               value: {{ .Values.status.prometheusUrl | default "http://prometheus-server.monitoring.svc.cluster.local:80" | quote }}
+            {{- if .Values.status.prometheusAuth.enabled }}
+            - name: PROMETHEUS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.status.prometheusAuth.secretName | default "prometheus-web-config" }}
+                  key: {{ .Values.status.prometheusAuth.userKey | default "admin-user" }}
+            - name: PROMETHEUS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.status.prometheusAuth.secretName | default "prometheus-web-config" }}
+                  key: {{ .Values.status.prometheusAuth.passwordKey | default "admin-password" }}
+            {{- end }}
             {{- if .Values.status.extraEnv }}
             {{- toYaml .Values.status.extraEnv | nindent 12 }}
             {{- end }}

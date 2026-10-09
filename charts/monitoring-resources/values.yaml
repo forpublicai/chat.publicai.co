@@ -21,13 +21,18 @@ status:
   replicaCount: 1
   image:
     repository: "ghcr.io/forpublicai/chat.publicai.co/status"
-    tag: "run-1"
+    tag: "build-4"
     pullPolicy: "Always"
   port: 3000
   service:
     type: ClusterIP
     port: 3000
   prometheusUrl: "http://prometheus-server.monitoring.svc.cluster.local:80"
+  prometheusAuth:
+    enabled: true
+    secretName: "prometheus-web-config"
+    userKey: "admin-user"
+    passwordKey: "admin-password"
   livenessProbe:
     enabled: true
     path: /
