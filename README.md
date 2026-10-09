@@ -104,6 +104,61 @@ To get involved with the Public AI Inference Utility:
 
 Together, we're building infrastructure that democratizes access to AI capabilities for everyone.
 
+## Local Development
+
+A Docker Compose setup for running OpenWebUI + LiteLLM locally, with LiteLLM
+configured from the `charts/platform/charts/litellm` Helm chart rendered automatically by a `render_config` service
+before `litellm` starts. OpenWebUI's data lives in a real local Postgres
+(`postgres` service).
+
+**Setup:**
+```bash
+cp .env.example .env
+# Get a key from https://platform.publicai.co and set PUBLICAI_API_KEY in .env
+# (without it, the stack still starts, but no model responds)
+docker compose -f docker-compose.base.yml up -d --build
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+A `seed_db` service runs automatically on first `up`, seeding a ready
+admin account (`admin@local.test` / `admin123`) and two regular users
+(`user1@local.test`, `user2@local.test`, both `user123`) with sample chats.
+Safe to re-run anytime (skips accounts that already exist); 
+pass `--reset` to delete and recreate them:
+```bash
+docker compose -f docker-compose.base.yml run --rm seed_db --reset
+```
+
+**After editing the chart** (`charts/platform/charts/litellm/...`), restart the containers to pick up the change:
+```bash
+docker compose -f docker-compose.base.yml restart render_config litellm
+```
+
+**Hot-reload overlay** for editing OpenWebUI itself — requires a local clone of
+[forpublicai/open-webui](https://github.com/forpublicai/open-webui) as a sibling
+directory (`../open-webui`), or point `OPENWEBUI_SRC` in `.env` at a different path:
+```bash
+docker compose -f docker-compose.base.yml -f docker-compose.dev-openwebui.yml \
+  up -d --build litellm openwebui-backend openwebui-frontend
+```
+Backend hot-reloads on [http://localhost:8080](http://localhost:8080), frontend
+(with live HMR) on [http://localhost:5173](http://localhost:5173).
+
+For editing LiteLLM itself — requires a local clone of
+[BerriAI/litellm](https://github.com/BerriAI/litellm) as a sibling directory
+(`../litellm`), or point `LITELLM_SRC` in `.env` at a different path:
+```bash
+docker compose -f docker-compose.base.yml -f docker-compose.dev-litellm.yml \
+  up -d --build
+```
+LiteLLM hot-reloads on [http://localhost:4001](http://localhost:4001); this
+points the published-image OpenWebUI at it automatically. Combining this with
+the OpenWebUI hot-reload overlay above works too, but `openwebui-backend`
+still defaults to the base `litellm` service — add
+`OPENAI_API_BASE_URL=http://litellm-dev:4000/v1` yourself if you want both
+hot-reloading at once.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
