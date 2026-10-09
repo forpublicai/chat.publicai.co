@@ -9,6 +9,6 @@ models:
     supports_vision: true
     extra_headers:
       X-HF-Bill-To: current-ai-official
-fallbacks:
-- aisingapore/Qwen-SEA-LION-v4-32B-IT
-- swiss-ai/apertus-v1.5-70b
+#fallbacks:
+#- aisingapore/Qwen-SEA-LION-v4-32B-IT
+#- swiss-ai/apertus-v1.5-70b
