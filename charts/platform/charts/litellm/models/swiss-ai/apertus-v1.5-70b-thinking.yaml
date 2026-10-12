@@ -11,7 +11,7 @@
 #    weight: 1
 #    temperature: 0.8
 #    top_p: 0.9
-#    max_tokens: 8192
+#    max_tokens: 16384
 #  model_info:
 #    input_cost_per_token: 0.00000082
 #    output_cost_per_token: 0.00000292
@@ -24,7 +24,7 @@
 #    weight: 1
 #    temperature: 0.8
 #    top_p: 0.9
-#    max_tokens: 8192
+#    max_tokens: 16384
 #  model_info:
 #    input_cost_per_token: 0.00000082
 #    output_cost_per_token: 0.00000292
@@ -37,7 +37,7 @@
 ##    weight: 1
 ##    temperature: 0.8
 ##    top_p: 0.9
-##    max_tokens: 8192
+##    max_tokens: 16384
 ##  model_info:
 ##    input_cost_per_token: 0.00000082
 ##    output_cost_per_token: 0.00000292
