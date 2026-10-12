@@ -120,6 +120,8 @@ spec:
               key: REDIS_URL
         - name: WEBSOCKET_REDIS_CLUSTER
           value: "{{ .Values.app.redis.cluster }}"
+        - name: WEBSOCKET_REDIS_ROOM_CHANNELS
+          value: "{{ .Values.app.websocket.redisRoomChannels | default "false" }}"
         - name: REDIS_KEY_PREFIX
           value: "{{ .Values.app.redis.keyPrefix }}"
 
