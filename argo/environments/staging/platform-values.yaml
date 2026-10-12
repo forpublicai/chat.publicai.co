@@ -6,7 +6,8 @@ global:
 litellm:
   app:
     image:
-      tag: v1.98.0
+      repository: ghcr.io/forpublicai/litellm-v2
+      tag: "pai-v1.104.2"
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
