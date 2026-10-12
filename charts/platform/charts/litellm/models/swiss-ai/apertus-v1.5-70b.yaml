@@ -7,11 +7,6 @@ models:
     model: openai/swiss-ai/Apertus-v1.5-70B
     api_base: https://api.infomaniak.com/2/ai/106744/openai/v1
     api_key: os.environ/INFOMANIAK_API_KEY
-    supports_vision: true
-    weight: 1
-    temperature: 0.8
-    top_p: 0.9
-    max_tokens: 16384
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
@@ -20,11 +15,6 @@ models:
     model: openai/swiss-ai/Apertus-v1.5-70B
     api_base: https://api.featherless.ai/v1
     api_key: os.environ/FEATHERLESS_API_KEY
-    supports_vision: true
-    weight: 1
-    temperature: 0.8
-    top_p: 0.9
-    max_tokens: 16384
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292

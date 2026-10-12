@@ -22,11 +22,6 @@ models:
     api_base: https://api.blablador.fz-juelich.de/v1
     api_key: os.environ/JUELICH_API_KEY
     ssl_verify: false
-    supports_vision: true
-    weight: 20
-    temperature: 0.8
-    top_p: 0.9
-    max_tokens: 16384
   model_info:
     input_cost_per_token: 0.00000010
     output_cost_per_token: 0.0000002
