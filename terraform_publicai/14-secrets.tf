@@ -47,8 +47,9 @@ resource "aws_secretsmanager_secret_version" "open_webui_managed" {
     REDIS_HOST          = data.aws_elasticache_serverless_cache.publicai_serverless_cache.endpoint.address
     OAUTH_CLIENT_ID     = data.aws_cognito_user_pool_client.publicai_app.id
     OAUTH_CLIENT_SECRET = data.aws_cognito_user_pool_client.publicai_app.client_secret
-    OPENID_PROVIDER_URL = "https://cognito-idp.${local.region}.amazonaws.com/${data.aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
-    OPENID_REDIRECT_URI = "https://chat.${local.domain}/oauth/oidc/callback"
+    OPENID_PROVIDER_URL         = "https://cognito-idp.${local.region}.amazonaws.com/${data.aws_cognito_user_pool.this.id}/.well-known/openid-configuration"
+    OPENID_REDIRECT_URI         = "https://chat.${local.domain}/oauth/oidc/callback"
+    OPENID_END_SESSION_ENDPOINT = "https://auth.${local.domain}/logout?client_id=${data.aws_cognito_user_pool_client.publicai_app.id}&logout_uri=https://chat.${local.domain}/auth"
   })
 }
 
