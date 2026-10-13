@@ -133,6 +133,10 @@ class LagoCustomCallback(CustomLogger):
             # SeaLion models
             "aisingapore/Gemma-SEA-LION-v4-27B-IT": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
             "aisingapore/Qwen-SEA-LION-v4-32B-IT": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+            "openai/aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B": "aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B",
+            "aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B": "aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B",
+            "openai/aisingapore/Qwen-SEA-LION-v4.5-27B-IT": "aisingapore/Qwen-SEA-LION-v4.5-27B-IT",
+            "aisingapore/Qwen-SEA-LION-v4.5-27B-IT": "aisingapore/Qwen-SEA-LION-v4.5-27B-IT",
 
             # Spanish models
             "/root/.cache/huggingface/ALIA-40b-instruct_Q8_0/ALIA-40b-instruct_bos_Q8_0.gguf": "BSC-LT/ALIA-40b-instruct_Q8_0",
