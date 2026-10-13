@@ -44,6 +44,21 @@ resource "helm_release" "argocd" {
 
   values = [
     yamlencode({
+      configs = {
+        cm = {
+          "accounts.holmesgpt" = "apiKey"
+        }
+        rbac = {
+          "policy.csv" = <<-EOT
+            p, holmesgpt, applications, get, *, allow
+            p, holmesgpt, applications, manifests, */*, allow
+            p, holmesgpt, applications, resources, */*, allow
+            p, holmesgpt, projects, get, *, allow
+            p, holmesgpt, repositories, get, *, allow
+            p, holmesgpt, clusters, get, *, allow
+          EOT
+        }
+      }
       notifications = {
         enabled = true
         secret = {
