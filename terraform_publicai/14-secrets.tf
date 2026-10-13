@@ -241,7 +241,6 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.prometheus.arn,
           aws_secretsmanager_secret.rds_password.arn,
           aws_secretsmanager_secret.argocd_notifications.arn,
-          aws_secretsmanager_secret.lago_manual.arn,
           "arn:aws:secretsmanager:${local.region}:${data.aws_caller_identity.current.account_id}:secret:${local.env}/${local.org}/*"
         ]
       }
@@ -252,38 +251,4 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
 resource "aws_iam_role_policy_attachment" "external_secrets_secretsmanager" {
   role       = aws_iam_role.external_secrets_irsa.name
   policy_arn = aws_iam_policy.external_secrets_secretsmanager_access.arn
-}
-
-# 4. IAM Role & Policy for Lago S3 Access (IRSA)
-resource "aws_iam_role" "lago_irsa" {
-  name = "Lago-IRSA-Role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:platform:platform-serviceaccount"
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud" = "sts.amazonaws.com"
-          }
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Name        = "${local.env}-${local.org}-lago-irsa-role"
-    Environment = local.env
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "lago_s3" {
-  role       = aws_iam_role.lago_irsa.name
-  policy_arn = aws_iam_policy.s3_access.arn
 }
