@@ -33,6 +33,8 @@ datasources:
         type: loki
         access: proxy
         url: http://loki.monitoring.svc.cluster.local:3100
+        uid: loki
+
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1

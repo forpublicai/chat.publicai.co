@@ -8,7 +8,7 @@ secrets:
   manualSecretsName: "/cluster-agent"
   property: "OPENROUTER_API_KEY"
   argocdTokenProperty: "ARGOCD_AUTH_TOKEN"
-
+  grafanaApiKeyProperty: "GRAFANA_API_KEY"
 
 holmes:
   replicas: 1
@@ -40,6 +40,12 @@ holmes:
           name: holmes-openrouter
           key: ARGOCD_AUTH_TOKEN
           optional: true
+    - name: GRAFANA_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: holmes-openrouter
+          key: GRAFANA_API_KEY
+          optional: true
 
   # Toolsets configuration
   toolsets:
@@ -55,6 +61,14 @@ holmes:
 
     argocd/core:
       enabled: true
+
+    grafana/loki:
+      enabled: true
+      config:
+        api_url: "http://grafana.monitoring.svc.cluster.local"
+        api_key: "{{ env.GRAFANA_API_KEY }}"
+        grafana_datasource_uid: "loki"
+
 
   modelList:
     claude-sonnet-4:
