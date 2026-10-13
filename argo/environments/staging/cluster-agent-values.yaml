@@ -9,6 +9,15 @@ secrets:
   property: "OPENROUTER_API_KEY"
   argocdTokenProperty: "ARGOCD_AUTH_TOKEN"
   grafanaApiKeyProperty: "GRAFANA_API_KEY"
+  postgresPasswordProperty: "POSTGRES_PASSWORD"
+
+database:
+  enabled: true
+  host: ""
+  port: 5432
+  user: "holmes_readonly"
+  name: "openwebui"
+  sslmode: "require"
 
 holmes:
   replicas: 1
@@ -46,6 +55,18 @@ holmes:
           name: holmes-openrouter
           key: GRAFANA_API_KEY
           optional: true
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: holmes-openrouter
+          key: POSTGRES_PASSWORD
+          optional: true
+    - name: POSTGRES_URL
+      valueFrom:
+        secretKeyRef:
+          name: holmes-openrouter
+          key: POSTGRES_URL
+          optional: true
 
   # Toolsets configuration
   toolsets:
@@ -68,6 +89,13 @@ holmes:
         api_url: "http://grafana.monitoring.svc.cluster.local"
         api_key: "{{ env.GRAFANA_API_KEY }}"
         grafana_datasource_uid: "loki"
+
+    postgres:
+      type: database
+      config:
+        connection_url: "{{ env.POSTGRES_URL }}"
+      llm_instructions: "PostgreSQL database"
+
 
 
   modelList:
