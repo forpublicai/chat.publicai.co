@@ -5,9 +5,10 @@ global:
 secrets:
   enabled: true
   name: "holmes-openrouter"
-  manualSecretsName: ""
+  manualSecretsName: "/cluster-agent"
   property: "OPENROUTER_API_KEY"
-  argocdTokenProperty: ""
+  argocdTokenProperty: "ARGOCD_AUTH_TOKEN"
+
 
 holmes:
   replicas: 1
@@ -68,3 +69,15 @@ holmes:
       api_key: "{{ env.OPENROUTER_API_KEY }}"
       model: openrouter/anthropic/claude-opus-4.5-20251101
       temperature: 1
+
+  # AWS MCP Addon
+  mcpAddons:
+    aws:
+      enabled: true
+      serviceAccount:
+        create: true
+        annotations:
+          eks.amazonaws.com/role-arn: "arn:aws:iam::818561370924:role/HolmesMCPRole"
+      config:
+        region: "us-east-1"
+

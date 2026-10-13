@@ -1,0 +1,82 @@
+global:
+  environment: staging
+  namespace: cluster-agent
+
+secrets:
+  enabled: true
+  name: "holmes-openrouter"
+  manualSecretsName: "/cluster-agent"
+  property: "OPENROUTER_API_KEY"
+  argocdTokenProperty: "ARGOCD_AUTH_TOKEN"
+
+holmes:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1024Mi
+    limits:
+      memory: 2048Mi
+
+  extraEnvVarsSecrets:
+    - holmes-openrouter
+
+  customClusterRoleRules:
+    - apiGroups: [""]
+      resources: ["pods/portforward"]
+      verbs: ["create"]
+
+  additionalEnvVars:
+    - name: MODEL
+      value: "claude-sonnet-4"
+    - name: ARGOCD_SERVER
+      value: "argocd-server.argocd.svc.cluster.local:80"
+    - name: ARGOCD_OPTS
+      value: "--port-forward --port-forward-namespace argocd --server argocd-server.argocd.svc.cluster.local --insecure --grpc-web"
+    - name: ARGOCD_AUTH_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: holmes-openrouter
+          key: ARGOCD_AUTH_TOKEN
+          optional: true
+
+  # Toolsets configuration
+  toolsets:
+    prometheus/metrics:
+      enabled: true
+      subtype: prometheus
+      config:
+        prometheus_url: "http://prometheus-server.monitoring.svc.cluster.local:80"
+
+        # Optional:
+        #additional_headers:
+        #    Authorization: "Basic <base_64_encoded_string>"
+
+    argocd/core:
+      enabled: true
+
+  modelList:
+    claude-sonnet-4:
+      api_key: "{{ env.OPENROUTER_API_KEY }}"
+      model: openrouter/anthropic/claude-sonnet-4.5-20250929
+      temperature: 1
+      thinking:
+        budget_tokens: 10000
+        type: enabled
+
+    claude-opus-4:
+      api_key: "{{ env.OPENROUTER_API_KEY }}"
+      model: openrouter/anthropic/claude-opus-4.5-20251101
+      temperature: 1
+
+  # AWS MCP Addon
+  mcpAddons:
+    aws:
+      enabled: true
+      serviceAccount:
+        create: true
+        annotations:
+          eks.amazonaws.com/role-arn: "arn:aws:iam::818561370924:role/HolmesMCPRole"
+      config:
+        region: "us-east-1"
+
