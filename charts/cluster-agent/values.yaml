@@ -1,0 +1,39 @@
+global:
+  environment: staging
+  namespace: cluster-agent
+
+secrets:
+  enabled: true
+  name: "holmes-openrouter"
+  manualSecretsName: ""
+  property: "OPENROUTER_API_KEY"
+
+holmes:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1024Mi
+    limits:
+      memory: 2048Mi
+
+  extraEnvVarsSecrets:
+    - holmes-openrouter
+
+  additionalEnvVars:
+    - name: MODEL
+      value: "claude-sonnet-4"
+
+  modelList:
+    claude-sonnet-4:
+      api_key: "{{ env.OPENROUTER_API_KEY }}"
+      model: openrouter/anthropic/claude-sonnet-4.5-20250929
+      temperature: 1
+      thinking:
+        budget_tokens: 10000
+        type: enabled
+
+    claude-opus-4:
+      api_key: "{{ env.OPENROUTER_API_KEY }}"
+      model: openrouter/anthropic/claude-opus-4.5-20251101
+      temperature: 1

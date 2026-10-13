@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-agent
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-health-degraded.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-sync-failed.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-deployed.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-deployed.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-created.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-created.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-deleted.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-deleted.email: "sean@publicai.co"
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/forpublicai/chat.publicai.co'
+    targetRevision: dev
+    path: charts/cluster-agent
+    helm:
+      valueFiles:
+        - values.yaml
+        - ../../argo/environments/staging/cluster-agent-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cluster-agent
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
