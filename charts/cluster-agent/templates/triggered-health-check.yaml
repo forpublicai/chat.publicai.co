@@ -1,0 +1,63 @@
+{{- if and .Values.triggeredHealthChecks .Values.triggeredHealthChecks.enabled }}
+{{- $root := . }}
+
+{{- /* 1. Build list of namespaces to target */}}
+{{- $targetNamespaces := list }}
+
+{{- if .Values.triggeredHealthChecks.autoDiscoverNamespaces }}
+  {{- /* Query the live cluster namespaces using Helm lookup */}}
+  {{- $discovered := (lookup "v1" "Namespace" "" "").items | default list }}
+  {{- range $ns := $discovered }}
+    {{- $nsName := $ns.metadata.name }}
+    {{- if not (has $nsName $root.Values.triggeredHealthChecks.excludeNamespaces) }}
+      {{- $targetNamespaces = append $targetNamespaces $nsName }}
+    {{- end }}
+  {{- end }}
+  {{- /* Fallback for offline / static helm template renders if lookup returns empty */}}
+  {{- if and (eq (len $targetNamespaces) 0) $root.Values.triggeredHealthChecks.fallbackNamespaces }}
+    {{- range $nsName := $root.Values.triggeredHealthChecks.fallbackNamespaces }}
+      {{- if not (has $nsName $root.Values.triggeredHealthChecks.excludeNamespaces) }}
+        {{- $targetNamespaces = append $targetNamespaces $nsName }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- else }}
+  {{- range $item := .Values.triggeredHealthChecks.items }}
+    {{- $nsName := $item.namespace | default ($root.Values.global.namespace | default $root.Release.Namespace) }}
+    {{- if not (has $nsName $root.Values.triggeredHealthChecks.excludeNamespaces) }}
+      {{- $targetNamespaces = append $targetNamespaces $nsName }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- /* Deduplicate namespaces */}}
+{{- $targetNamespaces = $targetNamespaces | uniq }}
+
+{{- /* 2. Render a TriggeredHealthCheck for each target namespace */}}
+{{- range $ns := $targetNamespaces }}
+---
+apiVersion: holmesgpt.dev/v1alpha1
+kind: TriggeredHealthCheck
+metadata:
+  name: {{ printf "%s-%s" ($root.Values.triggeredHealthChecks.namePrefix | default "verify-rollouts") $ns }}
+  namespace: {{ $ns }}
+  labels:
+    app.kubernetes.io/name: triggered-healthcheck
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+spec:
+  enabled: true
+  deploymentRollout:
+    selector:
+      matchLabels: {}
+  delaySeconds: {{ $root.Values.triggeredHealthChecks.defaultDelaySeconds | default 300 }}
+  cooldownSeconds: {{ $root.Values.triggeredHealthChecks.defaultCooldownSeconds | default 600 }}
+  query: |
+    {{- $root.Values.triggeredHealthChecks.defaultQuery | nindent 4 }}
+  timeout: {{ $root.Values.triggeredHealthChecks.defaultTimeout | default 120 }}
+  mode: {{ $root.Values.triggeredHealthChecks.defaultMode | default "monitor" }}
+  {{- if and (eq ($root.Values.triggeredHealthChecks.defaultMode | default "monitor") "alert") $root.Values.triggeredHealthChecks.destinations }}
+  destinations: {{- toYaml $root.Values.triggeredHealthChecks.destinations | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

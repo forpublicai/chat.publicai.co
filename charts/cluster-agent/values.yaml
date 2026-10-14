@@ -10,15 +10,50 @@ secrets:
   argocdTokenProperty: "ARGOCD_AUTH_TOKEN"
   grafanaApiKeyProperty: "GRAFANA_API_KEY"
   postgresPasswordProperty: "POSTGRES_PASSWORD"
+  postgresHostProperty: "POSTGRES_HOST"
 
 database:
   enabled: true
-  host: ""
   port: 5432
   user: "holmes_readonly"
-  name: "openwebui"
+  openwebuiDbName: "openwebui"
+  litellmDbName: "litellm"
   sslmode: "require"
 
+triggeredHealthChecks:
+  enabled: true
+  # Auto-discover all namespaces in the cluster by default using Helm lookup
+  autoDiscoverNamespaces: true
+  namePrefix: "verify-rollouts"
+
+  # Namespaces to exclude from automatic rollout verification
+  excludeNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - default
+
+  # Fallback list used during offline dry-run rendering (e.g. helm template without cluster connection)
+  fallbackNamespaces:
+    - cluster-agent
+    - chat
+    - platform
+    - monitoring
+    - web-services
+    - argocd
+
+  # Wait time in seconds after a rollout before triggering the health check investigation.
+  # Default is 300 (5 minutes). Increase this if deployments take longer to pull large images,
+  # pass startup probes, or transition to Ready.
+  defaultDelaySeconds: 300
+
+  # Cooldown period in seconds to prevent re-firing repeatedly for the same deployment within this window.
+  defaultCooldownSeconds: 600
+  defaultTimeout: 120
+  defaultMode: monitor
+  defaultQuery: |
+    Deployment {{ .deployment }} in namespace {{ .namespace }} was rolled out to {{ .new.image }} (was {{ .old.image }}).
+    Is the new version healthy? Check pod status, restarts, warning events, error rates, and container logs before vs after the rollout, and flag any regressions.
 
 holmes:
   replicas: 1
@@ -28,6 +63,17 @@ holmes:
       memory: 1024Mi
     limits:
       memory: 2048Mi
+
+  operator:
+    enabled: true
+    holmesApiTimeout: 300
+    maxHistoryItems: 10
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
 
   extraEnvVarsSecrets:
     - holmes-openrouter
@@ -62,11 +108,17 @@ holmes:
           name: holmes-openrouter
           key: POSTGRES_PASSWORD
           optional: true
-    - name: POSTGRES_URL
+    - name: POSTGRES_OPENWEBUI_URL
       valueFrom:
         secretKeyRef:
           name: holmes-openrouter
-          key: POSTGRES_URL
+          key: POSTGRES_OPENWEBUI_URL
+          optional: true
+    - name: POSTGRES_LITELLM_URL
+      valueFrom:
+        secretKeyRef:
+          name: holmes-openrouter
+          key: POSTGRES_LITELLM_URL
           optional: true
 
   # Toolsets configuration
@@ -91,11 +143,17 @@ holmes:
         api_key: "{{ env.GRAFANA_API_KEY }}"
         grafana_datasource_uid: "loki"
 
-    postgres:
+    postgres_openwebui:
       type: database
       config:
-        connection_url: "{{ env.POSTGRES_URL }}"
-      llm_instructions: "PostgreSQL database"
+        connection_url: "{{ env.POSTGRES_OPENWEBUI_URL }}"
+      llm_instructions: "PostgreSQL database for OpenWebUI"
+
+    postgres_litellm:
+      type: database
+      config:
+        connection_url: "{{ env.POSTGRES_LITELLM_URL }}"
+      llm_instructions: "PostgreSQL database for LiteLLM"
 
 
 
@@ -123,4 +181,3 @@ holmes:
           eks.amazonaws.com/role-arn: "arn:aws:iam::818561370924:role/HolmesMCPRole"
       config:
         region: "us-east-1"
-
