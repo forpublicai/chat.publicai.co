@@ -6,7 +6,10 @@ admin:
 adminUser: ""
 adminPassword: ""
 persistence:
-  enabled: false
+  enabled: true
+  # In staging, uses ebs-sc (or gp3-sc if configured on the staging cluster)
+  storageClassName: ebs-sc
+  size: 5Gi
 envValueFrom:
   PROMETHEUS_ADMIN_USER:
     secretKeyRef:

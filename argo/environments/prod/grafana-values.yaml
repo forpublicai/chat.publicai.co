@@ -6,7 +6,9 @@ admin:
 adminUser: ""
 adminPassword: ""
 persistence:
-  enabled: false
+  enabled: true
+  storageClassName: ebs-sc
+  size: 5Gi
 envValueFrom:
   PROMETHEUS_ADMIN_USER:
     secretKeyRef:
