@@ -1,0 +1,27 @@
+{{- if and .Values.scheduledHealthChecks .Values.scheduledHealthChecks.enabled }}
+{{- $root := . }}
+{{- range $item := .Values.scheduledHealthChecks.items }}
+---
+apiVersion: holmesgpt.dev/v1alpha1
+kind: ScheduledHealthCheck
+metadata:
+  name: {{ $item.name }}
+  namespace: {{ $item.namespace | default ($root.Values.global.namespace | default $root.Release.Namespace) }}
+  labels:
+    app.kubernetes.io/name: scheduled-healthcheck
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+spec:
+  enabled: {{ if hasKey $item "enabled" }}{{ $item.enabled }}{{ else }}true{{ end }}
+  schedule: {{ $item.schedule | default "*/15 * * * *" | quote }}
+  query: |
+    {{- $item.query | nindent 4 }}
+  timeout: {{ $item.timeout | default 180 }}
+  mode: {{ $item.mode | default "alert" }}
+  {{- if $item.destinations }}
+  destinations: {{- toYaml $item.destinations | nindent 4 }}
+  {{- else if and (eq ($item.mode | default "alert") "alert") $root.Values.scheduledHealthChecks.destinations }}
+  destinations: {{- toYaml $root.Values.scheduledHealthChecks.destinations | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
