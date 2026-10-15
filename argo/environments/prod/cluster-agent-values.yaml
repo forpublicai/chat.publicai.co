@@ -64,6 +64,7 @@ triggeredHealthChecks:
     - kube-public
     - kube-node-lease
     - default
+    - web-services
 
   defaultDelaySeconds: 300
   defaultCooldownSeconds: 600
@@ -179,18 +180,10 @@ holmes:
 
 
   modelList:
-    claude-sonnet-4:
+    gemma-4-31b:
       api_key: "{{ env.OPENROUTER_API_KEY }}"
-      model: openrouter/anthropic/claude-sonnet-4.5-20250929
-      temperature: 1
-      thinking:
-        budget_tokens: 10000
-        type: enabled
-
-    claude-opus-4:
-      api_key: "{{ env.OPENROUTER_API_KEY }}"
-      model: openrouter/anthropic/claude-opus-4.5-20251101
-      temperature: 1
+      model: openrouter/google/gemma-4-31b-it
+      temperature: 0.7
 
   # AWS MCP Addon
   mcpAddons:

@@ -17,7 +17,7 @@ litellm:
 
 lago:
   serviceAccount:
-    roleArn: "arn:aws:iam::818561370924:role/Lago-IRSA-Role"
+    roleArn: "arn:aws:iam::818561370924:role/staging-Lago-IRSA-Role"
   apiUrl: "https://lago-api.ai-staging.chat"
   frontUrl: "https://lago.ai-staging.chat"
   global:

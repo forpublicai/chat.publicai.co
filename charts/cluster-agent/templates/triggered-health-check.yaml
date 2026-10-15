@@ -9,7 +9,8 @@
   {{- $discovered := (lookup "v1" "Namespace" "" "").items | default list }}
   {{- range $ns := $discovered }}
     {{- $nsName := $ns.metadata.name }}
-    {{- if not (has $nsName $root.Values.triggeredHealthChecks.excludeNamespaces) }}
+    {{- $isTerminating := and $ns.status (eq $ns.status.phase "Terminating") }}
+    {{- if and (not $isTerminating) (not (has $nsName $root.Values.triggeredHealthChecks.excludeNamespaces)) }}
       {{- $targetNamespaces = append $targetNamespaces $nsName }}
     {{- end }}
   {{- end }}
