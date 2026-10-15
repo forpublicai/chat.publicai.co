@@ -85,7 +85,7 @@ class LagoCustomCallback(CustomLogger):
     def _normalize_model_name(self, model: str) -> str:
         """
         Normalize model names to match Lago billing codes.
-        Maps internal LiteLLM model names to user-facing model names.
+        Maps internal LiteLLM model names to user-facing model names in Lago.
         """
         # Model name mapping: litellm model -> lago billing name
         model_mapping = {
@@ -95,63 +95,92 @@ class LagoCustomCallback(CustomLogger):
             "bedrock/cohere.rerank-v3-5:0": "Cohere/rerank-v3.5",
             "bedrock/arn:aws:bedrock:eu-central-1::foundation-model/cohere.rerank-v3-5:0": "Cohere/rerank-v3.5",
 
-            # Apertus models (various endpoints with version suffixes)
+            # Apertus 8B variants -> swiss-ai/apertus-8b-instruct
             "Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
             "swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
             "openai/swiss-ai/Apertus-8B-Instruct-2509:featherless-ai": "swiss-ai/apertus-8b-instruct",
             "openai/swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
             "swiss-ai/apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
             "apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
+            "swiss-ai/Apertus-8B-2509": "swiss-ai/apertus-8b-instruct",
+            "publicai/swiss-ai/apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
+
+            # Apertus 70B variants -> swiss-ai/apertus-70b-instruct
             "Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
             "apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/Apertus-70B-2509": "swiss-ai/apertus-70b-instruct",
-            "swiss-ai/Apertus-8B-2509": "swiss-ai/apertus-8b-instruct",
             "openai/swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
+            "openai/swiss-ai/Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
             "swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
+            "publicai/swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
+
+            # Apertus v1.5 8B variants -> swiss-ai/apertus-v1.5-8b
+            "openai/alias-apertus": "swiss-ai/apertus-v1.5-8b",
+            "alias-apertus": "swiss-ai/apertus-v1.5-8b",
             "openai/swiss-ai/Apertus-v1.5-8B": "swiss-ai/apertus-v1.5-8b",
+            "openai/swiss-ai/apertus-v1.5-8b": "swiss-ai/apertus-v1.5-8b",
+            "swiss-ai/Apertus-v1.5-8B": "swiss-ai/apertus-v1.5-8b",
             "swiss-ai/apertus-v1.5-8b": "swiss-ai/apertus-v1.5-8b",
             "openai/swiss-ai/Apertus-v1.5-8B-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
+            "swiss-ai/Apertus-v1.5-8B-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
             "swiss-ai/apertus-v1.5-8b-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
-            "openai/swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
-            "swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
-            "openai/alias-apertus": "swiss-ai/apertus-v1.5-8b",
+
+            # Apertus v1.5 70B variants -> swiss-ai/apertus-v1.5-70b (strictly lowercase)
             "openai/alias-apertus-70b": "swiss-ai/apertus-v1.5-70b",
+            "alias-apertus-70b": "swiss-ai/apertus-v1.5-70b",
+            "openai/swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
+            "openai/swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
+            "swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
+            "swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
             "openai/swiss-ai/Apertus-v1.5-70B-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
+            "swiss-ai/Apertus-v1.5-70B-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
             "swiss-ai/apertus-v1.5-70b-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
 
             # Olmo models
             "Olmo-3-7B-Instruct": "allenai/Olmo-3-7B-Instruct",
             "allenai/Olmo-3-7B-Instruct": "allenai/Olmo-3-7B-Instruct",
+            "publicai/allenai/Olmo-3-7B-Instruct": "allenai/Olmo-3-7B-Instruct",
             "Olmo-3-7B-Think": "allenai/Olmo-3-7B-Think",
+            "allenai/Olmo-3-7B-Think": "allenai/Olmo-3-7B-Think",
+            "publicai/allenai/Olmo-3-7B-Think": "allenai/Olmo-3-7B-Think",
             "Olmo-3-32B-Think": "allenai/Olmo-3-32B-Think",
+            "allenai/Olmo-3-32B-Think": "allenai/Olmo-3-32B-Think",
+            "publicai/allenai/Olmo-3-32B-Think": "allenai/Olmo-3-32B-Think",
             "Olmo-3-32B-Instruct": "allenai/Olmo-3.1-32B-Instruct",
             "Olmo-3.1-32B-Instruct": "allenai/Olmo-3.1-32B-Instruct",
             "Olmo-3.1-32B-Think": "allenai/Olmo-3.1-32B-Think",
 
-
             # SeaLion models
             "aisingapore/Gemma-SEA-LION-v4-27B-IT": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
+            "openai/aisingapore/Gemma-SEA-LION-v4-27B-IT": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
+            "publicai/aisingapore/Gemma-SEA-LION-v4-27B-IT": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
             "aisingapore/Qwen-SEA-LION-v4-32B-IT": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+            "openai/aisingapore/Qwen-SEA-LION-v4-32B-IT": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+            "publicai/aisingapore/Qwen-SEA-LION-v4-32B-IT": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
             "openai/aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B": "aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B",
             "aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B": "aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B",
             "openai/aisingapore/Qwen-SEA-LION-v4.5-27B-IT": "aisingapore/Qwen-SEA-LION-v4.5-27B-IT",
             "aisingapore/Qwen-SEA-LION-v4.5-27B-IT": "aisingapore/Qwen-SEA-LION-v4.5-27B-IT",
 
-            # Spanish models
-            "/root/.cache/huggingface/ALIA-40b-instruct_Q8_0/ALIA-40b-instruct_bos_Q8_0.gguf": "BSC-LT/ALIA-40b-instruct_Q8_0",
+            # Spanish models (ALIA / Salamandra)
+            "/root/.cache/huggingface/ALIA-40b-instruct_Q8_0/ALIA-40b-instruct_bos_Q8_0.gguf": "BSC-LT/ALIA-40b-instruct",
+            "openai/alia-salamandra:40b": "BSC-LT/ALIA-40b-instruct",
+            "alia-salamandra:40b": "BSC-LT/ALIA-40b-instruct",
+            "BSC-LT/ALIA-40b-instruct": "BSC-LT/ALIA-40b-instruct",
+            "publicai/BSC-LT/ALIA-40b-instruct_Q8_0": "BSC-LT/ALIA-40b-instruct",
             "BSC-LT/salamandra-7b-instruct-tools-16k": "BSC-LT/salamandra-7b-instruct-tools-16k",
             "BSC-LT/salamandra-7b-instruct": "BSC-LT/salamandra-7b-instruct",
-            "BSC-LT/ALIA-40b-instruct": "BSC-LT/ALIA-40b-instruct",
+            "publicai/BSC-LT/salamandra-7b-instruct-tools-16k": "BSC-LT/salamandra-7b-instruct-tools-16k",
 
             # Mistral
             "mistral-small-3-1": "mistralai/mistral-small-3-1",
 
             # BIELIK.ai
             "speakleash/Bielik-11B-v3.0-Instruct": "speakleash/Bielik-11B-v3.0-Instruct",
+            "openai/speakleash/Bielik-11B-v3.0-Instruct": "speakleash/Bielik-11B-v3.0-Instruct",
 
             # EuroLLM
-            # "EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
             "utter-project/EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
 
             # New models
@@ -165,23 +194,48 @@ class LagoCustomCallback(CustomLogger):
             "google/gemma-4-31B-it": "google/gemma-4-31B-it",
 
             # Cohere models
-            "openai/CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
-            "CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
-            "CohereLabs/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
-            "cohere/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
+            "openai/CohereLabs/command-a-plus-05-2026-w4a4:cohere": "Cohere/command-a-plus-05-2026-w4a4",
+            "CohereLabs/command-a-plus-05-2026-w4a4:cohere": "Cohere/command-a-plus-05-2026-w4a4",
+            "CohereLabs/command-a-plus-05-2026-w4a4": "Cohere/command-a-plus-05-2026-w4a4",
+            "cohere/command-a-plus-05-2026-w4a4": "Cohere/command-a-plus-05-2026-w4a4",
 
             # Routers
             "smart-router": "smart-router",
             "auto_router/complexity_router": "smart-router",
         }
 
-        # Try direct mapping first
+        # 1. Direct match check
         if model in model_mapping:
             return model_mapping[model]
 
-        # If it's already in the correct format (org/model), return as-is with debug notice
-        verbose_logger.debug(f"ℹ️ Model '{model}' not explicitly mapped in model_mapping, passing through")
-        return model
+        # 2. Strip leading provider prefix if present (e.g. openai/ or publicai/)
+        stripped_model = model
+        for prefix in ("openai/", "publicai/"):
+            if stripped_model.startswith(prefix):
+                stripped_model = stripped_model[len(prefix):]
+                break
+
+        if stripped_model in model_mapping:
+            return model_mapping[stripped_model]
+
+        # 3. If Apertus model not explicitly caught above, force canonical lowercase
+        if "apertus" in stripped_model.lower():
+            lower_m = stripped_model.lower()
+            if "70b" in lower_m and "thinking" in lower_m:
+                return "swiss-ai/apertus-v1.5-70b-thinking"
+            elif "70b" in lower_m and ("v1.5" in lower_m or "1.5" in lower_m):
+                return "swiss-ai/apertus-v1.5-70b"
+            elif "70b" in lower_m:
+                return "swiss-ai/apertus-70b-instruct"
+            elif "8b" in lower_m and "thinking" in lower_m:
+                return "swiss-ai/apertus-v1.5-8b-thinking"
+            elif "8b" in lower_m and ("v1.5" in lower_m or "1.5" in lower_m or "alias" in lower_m):
+                return "swiss-ai/apertus-v1.5-8b"
+            elif "8b" in lower_m:
+                return "swiss-ai/apertus-8b-instruct"
+
+        verbose_logger.debug(f"ℹ️ Model '{model}' not explicitly mapped in model_mapping, passing through as '{stripped_model}'")
+        return stripped_model
 
     def _create_event(self, subscription_id: str, model: str, tokens: int, event_type: str) -> dict:
         """Create a single Lago event"""
