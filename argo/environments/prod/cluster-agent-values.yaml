@@ -1,3 +1,4 @@
+enabled: true
 global:
   environment: prod
   namespace: cluster-agent
@@ -30,7 +31,7 @@ scheduledHealthChecks:
   items:
     - name: periodic-cluster-resource-audit
       namespace: cluster-agent
-      schedule: "*/15 * * * *"
+      schedule: "0 * * * *"
       timeout: 180
       mode: alert
       query: |
@@ -38,16 +39,16 @@ scheduledHealthChecks:
         1. Nodes: Thoroughly check all cluster nodes. Are any nodes NotReady, experiencing MemoryPressure, DiskPressure, PIDPressure, or NetworkUnavailable conditions? Are there high node CPU/memory allocations or unevicted failed pods?
         2. Pods: Check all namespaces for pods in CrashLoopBackOff, ImagePullBackOff, Pending, Error, or terminating/stuck states. Verify recent container restart counts and check for OOMKilled events.
         3. Workloads & Infrastructure: Verify Deployment and DaemonSet replicas (desired vs available), check for failing CronJobs or stuck Jobs. Check for PersistentVolumeClaims in Pending/Lost states.
-        4. Events: Check Kubernetes warning events across all namespaces in the last 15 minutes.
+        4. Events: Check Kubernetes warning events across all namespaces in the last 1 hour.
         Do NOT query Loki logs for this check. If any issues are found, provide a detailed root cause diagnosis and recommended remediation steps.
 
     - name: periodic-loki-log-anomaly-scan
       namespace: cluster-agent
-      schedule: "*/15 * * * *"
+      schedule: "0 * * * *"
       timeout: 180
       mode: alert
       query: |
-        Scan the last 15 minutes of logs across everything Loki tracks:
+        Scan the last 1 hour of logs across everything Loki tracks:
         1. Search Loki for elevated error rates, warning spikes, tracebacks, unhandled exceptions, and critical log messages across all services.
         2. Pay special attention to core application workloads (chat, openwebui, litellm, lago, ingress-alb) and platform components.
         3. Correlate any errors found with recent container restarts or HTTP 5xx responses.
@@ -76,6 +77,7 @@ triggeredHealthChecks:
         channel: "#cluster-alerts"
 
 holmes:
+  enabled: true
   replicas: 1
   resources:
     requests:
@@ -111,7 +113,7 @@ holmes:
     - name: OVERRIDE_MAX_CONTENT_SIZE
       value: "128000"
     - name: MODEL
-      value: "llama-3.3-70b"
+      value: "gpt-4o-mini"
     - name: ARGOCD_SERVER
       value: "argocd-server.argocd.svc.cluster.local:80"
     - name: ARGOCD_OPTS
@@ -187,10 +189,10 @@ holmes:
 
 
   modelList:
-    llama-3.3-70b:
+    gpt-4o-mini:
       api_key: "{{ env.OPENROUTER_API_KEY }}"
-      model: openrouter/meta-llama/llama-3.3-70b-instruct
-      temperature: 0.2
+      model: openrouter/openai/gpt-4o-mini
+      temperature: 0.1
 
   # AWS MCP Addon
   mcpAddons:

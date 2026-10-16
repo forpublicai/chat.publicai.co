@@ -1,4 +1,4 @@
-{{- if and .Values.scheduledHealthChecks .Values.scheduledHealthChecks.enabled }}
+{{- if and (ne .Values.enabled false) (and .Values.scheduledHealthChecks .Values.scheduledHealthChecks.enabled) }}
 {{- $root := . }}
 {{- range $item := .Values.scheduledHealthChecks.items }}
 ---
