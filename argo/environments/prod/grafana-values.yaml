@@ -9,6 +9,9 @@ persistence:
   enabled: true
   storageClassName: ebs-sc
   size: 5Gi
+
+deploymentStrategy:
+  type: Recreate
 envValueFrom:
   PROMETHEUS_ADMIN_USER:
     secretKeyRef:

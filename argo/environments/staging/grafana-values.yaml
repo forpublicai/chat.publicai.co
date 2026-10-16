@@ -10,6 +10,9 @@ persistence:
   # In staging, uses ebs-sc (or gp3-sc if configured on the staging cluster)
   storageClassName: ebs-sc
   size: 5Gi
+
+deploymentStrategy:
+  type: Recreate
 envValueFrom:
   PROMETHEUS_ADMIN_USER:
     secretKeyRef:
