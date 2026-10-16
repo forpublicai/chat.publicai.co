@@ -44,6 +44,8 @@ resource "aws_secretsmanager_secret_version" "open_webui_managed" {
     DB_PASSWORD_ARN     = aws_secretsmanager_secret.rds_password.arn
     REDIS_URL           = "rediss://${data.aws_elasticache_serverless_cache.publicai_serverless_cache.endpoint.address}:${data.aws_elasticache_serverless_cache.publicai_serverless_cache.endpoint.port}"
     LAGO_REDIS_URL      = "rediss://${data.aws_elasticache_replication_group.non_cluster_cache.primary_endpoint_address}:${data.aws_elasticache_replication_group.non_cluster_cache.port}/2"
+    LITELLM_REDIS_URL   = "rediss://${data.aws_elasticache_replication_group.non_cluster_cache.primary_endpoint_address}:${data.aws_elasticache_replication_group.non_cluster_cache.port}/1"
+    LITELLM_REDIS_HOST  = data.aws_elasticache_replication_group.non_cluster_cache.primary_endpoint_address
     REDIS_HOST          = data.aws_elasticache_serverless_cache.publicai_serverless_cache.endpoint.address
     OAUTH_CLIENT_ID     = data.aws_cognito_user_pool_client.publicai_app.id
     OAUTH_CLIENT_SECRET = data.aws_cognito_user_pool_client.publicai_app.client_secret
