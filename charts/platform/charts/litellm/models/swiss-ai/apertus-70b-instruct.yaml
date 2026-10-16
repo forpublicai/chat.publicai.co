@@ -1,6 +1,6 @@
 environments:
   - staging
-  - prod
+#  - prod
 models:
 - model_name: swiss-ai/apertus-70b-instruct
   litellm_params:
