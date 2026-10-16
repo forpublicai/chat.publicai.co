@@ -101,7 +101,7 @@ holmes:
 
   additionalEnvVars:
     - name: MODEL
-      value: "claude-sonnet-4"
+      value: "gemma-4-31b"
     - name: ARGOCD_SERVER
       value: "argocd-server.argocd.svc.cluster.local:80"
     - name: ARGOCD_OPTS
