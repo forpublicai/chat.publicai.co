@@ -103,7 +103,7 @@ holmes:
     - name: HOME
       value: "/tmp"
     - name: MODEL
-      value: "gemma-4-31b"
+      value: "qwen-72b"
     - name: ARGOCD_SERVER
       value: "argocd-server.argocd.svc.cluster.local:80"
     - name: ARGOCD_OPTS
@@ -179,10 +179,10 @@ holmes:
 
 
   modelList:
-    gemma-4-31b:
+    qwen-72b:
       api_key: "{{ env.OPENROUTER_API_KEY }}"
-      model: openrouter/google/gemma-4-31b-it
-      temperature: 0.7
+      model: openrouter/qwen/qwen-2.5-72b-instruct
+      temperature: 0.2
 
   # AWS MCP Addon
   mcpAddons:
