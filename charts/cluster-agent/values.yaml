@@ -123,7 +123,7 @@ holmes:
     - name: OVERRIDE_MAX_CONTENT_SIZE
       value: "128000"
     - name: MODEL
-      value: "llama-3.3-70b"
+      value: "gpt-4o-mini"
     - name: ARGOCD_SERVER
       value: "argocd-server.argocd.svc.cluster.local:80"
     - name: ARGOCD_OPTS
@@ -199,10 +199,10 @@ holmes:
 
 
   modelList:
-    llama-3.3-70b:
+    gpt-4o-mini:
       api_key: "{{ env.OPENROUTER_API_KEY }}"
-      model: openrouter/meta-llama/llama-3.3-70b-instruct
-      temperature: 0.2
+      model: openrouter/openai/gpt-4o-mini
+      temperature: 0.1
 
   # AWS MCP Addon
   mcpAddons:
