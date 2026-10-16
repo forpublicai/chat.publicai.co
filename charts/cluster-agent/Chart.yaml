@@ -9,3 +9,4 @@ dependencies:
   - name: holmes
     version: "0.43.0"
     repository: "https://robusta-charts.storage.googleapis.com"
+    condition: enabled,holmes.enabled

@@ -1,4 +1,4 @@
-{{- if and .Values.triggeredHealthChecks .Values.triggeredHealthChecks.enabled }}
+{{- if and (ne .Values.enabled false) (and .Values.triggeredHealthChecks .Values.triggeredHealthChecks.enabled) }}
 {{- $root := . }}
 
 {{- /* 1. Build list of namespaces to target */}}
