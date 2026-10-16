@@ -1,0 +1,296 @@
+# Lago Billing Catalog
+# This file is synced automatically to Lago by Helm via the lago-catalog-syncer Job.
+# You can define billable metrics, plans, charges, and per-model filter pricing here.
+
+billable_metrics:
+  - code: public_ai_models
+    name: public_ai_models
+    description: "Public AI Models token usage"
+    aggregation_type: sum_agg
+    field_name: tokens
+    recurring: false
+    filters:
+      - key: model
+        values:
+          - BSC-LT/ALIA-40b-instruct
+          - Cohere/Cohere-embed-multilingual-v3.0
+          - aisingapore/Gemma-SEA-LION-v4-27B-IT
+          - aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B
+          - aisingapore/Qwen-SEA-LION-v4-32B-IT
+          - aisingapore/Qwen-SEA-LION-v4.5-27B-IT
+          - allenai/Molmo2-8B
+          - allenai/Olmo-3-32B-Think
+          - allenai/Olmo-3-7B-Instruct
+          - allenai/Olmo-3-7B-Think
+          - allenai/Olmo-3.1-32B-Instruct
+          - allenai/Olmo-3.1-32B-Think
+          - dicta-il/DictaLM-3.0-24B-Thinking
+          - mistralai/mistral-small-3-1
+          - speakleash/Bielik-11B-v3.0-Instruct
+          - swiss-ai/apertus-70b-instruct
+          - swiss-ai/apertus-8b-instruct
+          - swiss-ai/apertus-v1.5-70b
+          - swiss-ai/apertus-v1.5-70b-thinking
+          - swiss-ai/apertus-v1.5-8b
+          - swiss-ai/apertus-v1.5-8b-thinking
+          - utter-project/EuroLLM-22B-Instruct-2512
+      - key: type
+        values:
+          - input
+          - output
+
+plans:
+  - name: "Pay as you go"
+    code: pay_as_you_go
+    interval: monthly
+    pay_in_advance: true
+    amount_cents: 0
+    amount_currency: USD
+    charges:
+      - billable_metric_code: public_ai_models
+        charge_model: package
+        pay_in_advance: true
+        properties:
+          amount: "0.0002"
+          free_units: 0
+          package_size: 1000
+        filters:
+          # Olmo 3 7B Instruct
+          - model: allenai/Olmo-3-7B-Instruct
+            type: input
+            amount: "0.00010"
+            package_size: 1000
+            free_units: 0
+          - model: allenai/Olmo-3-7B-Instruct
+            type: output
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+
+          # Olmo 3 32B Think
+          - model: allenai/Olmo-3-32B-Think
+            type: input
+            amount: "0.00030"
+            package_size: 1000
+            free_units: 0
+          - model: allenai/Olmo-3-32B-Think
+            type: output
+            amount: "0.00055"
+            package_size: 1000
+            free_units: 0
+
+          # Olmo 3 7B Think
+          - model: allenai/Olmo-3-7B-Think
+            type: input
+            amount: "0.00007"
+            package_size: 1000
+            free_units: 0
+          - model: allenai/Olmo-3-7B-Think
+            type: output
+            amount: "0.00015"
+            package_size: 1000
+            free_units: 0
+
+          # SEA-LION 27B IT
+          - model: aisingapore/Gemma-SEA-LION-v4-27B-IT
+            type: input
+            amount: "0.0002"
+            package_size: 1000
+            free_units: 0
+          - model: aisingapore/Gemma-SEA-LION-v4-27B-IT
+            type: output
+            amount: "0.00040"
+            package_size: 1000
+            free_units: 0
+
+          # SEA-LION 32B IT
+          - model: aisingapore/Qwen-SEA-LION-v4-32B-IT
+            type: input
+            amount: "0.00025"
+            package_size: 1000
+            free_units: 0
+          - model: aisingapore/Qwen-SEA-LION-v4-32B-IT
+            type: output
+            amount: "0.00050"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Small 3.1
+          - model: mistralai/mistral-small-3-1
+            type: input
+            amount: "0.00011"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-small-3-1
+            type: output
+            amount: "0.00017"
+            package_size: 1000
+            free_units: 0
+
+          # Apertus 70B Instruct
+          - model: swiss-ai/apertus-70b-instruct
+            type: input
+            amount: "0.00082"
+            package_size: 1000
+            free_units: 0
+          - model: swiss-ai/apertus-70b-instruct
+            type: output
+            amount: "0.00292"
+            package_size: 1000
+            free_units: 0
+
+          # DictaLM 3.0 24B Thinking
+          - model: dicta-il/DictaLM-3.0-24B-Thinking
+            type: input
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+          - model: dicta-il/DictaLM-3.0-24B-Thinking
+            type: output
+            amount: "0.00040"
+            package_size: 1000
+            free_units: 0
+
+          # Olmo 3.1 32B Think
+          - model: allenai/Olmo-3.1-32B-Think
+            type: input
+            amount: "0.00005"
+            package_size: 1000
+            free_units: 0
+          - model: allenai/Olmo-3.1-32B-Think
+            type: output
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+
+          # Olmo 3.1 32B Instruct
+          - model: allenai/Olmo-3.1-32B-Instruct
+            type: input
+            amount: "0.00005"
+            package_size: 1000
+            free_units: 0
+          - model: allenai/Olmo-3.1-32B-Instruct
+            type: output
+            amount: "0.0002"
+            package_size: 1000
+            free_units: 0
+
+          # EuroLLM 22B Instruct
+          - model: utter-project/EuroLLM-22B-Instruct-2512
+            type: input
+            amount: "0.00010"
+            package_size: 1000
+            free_units: 0
+          - model: utter-project/EuroLLM-22B-Instruct-2512
+            type: output
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+
+          # Bielik 11B v3.0 Instruct
+          - model: speakleash/Bielik-11B-v3.0-Instruct
+            type: input
+            amount: "0.00040"
+            package_size: 1000
+            free_units: 0
+          - model: speakleash/Bielik-11B-v3.0-Instruct
+            type: output
+            amount: "0.00040"
+            package_size: 1000
+            free_units: 0
+
+          # Apertus 8B Instruct
+          - model: swiss-ai/apertus-8b-instruct
+            type: input
+            amount: "0.0001"
+            package_size: 1000
+            free_units: 0
+          - model: swiss-ai/apertus-8b-instruct
+            type: output
+            amount: "0.0002"
+            package_size: 1000
+            free_units: 0
+
+          # Apertus v1.5 8B
+          - model: swiss-ai/apertus-v1.5-8b
+            type: input
+            amount: "0.0001"
+            package_size: 1000
+            free_units: 0
+          - model: swiss-ai/apertus-v1.5-8b
+            type: output
+            amount: "0.0002"
+            package_size: 1000
+            free_units: 0
+
+          # Apertus v1.5 8B Thinking
+          - model: swiss-ai/apertus-v1.5-8b-thinking
+            type: input
+            amount: "0.0001"
+            package_size: 1000
+            free_units: 0
+          - model: swiss-ai/apertus-v1.5-8b-thinking
+            type: output
+            amount: "0.0002"
+            package_size: 1000
+            free_units: 0
+
+          # Apertus v1.5 70B
+          - model: swiss-ai/apertus-v1.5-70b
+            type: input
+            amount: "0.00082"
+            package_size: 1000
+            free_units: 0
+          - model: swiss-ai/apertus-v1.5-70b
+            type: output
+            amount: "0.00292"
+            package_size: 1000
+            free_units: 0
+
+          # Apertus v1.5 70B Thinking
+          - model: swiss-ai/apertus-v1.5-70b-thinking
+            type: input
+            amount: "0.00082"
+            package_size: 1000
+            free_units: 0
+          - model: swiss-ai/apertus-v1.5-70b-thinking
+            type: output
+            amount: "0.00292"
+            package_size: 1000
+            free_units: 0
+
+          # Nemotron SEA-LION 120B
+          - model: aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B
+            type: input
+            amount: "0.00050"
+            package_size: 1000
+            free_units: 0
+          - model: aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B
+            type: output
+            amount: "0.00200"
+            package_size: 1000
+            free_units: 0
+
+          # Qwen SEA-LION 27B IT
+          - model: aisingapore/Qwen-SEA-LION-v4.5-27B-IT
+            type: input
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+          - model: aisingapore/Qwen-SEA-LION-v4.5-27B-IT
+            type: output
+            amount: "0.00040"
+            package_size: 1000
+            free_units: 0
+
+          # BSC ALIA 40B Instruct
+          - model: BSC-LT/ALIA-40b-instruct
+            type: input
+            amount: "0.00030"
+            package_size: 1000
+            free_units: 0
+          - model: BSC-LT/ALIA-40b-instruct
+            type: output
+            amount: "0.00060"
+            package_size: 1000
+            free_units: 0

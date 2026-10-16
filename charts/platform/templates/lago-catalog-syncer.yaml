@@ -1,0 +1,62 @@
+{{- if and .Values.lago.enabled (or .Values.billingCatalog.enabled (not (hasKey .Values "billingCatalog"))) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-lago-catalog-syncer
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+data:
+  catalog.yaml: |
+{{- if .Values.billingCatalog.customCatalogYaml }}
+{{ .Values.billingCatalog.customCatalogYaml | indent 4 }}
+{{- else }}
+{{ .Files.Get "lago-catalog.yaml" | indent 4 }}
+{{- end }}
+  sync.py: |
+{{ .Files.Get "../../scripts/sync-lago-catalog.py" | default (.Files.Get "scripts/sync-lago-catalog.py") | indent 4 }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-lago-catalog-syncer
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "20"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: catalog-syncer
+        image: "{{ .Values.healthcheck.image.repository }}:{{ .Values.healthcheck.image.tag | default "latest" }}"
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting Lago Catalog Sync via API..."
+          python3 /config/sync.py
+          echo "Lago Catalog Sync finished successfully."
+        env:
+        - name: LAGO_API_URL
+          value: "{{ .Values.billingCatalog.apiUrl | default "http://platform-api-svc:3000" }}"
+        - name: LAGO_CATALOG_CONFIG
+          value: "/config/catalog.yaml"
+        - name: LAGO_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.litellm.secrets.name | default "litellm-secrets" }}
+              key: lago_api_key
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-lago-catalog-syncer
+{{- end }}
