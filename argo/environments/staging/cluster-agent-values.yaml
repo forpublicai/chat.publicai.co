@@ -1,4 +1,4 @@
-enabled: false
+enabled: true
 global:
   environment: staging
   namespace: cluster-agent
