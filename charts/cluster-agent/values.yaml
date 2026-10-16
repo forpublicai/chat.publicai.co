@@ -160,10 +160,7 @@ holmes:
   # Toolsets configuration
   toolsets:
     prometheus/metrics:
-      enabled: true
-      subtype: prometheus
-      config:
-        prometheus_url: "http://prometheus-server.monitoring.svc.cluster.local:80"
+      enabled: false
 
         # Optional:
         #additional_headers:
