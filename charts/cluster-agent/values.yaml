@@ -78,7 +78,11 @@ triggeredHealthChecks:
   defaultDelaySeconds: 300
   defaultCooldownSeconds: 600
   defaultTimeout: 120
-  defaultMode: monitor
+  defaultMode: alert
+  destinations:
+    - type: slack
+      config:
+        channel: "#cluster-alerts"
   defaultQuery: |
     Deployment {{ .deployment }} in namespace {{ .namespace }} was rolled out to {{ .new.image }} (was {{ .old.image }}).
     Is the new version healthy? Check pod status, restarts, warning events, error rates, and container logs before vs after the rollout, and flag any regressions.
@@ -114,8 +118,12 @@ holmes:
   additionalEnvVars:
     - name: HOME
       value: "/tmp"
+    - name: OVERRIDE_MAX_OUTPUT_TOKEN
+      value: "4096"
+    - name: OVERRIDE_MAX_CONTENT_SIZE
+      value: "128000"
     - name: MODEL
-      value: "qwen-72b"
+      value: "llama-3.3-70b"
     - name: ARGOCD_SERVER
       value: "argocd-server.argocd.svc.cluster.local:80"
     - name: ARGOCD_OPTS
@@ -191,9 +199,9 @@ holmes:
 
 
   modelList:
-    qwen-72b:
+    llama-3.3-70b:
       api_key: "{{ env.OPENROUTER_API_KEY }}"
-      model: openrouter/qwen/qwen-2.5-72b-instruct
+      model: openrouter/meta-llama/llama-3.3-70b-instruct
       temperature: 0.2
 
   # AWS MCP Addon
