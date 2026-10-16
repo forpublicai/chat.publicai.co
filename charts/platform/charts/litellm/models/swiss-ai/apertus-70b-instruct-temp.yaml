@@ -4,9 +4,9 @@ environments:
 models:
 - model_name: swiss-ai/apertus-70b-instruct
   litellm_params:
-    model: openai/swiss-ai/Apertus-70B-Instruct-2509
-    api_base: https://api.infomaniak.com/2/ai/106744/openai/v1
-    api_key: os.environ/INFOMANIAK_API_KEY
+    model: openai/swiss-ai/apertus-70b-instruct
+    api_base: https://api-internal.ai-staging.chat/v1
+    api_key: os.environ/PAI_STAGING_ROUTER_API_KEY
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
