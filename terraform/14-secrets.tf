@@ -44,7 +44,9 @@ resource "aws_secretsmanager_secret_version" "open_webui_managed" {
     DB_USER                     = "postgres"
     DB_PASSWORD_ARN             = aws_secretsmanager_secret.rds_password.arn
     REDIS_URL                   = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}"
-    LAGO_REDIS_URL              = "rediss://${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address}:${aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].port}/0"
+    LAGO_REDIS_URL              = "rediss://${aws_elasticache_replication_group.non_cluster_cache.primary_endpoint_address}:${aws_elasticache_replication_group.non_cluster_cache.port}/2"
+    LITELLM_REDIS_URL           = "rediss://${aws_elasticache_replication_group.non_cluster_cache.primary_endpoint_address}:${aws_elasticache_replication_group.non_cluster_cache.port}/1"
+    LITELLM_REDIS_HOST          = aws_elasticache_replication_group.non_cluster_cache.primary_endpoint_address
     REDIS_HOST                  = aws_elasticache_serverless_cache.currentai_serverless_cache.endpoint[0].address
     OAUTH_CLIENT_ID             = aws_cognito_user_pool_client.publicai_app.id
     OAUTH_CLIENT_SECRET         = aws_cognito_user_pool_client.publicai_app.client_secret

@@ -12,6 +12,8 @@ litellm:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
     dbPasswordArn: "staging/aichat/database/password"
+    redisUrlProperty: "LITELLM_REDIS_URL"
+    redisHostProperty: "LITELLM_REDIS_HOST"
   prometheus:
     enabled: true
 

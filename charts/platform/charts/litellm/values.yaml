@@ -109,6 +109,8 @@ secrets:
   manualSecretsName: ""
   managedSecretsName: ""
   dbPasswordArn: ""
+  redisUrlProperty: "REDIS_URL"
+  redisHostProperty: "REDIS_HOST"
 
 
 # Environment variables
