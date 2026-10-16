@@ -112,12 +112,14 @@ holmes:
       verbs: ["create"]
 
   additionalEnvVars:
+    - name: HOME
+      value: "/tmp"
     - name: MODEL
       value: "gemma-4-31b"
     - name: ARGOCD_SERVER
       value: "argocd-server.argocd.svc.cluster.local:80"
     - name: ARGOCD_OPTS
-      value: "--port-forward --port-forward-namespace argocd --server argocd-server.argocd.svc.cluster.local --insecure --grpc-web"
+      value: "--server argocd-server.argocd.svc.cluster.local:80 --plaintext"
     - name: ARGOCD_AUTH_TOKEN
       valueFrom:
         secretKeyRef:
