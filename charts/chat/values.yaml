@@ -27,11 +27,26 @@ open-webui:
     # Production resource allocation for 5k concurrent users
     resources:
       requests:
-        memory: "4Gi"
-        cpu: "500m"
+        memory: "8Gi"
+        cpu: "1000m"
       limits:
         memory: "10Gi"
         cpu: "2000m"
+
+    # Anti-affinity settings to avoid co-locating with background workers
+    affinity:
+      enabled: true
+      hard: false
+      extraAntiAffinityTerms:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: io.lago.service
+                  operator: Exists
+            namespaces:
+              - platform
+            topologyKey: kubernetes.io/hostname
 
     # OpenTelemetry configuration
     # otel:

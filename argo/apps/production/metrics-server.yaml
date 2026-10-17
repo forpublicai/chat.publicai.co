@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-health-degraded.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-sync-failed.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-deployed.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-deployed.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-created.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-created.email: "sean@publicai.co"
+    notifications.argoproj.io/subscribe.on-deleted.slack: "#argo-alerts"
+    notifications.argoproj.io/subscribe.on-deleted.email: "sean@publicai.co"
+spec:
+  project: default
+  sources:
+    - repoURL: 'https://kubernetes-sigs.github.io/metrics-server/'
+      chart: metrics-server
+      targetRevision: 3.14.0
+      helm:
+        valueFiles:
+          - $values/argo/environments/prod/metrics-server-values.yaml
+    - repoURL: 'https://github.com/forpublicai/chat.publicai.co'
+      targetRevision: main
+      ref: values
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

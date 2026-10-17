@@ -51,27 +51,93 @@ lago:
   worker:
     livenessProbe:
       initialDelaySeconds: 90
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: openwebui
+              namespaces:
+                - chat
+              topologyKey: kubernetes.io/hostname
   billingWorker:
     livenessProbe:
       initialDelaySeconds: 90
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: openwebui
+              namespaces:
+                - chat
+              topologyKey: kubernetes.io/hostname
   clock:
     extraEnv:
       SIDEKIQ_CLOCK: "true"
   clockWorker:
     livenessProbe:
       initialDelaySeconds: 90
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: openwebui
+              namespaces:
+                - chat
+              topologyKey: kubernetes.io/hostname
   eventsWorker:
     livenessProbe:
       initialDelaySeconds: 90
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: openwebui
+              namespaces:
+                - chat
+              topologyKey: kubernetes.io/hostname
   paymentWorker:
     livenessProbe:
       initialDelaySeconds: 90
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: openwebui
+              namespaces:
+                - chat
+              topologyKey: kubernetes.io/hostname
   pdfWorker:
     livenessProbe:
       initialDelaySeconds: 90
   webhookWorker:
     livenessProbe:
       initialDelaySeconds: 90
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: openwebui
+              namespaces:
+                - chat
+              topologyKey: kubernetes.io/hostname
 
 grafana:
   secretsName: "prod/publicai/grafana/secrets"
