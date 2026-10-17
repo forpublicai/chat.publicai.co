@@ -46,9 +46,13 @@ lago:
       enabled: false
       fromEmail: "support@publicai.co"
   api:
+    extraEnv:
+      LAGO_DISABLE_PDF_GENERATION: "true"
     livenessProbe:
       initialDelaySeconds: 90
   worker:
+    extraEnv:
+      LAGO_DISABLE_PDF_GENERATION: "true"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -63,6 +67,8 @@ lago:
                 - chat
               topologyKey: kubernetes.io/hostname
   billingWorker:
+    extraEnv:
+      LAGO_DISABLE_PDF_GENERATION: "true"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -121,7 +127,12 @@ lago:
               namespaces:
                 - chat
               topologyKey: kubernetes.io/hostname
+  pdf:
+    replicas: 0
   pdfWorker:
+    enabled: false
+    extraEnv:
+      LAGO_DISABLE_PDF_GENERATION: "true"
     livenessProbe:
       initialDelaySeconds: 90
   webhookWorker:
