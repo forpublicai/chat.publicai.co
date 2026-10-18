@@ -18,6 +18,9 @@ litellm:
     enabled: true
 
 lago:
+  image:
+    repository: ghcr.io/forpublicai/lago-api
+    tag: pai-v1.55.0
   serviceAccount:
     roleArn: "arn:aws:iam::818561370924:role/staging-Lago-IRSA-Role"
   apiUrl: "https://lago-api.ai-staging.chat"
