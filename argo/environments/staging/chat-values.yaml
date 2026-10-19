@@ -15,6 +15,13 @@ open-webui:
         bucketName: "staging-aichat-bucket"
         region: "us-east-1"
         endpointUrl: "https://s3.us-east-1.amazonaws.com"
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "500m"
+      limits:
+        memory: "5Gi"
+        cpu: "1000m"
   serviceAccount:
     roleArn: "arn:aws:iam::818561370924:role/OpenWebUI-IRSA-Role"
   secrets:
