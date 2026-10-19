@@ -3,3 +3,4 @@
 # Matching is case-insensitive.
 
 Cohere/rerank-v3.5
+Cohere/Cohere-embed-multilingual-v3.0
