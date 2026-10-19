@@ -4,3 +4,4 @@
 
 Cohere/rerank-v3.5
 Cohere/Cohere-embed-multilingual-v3.0
+mistralai/mistral-large-3-fallback
