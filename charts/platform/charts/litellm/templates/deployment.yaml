@@ -215,6 +215,12 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: slack_webhook_url
                   optional: true
+            - name: PAI_STAGING_ROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: pai_staging_router_api_key
+                  optional: true
 
 
 

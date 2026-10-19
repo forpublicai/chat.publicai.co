@@ -38,6 +38,26 @@ open-webui:
         periodSeconds: 15
         timeoutSeconds: 5
         failureThreshold: 3
+    resources:
+      requests:
+        memory: "8Gi"
+        cpu: "1000m"
+      limits:
+        memory: "10Gi"
+        cpu: "2000m"
+    affinity:
+      enabled: true
+      hard: false
+      extraAntiAffinityTerms:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: io.lago.service
+                  operator: Exists
+            namespaces:
+              - platform
+            topologyKey: kubernetes.io/hostname
   serviceAccount:
     roleArn: "arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role"
   secrets:

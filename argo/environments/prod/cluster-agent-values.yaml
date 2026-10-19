@@ -23,7 +23,7 @@ database:
   sslmode: "require"
 
 scheduledHealthChecks:
-  enabled: true
+  enabled: false
   destinations:
     - type: slack
       config:
@@ -55,7 +55,7 @@ scheduledHealthChecks:
         If any errors or anomalies are found, investigate the underlying cause, identify the affected service/pod, and provide a clear root cause summary with recommended action steps.
 
 triggeredHealthChecks:
-  enabled: true
+  enabled: false
   autoDiscoverNamespaces: true
   namePrefix: "verify-rollouts"
 
