@@ -12,5 +12,5 @@ dependencies:
     condition: litellm.enabled
   - name: lago
     version: "1.27.1"
-    repository: "https://getlago.github.io/lago-helm-charts"
+    repository: "file://./charts/lago"
     condition: lago.enabled
