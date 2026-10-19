@@ -27,6 +27,10 @@ litellm:
       maximum_spend_logs_retention_interval: "1d"
 
 lago:
+  version: "1.55.0"
+  image:
+    repository: ghcr.io/forpublicai/lago-api
+    tag: pai-v1.55.0
   encryption:
     existingSecret: lago-encryption-secrets
   secrets:

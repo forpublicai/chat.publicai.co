@@ -18,6 +18,7 @@ litellm:
     enabled: true
 
 lago:
+  version: "1.55.0"
   image:
     repository: ghcr.io/forpublicai/lago-api
     tag: pai-v1.55.0
