@@ -1,0 +1,46 @@
+{{- if .Values.global.clickhouse.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-create-kafka-topics
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- range $key, $value := .Values.job.topics.podLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      annotations:
+        {{- range $key, $value := .Values.job.topics.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: create-topics
+          image: alpine:3.20
+          command: [sh]
+          args:
+            - -c
+            - |
+              topics="{{ values .Values.global.clickhouse.kafka.topics | join " " }}"
+              echo "Creating Kafka topics: $topics"
+              {{- .Files.Get "scripts/create-topics.sh" | nindent 14 }}
+          env:
+            - name: RPK_BROKERS
+              value: {{ .Values.global.clickhouse.kafka.bootstrapServers | join "," }}
+            {{- with .Values.job.topics.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.job.topics.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

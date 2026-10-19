@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-events-worker
+  name: {{ .Release.Name }}-events-worker
+spec:
+  replicas: {{ .Values.eventsWorker.replicas }}
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-events-worker
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-events-worker
+        {{- with .Values.eventsWorker.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.eventsWorker.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.eventsWorker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventsWorker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventsWorker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - args: ["./scripts/start.events.worker.sh"]
+          env:
+            - name: RAILS_ENV
+              value: {{ .Values.eventsWorker.rails.env }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: LAGO_REDIS_CACHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisCacheUrl
+            - name: RAILS_LOG_TO_STDOUT
+              value: {{ .Values.eventsWorker.rails.logStdout | quote }}
+            - name: LAGO_RSA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rsaPrivateKey
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secretKeyBase
+            - name: ENCRYPTION_DETERMINISTIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionDeterministicKey
+            - name: ENCRYPTION_KEY_DERIVATION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionKeyDerivationSalt
+            - name: ENCRYPTION_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionPrimaryKey
+            - name: DATABASE_POOL
+              value: {{ .Values.eventsWorker.rails.sidekiqConcurrency | quote }}
+            - name: SIDEKIQ_CONCURRENCY
+              value: {{ .Values.eventsWorker.rails.sidekiqConcurrency | quote }}
+            - name: LAGO_LOG_LEVEL
+              value: {{ .Values.eventsWorker.rails.logLevel | quote }}
+            - name: SIDEKIQ_WEBHOOK
+              value: {{ .Values.webhookWorker.enabled | quote }}
+            - name: SIDEKIQ_BILLING
+              value: {{ .Values.billingWorker.enabled | quote}}
+            - name: SIDEKIQ_CLOCK
+              value: {{ .Values.clockWorker.enabled | quote}}
+            - name: SIDEKIQ_PDFS
+              value: {{ .Values.pdfWorker.enabled | quote}}
+            - name: SIDEKIQ_PAYMENTS
+              value: {{ .Values.paymentWorker.enabled | quote }}
+            {{- with .Values.eventsWorker.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{ if .Values.global.newRelic.enabled }}
+            - name: NEW_RELIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: newRelicKey
+            {{ end }}
+          image: {{ include "api-image" . }}
+          name: {{ .Release.Name }}-events-worker
+          {{- with .Values.eventsWorker.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.eventsWorker.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.eventsWorker.livenessProbe.httpPath }}
+              port: {{ .Values.eventsWorker.livenessProbe.httpPort }}
+            initialDelaySeconds: {{ .Values.eventsWorker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.eventsWorker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.eventsWorker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.eventsWorker.livenessProbe.failureThreshold }}
+          {{- end }}
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.global.serviceAccountName | default (printf "%s-serviceaccount" .Release.Name) }}

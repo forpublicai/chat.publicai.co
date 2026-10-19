@@ -1,0 +1,24 @@
+{{- if .Values.pdf.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: {{ .Release.Name }}-pdf
+  labels:
+    io.lago.service: {{ .Release.Name }}-pdf
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-pdf
+  minReplicas: {{ .Values.pdf.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.pdf.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.pdf.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

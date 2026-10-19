@@ -1,0 +1,135 @@
+{{- if .Values.webhookWorker.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-webhook-worker
+  name: {{ .Release.Name }}-webhook-worker
+spec:
+  replicas: {{ .Values.webhookWorker.replicas }}
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-webhook-worker
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-webhook-worker
+        {{- with .Values.webhookWorker.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.webhookWorker.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.webhookWorker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webhookWorker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.webhookWorker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - args: ["./scripts/start.webhook.worker.sh"]
+          env:
+            - name: RAILS_ENV
+              value: {{ .Values.webhookWorker.rails.env }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: LAGO_REDIS_CACHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisCacheUrl
+            - name: RAILS_LOG_TO_STDOUT
+              value: {{ .Values.webhookWorker.rails.logStdout | quote }}
+            - name: LAGO_RSA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rsaPrivateKey
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secretKeyBase
+            - name: ENCRYPTION_DETERMINISTIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionDeterministicKey
+            - name: ENCRYPTION_KEY_DERIVATION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionKeyDerivationSalt
+            - name: ENCRYPTION_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionPrimaryKey
+            - name: DATABASE_POOL
+              value: {{ .Values.webhookWorker.rails.sidekiqConcurrency | quote }}
+            - name: SIDEKIQ_CONCURRENCY
+              value: {{ .Values.webhookWorker.rails.sidekiqConcurrency | quote }}
+            - name: SIDEKIQ_WEBHOOK
+              value: "true"
+            - name: SIDEKIQ_BILLING
+              value: {{ .Values.billingWorker.enabled | quote }}
+            - name: SIDEKIQ_CLOCK
+              value: {{ .Values.clockWorker.enabled | quote }}
+            - name: SIDEKIQ_PDFS
+              value: {{ .Values.pdfWorker.enabled | quote}}
+            - name: LAGO_API_URL
+              value: {{ required "apiUrl value is required" .Values.apiUrl | quote }}
+            - name: LAGO_LOG_LEVEL
+              value: {{ .Values.webhookWorker.rails.logLevel | quote }}
+            - name: SIDEKIQ_PAYMENTS
+              value: {{ .Values.paymentWorker.enabled | quote }}
+            {{- with .Values.webhookWorker.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{ if .Values.global.newRelic.enabled }}
+            - name: NEW_RELIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: newRelicKey
+            {{ end }}
+          image: {{ include "api-image" . }}
+          name: {{ .Release.Name }}-webhook-worker
+          {{- with .Values.webhookWorker.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webhookWorker.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.webhookWorker.livenessProbe.httpPath }}
+              port: {{ .Values.webhookWorker.livenessProbe.httpPort }}
+            initialDelaySeconds: {{ .Values.webhookWorker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.webhookWorker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.webhookWorker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.webhookWorker.livenessProbe.failureThreshold }}
+          {{- end }}
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.global.serviceAccountName | default (printf "%s-serviceaccount" .Release.Name) }}
+{{- end -}}

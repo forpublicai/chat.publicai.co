@@ -1,0 +1,10 @@
+apiVersion: v2
+appVersion: "1.55.0"
+dependencies:
+- condition: minio.enabled
+  name: minio
+  repository: https://charts.min.io/
+  version: 5.2.0
+description: the Lago open source billing app
+name: lago
+version: 1.55.0

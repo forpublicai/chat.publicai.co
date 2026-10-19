@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    io.lago.service: {{ .Release.Name }}-pdf
+  name: {{ .Release.Name}}-pdf-svc
+spec:
+  ports:
+    - name: "pdf"
+      port: {{ .Values.pdf.service.port }}
+      targetPort: 3000
+  selector:
+    io.lago.service: {{ .Release.Name }}-pdf

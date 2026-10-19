@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-pdf
+  name: {{ .Release.Name }}-pdf
+
+spec:
+  replicas: {{ .Values.pdf.replicas }}
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-pdf
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-pdf
+        {{- with .Values.pdf.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.pdf.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.pdf.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pdf.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pdf.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - image: getlago/lago-gotenberg:8.15
+          name: {{ .Release.Name }}-pdf
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          {{- with .Values.pdf.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- with .Values.pdf.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+      restartPolicy: Always

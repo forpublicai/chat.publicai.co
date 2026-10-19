@@ -1,0 +1,38 @@
+suite: Test clickhouse activation and default values
+templates:
+  - templates/events-consumer-worker-deployment.yaml
+  - templates/events-processor-worker-deployment.yaml
+
+tests:
+  - it: should not deploy if clickhouse is disabled
+    set:
+      global.clickhouse.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should deploy if clickhouse is enabled
+    set:
+      releaseName: lago
+      global.clickhouse.enabled: true
+      global.clickhouse.kafka.bootstrapServers:
+        - "kafka-server:9092"
+    asserts:
+      - containsDocument:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: RELEASE-NAME-events-consumer-worker
+      - containsDocument:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: RELEASE-NAME-events-processor-worker
+
+  - it: should error if kafka bootstrap servers are not provided
+    template: templates/events-processor-worker-deployment.yaml
+    set:
+      global.clickhouse.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "If clickhouse is enabled, you must provide a list of Kafka servers"

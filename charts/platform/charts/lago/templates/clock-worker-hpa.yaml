@@ -1,0 +1,24 @@
+{{- if .Values.clockWorker.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: {{ .Release.Name }}-clock-worker
+  labels:
+    io.lago.service: {{ .Release.Name }}-clock-worker
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-clock-worker
+  minReplicas: {{ .Values.clockWorker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.clockWorker.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.clockWorker.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

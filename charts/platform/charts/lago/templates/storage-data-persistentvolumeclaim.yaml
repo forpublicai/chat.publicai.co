@@ -1,0 +1,17 @@
+{{- if and (not .Values.global.s3.enabled) (not .Values.minio.enabled) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-storage-data
+  name: {{ .Release.Name }}-storage-data
+spec:
+  {{- with .Values.api.volumes.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.api.volumes.accessModes | default "ReadWriteOnce" }}
+  resources:
+    requests:
+      storage: {{ .Values.api.volumes.storage }}
+{{- end -}}

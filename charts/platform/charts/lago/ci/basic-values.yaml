@@ -1,0 +1,69 @@
+apiUrl: "api.lago.dev"
+frontUrl: "front.lago.dev"
+
+global:
+  databaseUrl: postgres://postgres:postgres@postgres:5432/postgres
+  redisUrl: redis://redis:6379
+
+job:
+  migrate:
+    loadSchema: true
+
+api:
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+worker:
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+eventsWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+clockWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+pdf:
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+billingWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+pdfWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+webhookWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+paymentWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"

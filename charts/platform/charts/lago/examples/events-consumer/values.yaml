@@ -1,0 +1,108 @@
+# apiUrl: "api.lago.dev"
+# frontUrl: "front.lago.dev"
+apiUrl: "https://example-api.staging.getlago.com"   # Example: https://api.mydomain.dev
+frontUrl: "https://example-app.staging.getlago.com"   # Example: https://app.mydomain.dev
+
+global:
+  # this is matching our standalone external services kubernetes config
+  # since we are in the same namespace, we can use the service name instead of
+  # postgres.default.svc.cluster.local and redis.default.svc.cluster.local
+  databaseUrl: postgres://postgres:postgres@postgres:5432/postgres
+  redisUrl: redis://redis:6379
+
+  ingress:
+    enabled: true
+    frontHostname: example-app.staging.getlago.com
+    apiHostname: example-api.staging.getlago.com
+    className: nginx
+
+  # this is the flag to enable clickhouse and event based features
+  clickhouse:
+    enabled: true
+    port: 8123
+    # same as postgres and redis, we can use the service name instead of
+    # clickhouse.default.svc.cluster.local
+    host: clickhouse
+    ssl: false
+    username: default
+    password: default
+    kafka:
+      tls: false
+      saslMechanisms: ""
+      securityProtocol: ""
+      # same as postgres and redis, we can use the service name instead of
+      # redpanda.default.svc.cluster.local
+      bootstrapServers:
+        - redpanda:9092
+
+api:
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+worker:
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+eventsConsumer:
+  resources:
+    requests:
+      memory: '128Mi'
+      cpu: "200m"
+
+eventsProcessor:
+  env: "development"
+  resources:
+    requests:
+      memory: '128Mi'
+      cpu: "200m"
+
+eventsWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+clockWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+pdf:
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+billingWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+pdfWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+webhookWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"
+
+paymentWorker:
+  enabled: true
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: "200m"

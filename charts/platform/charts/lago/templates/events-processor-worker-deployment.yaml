@@ -1,0 +1,77 @@
+{{- if .Values.global.clickhouse.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-events-processor-worker
+  name: {{ .Release.Name }}-events-processor-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-events-processor-worker
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-events-processor-worker
+        {{- range $key, $value := .Values.eventsProcessor.podLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      annotations:
+        {{- range $key, $value := .Values.eventsProcessor.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+    spec:
+      {{- with .Values.eventsProcessor.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventsProcessor.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventsProcessor.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Release.Name }}-events-processor-worker
+          image: getlago/lago-events-processor:v{{ .Values.version }}
+          command: ["./event_processors"]
+        {{- with .Values.eventsProcessor.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+          env:
+            {{- include "kafkaEnvs" . | nindent 12 }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: ENV
+              value: {{ .Values.eventsProcessor.env }}
+            - name: LAGO_EVENTS_PROCESSOR_DATABASE_MAX_CONNECTIONS
+              value: {{ .Values.eventsProcessor.databasePool | quote }}
+            - name: LAGO_REDIS_CACHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisCacheUrl
+            - name: LAGO_REDIS_STORE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            {{- with .Values.eventsProcessor.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.global.serviceAccountName | default (printf "%s-serviceaccount" .Release.Name) }}
+
+{{- end }}

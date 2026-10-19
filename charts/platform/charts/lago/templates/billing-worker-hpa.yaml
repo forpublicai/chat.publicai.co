@@ -1,0 +1,24 @@
+{{- if .Values.billingWorker.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: {{ .Release.Name }}-billing-worker
+  labels:
+    io.lago.service: {{ .Release.Name }}-billing-worker
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-billing-worker
+  minReplicas: {{ .Values.billingWorker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.billingWorker.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.billingWorker.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

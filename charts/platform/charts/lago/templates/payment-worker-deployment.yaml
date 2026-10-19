@@ -1,0 +1,240 @@
+{{- if .Values.paymentWorker.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-payment-worker
+  name: {{ .Release.Name }}-payment-worker
+spec:
+  replicas: {{ .Values.paymentWorker.replicas }}
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-payment-worker
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-payment-worker
+        {{- with .Values.paymentWorker.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.paymentWorker.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.paymentWorker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentWorker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentWorker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - args: ["./scripts/start.payments.worker.sh"]
+          env:
+            - name: RAILS_ENV
+              value: {{ .Values.paymentWorker.rails.env }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: LAGO_REDIS_CACHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisCacheUrl
+            - name: LAGO_PDF_URL
+              {{- $pdfHost := printf "%s-pdf-svc.%s" .Release.Name .Release.Namespace }}
+              value: {{ printf "http://%s:%v" $pdfHost .Values.pdf.service.port | quote }}
+            - name: LAGO_API_URL
+              value: {{ required "apiUrl value is required" .Values.apiUrl | quote }}
+            - name: LAGO_FRONT_URL
+              value: {{ required "frontUrl value is required" .Values.frontUrl | quote }}
+            - name: RAILS_LOG_TO_STDOUT
+              value: {{ .Values.paymentWorker.rails.logStdout | quote }}
+            - name: LAGO_RSA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rsaPrivateKey
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secretKeyBase
+            - name: ENCRYPTION_DETERMINISTIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionDeterministicKey
+            - name: ENCRYPTION_KEY_DERIVATION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionKeyDerivationSalt
+            - name: ENCRYPTION_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionPrimaryKey
+            - name: LAGO_DISABLE_SEGMENT
+              value: {{ not .Values.global.segment.enabled | quote }}
+            - name: LAGO_DISABLE_PDF_GENERATION
+              value: {{ not .Values.global.pdf.enabled | quote }}
+            - name: DATABASE_POOL
+              value: {{ (mul .Values.paymentWorker.rails.sidekiqConcurrency 2) | quote }}
+            - name: SIDEKIQ_CONCURRENCY
+              value: {{ .Values.paymentWorker.rails.sidekiqConcurrency | quote }}
+            - name: LAGO_LOG_LEVEL
+              value: {{ .Values.paymentWorker.rails.logLevel | quote }}
+            - name: SIDEKIQ_WEBHOOK
+              value: {{ .Values.webhookWorker.enabled | quote }}
+            - name: SIDEKIQ_BILLING
+              value: {{ .Values.billingWorker.enabled | quote }}
+            - name: SIDEKIQ_CLOCK
+              value: {{ .Values.clockWorker.enabled | quote }}
+            - name: SIDEKIQ_PDFS
+              value: {{ .Values.pdfWorker.enabled | quote}}
+            - name: SIDEKIQ_PAYMENTS
+              value: {{ .Values.paymentWorker.enabled | quote }}
+            {{- with .Values.paymentWorker.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{ if .Values.global.license }}
+            - name: LAGO_LICENSE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: license
+            {{ end }}
+
+            {{ if or .Values.global.s3.enabled .Values.minio.enabled }}
+            - name: LAGO_USE_AWS_S3
+              value: "true"
+              {{- if .Values.minio.enabled }}
+            - name: LAGO_AWS_S3_PATH_STYLE
+              value: "true"
+              {{- end }}
+            {{- if or .Values.global.s3.endpoint .Values.minio.endpoint }}
+            - name: LAGO_AWS_S3_ENDPOINT
+              value: {{ if .Values.minio.enabled }}
+                        {{ .Values.minio.endpoint | quote }}
+                      {{ else }}
+                        {{ .Values.global.s3.endpoint | quote }}
+                      {{ end }}
+            {{- end }}
+            {{- if or .Values.global.s3.accessKeyId .Values.minio.enabled .Values.global.existingSecret }}
+            - name: LAGO_AWS_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.minio.enabled }}
+                          {{ .Release.Name }}-minio
+                        {{ else }}
+                          {{ include "secret-path" . }}
+                        {{ end }}
+                  key: {{ if .Values.minio.enabled }}
+                          rootUser
+                        {{ else }}
+                          awsS3AccessKeyId
+                        {{ end }}
+            {{- end }}
+            {{- if or .Values.global.s3.secretAccessKey .Values.minio.enabled .Values.global.existingSecret }}
+            - name: LAGO_AWS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.minio.enabled }}
+                          {{ .Release.Name }}-minio
+                        {{ else }}
+                          {{ include "secret-path" . }}
+                        {{ end }}
+                  key: {{ if .Values.minio.enabled }}
+                          rootPassword
+                        {{ else }}
+                          awsS3SecretAccessKey
+                        {{ end }}
+            {{- end }}
+            - name: LAGO_AWS_S3_BUCKET
+              value: {{ if .Values.minio.enabled }}
+                        {{ (index .Values.minio.buckets 0).name | quote }}
+                      {{ else }}
+                        {{ .Values.global.s3.bucket | quote }}
+                      {{ end }}
+            - name: LAGO_AWS_S3_REGION
+              value: {{ if .Values.global.s3.enabled }}
+                        {{ .Values.global.s3.region | quote }}
+                      {{ else if .Values.minio.enabled }}
+                        {{ default "us-east-1" .Values.minio.region | quote }}
+                      {{ end }}
+            {{ end }}
+
+            {{ if .Values.global.smtp.enabled }}
+            - name: LAGO_FROM_EMAIL
+              value: {{ .Values.global.smtp.fromEmail }}
+            - name: LAGO_SMTP_ADDRESS
+              value: {{ .Values.global.smtp.address }}
+            - name: LAGO_SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: smtpUsername
+            - name: LAGO_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: smtpPassword
+            - name: LAGO_SMTP_PORT
+              value: "{{ .Values.global.smtp.port }}"
+            {{ end }}
+            {{ if .Values.global.newRelic.enabled }}
+            - name: NEW_RELIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: newRelicKey
+            {{ end }}
+          image: {{ include "api-image" . }}
+          name: {{ .Release.Name }}-payment-worker
+          {{- if .Values.paymentWorker.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.paymentWorker.livenessProbe.httpPath }}
+              port: {{ .Values.paymentWorker.livenessProbe.httpPort }}
+            initialDelaySeconds: {{ .Values.paymentWorker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.paymentWorker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.paymentWorker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.paymentWorker.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- with .Values.paymentWorker.resources }}
+          resources:
+            {{- toYaml . | nindent 12}}
+          {{- end }}
+          {{ if and (not .Values.global.s3.enabled) (not .Values.minio.enabled) }}
+          volumeMounts:
+            - mountPath: /app/storage
+              name: {{ .Release.Name }}-storage-data
+          {{ end }}
+      restartPolicy: Always
+      {{ if and (not .Values.global.s3.enabled) (not .Values.minio.enabled) }}
+      volumes:
+        - name: {{ .Release.Name }}-storage-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-storage-data
+      {{ end }}
+      serviceAccountName: {{ .Values.global.serviceAccountName | default (printf "%s-serviceaccount" .Release.Name) }}
+{{- end -}}

@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-clock
+  name: {{ .Release.Name }}-clock
+spec:
+  replicas: {{ .Values.clock.replicas }}
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-clock
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-clock
+        {{- with .Values.clock.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.clock.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.clock.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clock.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clock.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - args: ["./scripts/start.clock.sh"]
+          env:
+            - name: RAILS_ENV
+              value: {{ .Values.clock.rails.env }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: LAGO_REDIS_CACHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisCacheUrl
+            - name: RAILS_LOG_TO_STDOUT
+              value: {{ .Values.clock.rails.logStdout | quote }}
+            - name: LAGO_RSA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rsaPrivateKey
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secretKeyBase
+            - name: ENCRYPTION_DETERMINISTIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionDeterministicKey
+            - name: ENCRYPTION_KEY_DERIVATION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionKeyDerivationSalt
+            - name: ENCRYPTION_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionPrimaryKey
+            - name: LAGO_LOG_LEVEL
+              value: {{ .Values.clock.rails.logLevel | quote }}
+            - name: SIDEKIQ_WEBHOOK
+              value: {{ .Values.webhookWorker.enabled | quote }}
+            - name: SIDEKIQ_BILLING
+              value: {{ .Values.billingWorker.enabled | quote}}
+            - name: SIDEKIQ_PDFS
+              value: {{ .Values.pdfWorker.enabled | quote}}
+            - name: SIDEKIQ_PAYMENTS
+              value: {{ .Values.paymentWorker.enabled | quote }}
+            {{- with .Values.clock.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{ if .Values.global.newRelic.enabled }}
+            - name: NEW_RELIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: newRelicKey
+            {{ end }}
+          image: {{ include "api-image" . }}
+          name: {{ .Release.Name }}-clock
+          {{- with .Values.clock.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.global.serviceAccountName | default (printf "%s-serviceaccount" .Release.Name) }}

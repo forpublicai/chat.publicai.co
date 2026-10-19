@@ -1,0 +1,520 @@
+version: "1.55.0"
+
+image:
+  repository: ""
+  tag: ""
+
+# EXAMPLE CONFIGURATION - Lago Events Processing Components
+# This is a standalone example demonstrating Lago's events processing capabilities
+# For production deployments, refer to the official Lago documentation
+
+# Required: Set the URLs for your API and Frontend services
+# Replace these placeholders with the actual domain names.
+apiUrl: ""   # Example: https://api.mydomain.dev
+frontUrl: ""   # Example: https://app.mydomain.dev
+
+global:
+  # Define your Lago Premium License
+  # license:
+
+  # If you use a managed PG instance
+  # Should respect this format postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME
+  # databaseUrl:
+
+  # Should respect standard redis URL format redis://..., redis+sentinel://...
+  # redisUrl:
+  # redisCacheUrl:
+
+  # If you wish to provide an existing secret with credentials in, then you can do so here.
+  # The following fields are required:
+  #  - databaseUrl: <SEE FORMAT ABOVE>
+  #  - redisUrl:
+  #  - awsS3AccessKeyId:
+  #  - awsS3SecretAccessKey:
+  #  - smtpUsername:
+  #  - smtpPassword:
+  #  - googleAuthClientId:
+  #  - googleAuthClientSecret:
+  # existingSecret: "lago-credentials"
+
+  # You can disable segment tracking for Lago's internal purpose
+  segment:
+    enabled: true
+  s3:
+    enabled: false
+    # accessKeyId and secretAccessKey are not required here if using existingSecret
+    # accessKeyId: "<your-aws-access-key>"
+    # secretAccessKey: "<your-aws-secret-key>"
+    # bucket: "<your-aws-bucket>"
+    # region: "<your-aws-region>"
+    # endpoint: "https://s3.<region>.amazonaws.com" # Leave empty for default AWS S3 endpoint
+
+  smtp:
+    # username and password are not required here if using existingSecret
+    enabled: false
+    # address:
+    # username:
+    # password:
+    # port:
+    # fromEmail:
+  newRelic:
+    enabled: false
+    # key:
+
+  # You can disable Lago's signup
+  signup:
+    enabled: true
+
+  # You can disable Lago's pdf generation
+  pdf:
+    enabled: true
+
+  googleAuth:
+    # clientId and clientSecret are not required here if using existingSecret
+    enabled: false
+    # clientId:
+    # clientSecret:
+
+  ingress:
+    enabled: false
+    frontHostname:
+    apiHostname:
+    className: nginx
+    annotations: {}
+
+  networkPolicy:
+    enabled: false
+    egress: []
+    ingress: []
+
+  kubectl:
+    imageRegistry: docker.io
+    imageRepository: rancher/kubectl
+    # If imageTag is not supplied it will be inferred using the version of the cluster that Lago is deployed on.
+    # imageTag: 1.29.0
+
+  clickhouse:
+    enabled: false
+    port: 9000
+    host: clickhouse
+    ssl: true
+    # username and password are not required here if using existingSecret
+    username: ""
+    password: ""
+    kafka:
+      # username and password are not required here if using existingSecret
+      # username:
+      # password:
+      tls: true
+      saslMechanisms: SCRAM-SHA-512
+      securityProtocol: SASL_SSL
+      consumerGroup: events_consumer
+      # you must provide a list of Kafka servers if clickhouse is enabled
+      # bootstrapServers:
+      #   - "kafka-server:9092"
+      topics:
+        eventsChargedInAdvance: events_charged_in_advance
+        eventsDeadLetter: events_dead_letter
+        eventsEnriched: events_enriched
+        eventsEnrichedExpanded: events_enriched_expanded
+        eventsRaw: events_raw
+        activityLogs: activity_logs
+        apiLogs: api_logs
+
+
+encryption:
+  # The following fields are required:
+  #  - encryptionPrimaryKey:
+  #  - encryptionDeterministicKey:
+  #  - encryptionKeyDerivationSalt:
+  existingSecret:
+
+  # serviceAccountName:
+
+front:
+  replicas: 1
+  service:
+    port: 80
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: "200m"
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+api:
+  replicas: 1
+  service:
+    port: 3000
+  rails:
+    maxThreads: 10
+    webConcurrency: 4
+    env: "production"
+    logStdout: true
+    logLevel: error
+  sidekiqWeb:
+    enabled: true
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1000m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  volumes:
+    storageClassName: ""
+    accessModes: ReadWriteOnce
+    storage: "10Gi"
+  extraEnv: {}
+  podAnnotations: {}
+  podLabels: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /health
+    httpPort: 3000
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+worker:
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 20
+    env: "production"
+    logStdout: true
+    logLevel: error
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+
+eventsConsumer:
+  databasePool: 10
+  rails:
+    env: "production"
+    logStdout: true
+    logLevel: error
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+eventsProcessor:
+  databasePool: 10
+  env: "production"
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+eventsWorker:
+  enabled: true
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 20
+    env: "production"
+    logStdout: true
+    logLevel: error
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+clockWorker:
+  enabled: true
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 20
+    env: "production"
+    logStdout: true
+    logLevel: error
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+clock:
+  replicas: 1
+  rails:
+    env: "production"
+    logStdout: true
+    logLevel: info
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: "100m"
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+pdf:
+  replicas: 1
+  service:
+    port: 3001
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: "1000m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+billingWorker:
+  enabled: true
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 10
+    env: "production"
+    logStdout: true
+    logLevel: info
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 100
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+pdfWorker:
+  enabled: true
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 10
+    env: "production"
+    logStdout: true
+    logLevel: info
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+webhookWorker:
+  enabled: true
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 20
+    env: "production"
+    logStdout: true
+    logLevel: info
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+paymentWorker:
+  enabled: true
+  replicas: 1
+  rails:
+    sidekiqConcurrency: 20
+    env: "production"
+    logStdout: true
+    logLevel: info
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "1100m"
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: {}
+  livenessProbe:
+    enabled: true
+    httpPath: /
+    httpPort: 8080
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  tolerations: []
+  nodeSelector: {}
+  affinity: {}
+
+job:
+  migrate:
+    nameOverride: null
+    podAnnotations: {}
+    podLabels: {}
+    resources: {}
+    extraEnv: {}
+    loadSchema: false
+  topics:
+    resources: {}
+    extraEnv: {}
+    podAnnotations: {}
+    podLabels: {}
+
+
+minio:
+  enabled: false
+  replicas: 1
+  fullnameOverride: lago-minio
+  endpoint: "http://minio.lago.dev"
+  nameOverride: "minio"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+  persistence:
+    size: 10Gi
+  ingress:
+    enabled: false
+    ingressClassName: nginx
+    labels: {}
+    annotations: {}
+    path: /
+    hosts:
+      - minio.lago.dev
+    tls: []
+  buckets:
+    - name: lago
+      policy: none
+      purge: false
+      versioning: false
+      objectlocking: false

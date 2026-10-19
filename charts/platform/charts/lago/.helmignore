@@ -1,0 +1,8 @@
+.DS_Store
+.git/
+.gitignore
+LICENSE
+README.md
+artifacts/
+ci/postgres.yml
+ci/redis.yml

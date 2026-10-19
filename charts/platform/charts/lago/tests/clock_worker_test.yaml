@@ -1,0 +1,35 @@
+suite: Test clock worker activation and default values
+templates:
+  - templates/clock-worker-deployment.yaml
+
+tests:
+  - it: should not deploy if clock worker is disabled
+    set:
+      clockWorker.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should require apiUrl
+    set:
+      clockWorker.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "apiUrl value is required"
+  - it: should require frontUrl
+    set:
+      clockWorker.enabled: true
+      apiUrl: "api.lago.dev"
+    asserts:
+      - failedTemplate:
+          errorMessage: "frontUrl value is required"
+  - it: should deploy if clock worker is enabled
+    set:
+      clockWorker.enabled: true
+      apiUrl: "api.lago.dev"
+      frontUrl: "front.lago.dev"
+    asserts:
+      - containsDocument:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: RELEASE-NAME-clock-worker

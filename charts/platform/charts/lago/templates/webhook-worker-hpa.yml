@@ -1,0 +1,24 @@
+{{- if .Values.webhookWorker.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: {{ .Release.Name }}-webhook-worker
+  labels:
+    io.lago.service: {{ .Release.Name }}-webhook-worker
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-webhook-worker
+  minReplicas: {{ .Values.webhookWorker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.webhookWorker.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.webhookWorker.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

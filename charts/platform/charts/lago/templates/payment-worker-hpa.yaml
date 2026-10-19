@@ -1,0 +1,24 @@
+{{- if .Values.paymentWorker.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: {{ .Release.Name }}-payment-worker
+  labels:
+    io.lago.service: {{ .Release.Name }}-payment-worker
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-payment-worker
+  minReplicas: {{ .Values.paymentWorker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.paymentWorker.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.paymentWorker.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

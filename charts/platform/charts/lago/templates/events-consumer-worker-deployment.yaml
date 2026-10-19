@@ -1,0 +1,117 @@
+{{- if .Values.global.clickhouse.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-events-consumer-worker
+  name: {{ .Release.Name }}-events-consumer-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-events-consumer-worker
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-events-consumer-worker
+        {{- range $key, $value := .Values.eventsConsumer.podLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      annotations:
+        {{- range $key, $value := .Values.eventsConsumer.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+    spec:
+      {{- with .Values.eventsConsumer.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventsConsumer.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.eventsConsumer.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Release.Name }}-events-consumer-worker
+          image: {{ include "api-image" . }}
+          command: ["./scripts/start.events.consumer.sh"]
+        {{- with .Values.eventsConsumer.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+          env:
+            - name: DATABASE_POOL
+              value: {{ quote .Values.eventsConsumer.databasePool }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: ENCRYPTION_DETERMINISTIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionDeterministicKey
+            - name: ENCRYPTION_KEY_DERIVATION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionKeyDerivationSalt
+            - name: ENCRYPTION_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionPrimaryKey
+            {{- include "kafkaEnvs" . | nindent 12 }}
+            {{ if .Values.global.license }}
+            - name: LAGO_LICENSE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: license
+            {{ end }}
+            - name: LAGO_LOG_LEVEL
+              value: {{ .Values.eventsConsumer.rails.logLevel | quote }}
+            - name: LAGO_REDIS_CACHE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisCacheUrl
+            - name: LAGO_REDIS_STORE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: LAGO_RSA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rsaPrivateKey
+            - name: RAILS_ENV
+              value: {{ .Values.eventsConsumer.rails.env }}
+            - name: RAILS_LOG_TO_STDOUT
+              value: {{ .Values.eventsConsumer.rails.logStdout | quote }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secretKeyBase
+            {{- with .Values.eventsConsumer.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.global.serviceAccountName | default (printf "%s-serviceaccount" .Release.Name) }}
+{{- end }}

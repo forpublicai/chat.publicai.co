@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-migrate-db
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-1"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- with .Values.job.migrate.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.job.migrate.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: lago-migrate
+          image: {{ include "api-image" . }}
+          {{ if .Values.job.migrate.loadSchema }}
+          command: ["bin/rails"]
+          args:
+            - "db:schema:load"
+          {{ else }}
+          args:
+            - ./scripts/migrate.sh
+          {{end}}
+          env:
+            - name: RAILS_ENV
+              value: {{ .Values.api.rails.env }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: databaseUrl
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secret-path" . }}
+                  key: redisUrl
+            - name: LAGO_RSA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rsaPrivateKey
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secretKeyBase
+            - name: ENCRYPTION_DETERMINISTIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionDeterministicKey
+            - name: ENCRYPTION_KEY_DERIVATION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionKeyDerivationSalt
+            - name: ENCRYPTION_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "encryption-secret-path" . }}
+                  key: encryptionPrimaryKey
+            {{ if .Values.global.clickhouse.enabled }}
+            {{- include "kafkaEnvs" . | nindent 12 }}
+            {{- include "clickhouseEnvs" . | nindent 12 }}
+            - name: LAGO_CLICKHOUSE_MIGRATIONS_ENABLED
+              value: "true"
+            - name: LAGO_KAFKA_CLICKHOUSE_CONSUMER_GROUP
+              value: clickhouse
+            {{ end }}
+            {{- with .Values.job.migrate.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.job.migrate.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

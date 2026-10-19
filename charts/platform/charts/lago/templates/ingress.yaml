@@ -1,0 +1,36 @@
+{{ if .Values.global.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress
+  {{- with .Values.global.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.global.ingress.className }}
+  tls:
+  - hosts:
+    - {{ .Values.global.ingress.frontHostname }}
+    - {{ .Values.global.ingress.apiHostname }}
+    secretName: {{ .Release.Name }}-ingress-secret
+  rules:
+  - host: {{ .Values.global.ingress.frontHostname }}
+    http:
+      paths:
+      - pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ .Release.Name }}-front-svc
+            port:
+              number: {{ .Values.front.service.port }}
+  - host: {{ .Values.global.ingress.apiHostname }}
+    http:
+      paths:
+      - pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ .Release.Name }}-api-svc
+            port:
+              number: {{ .Values.api.service.port }}
+{{ end }}

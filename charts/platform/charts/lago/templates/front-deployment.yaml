@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.lago.service: {{ .Release.Name }}-front
+  name: {{ .Release.Name }}-front
+spec:
+  replicas: {{ .Values.front.replicas }}
+  selector:
+    matchLabels:
+      io.lago.service: {{ .Release.Name }}-front
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        io.lago.service: {{ .Release.Name }}-front
+        {{- with .Values.front.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.front.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.front.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.front.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.front.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - env:
+            - name: API_URL
+              value: {{ .Values.apiUrl | quote }}
+            - name: APP_ENV
+              value: production
+            - name: CODEGEN_API
+              value: {{ .Values.apiUrl | quote }}
+            - name: LAGO_DISABLE_SIGNUP
+              value: {{ not .Values.global.signup.enabled | quote }}
+            - name: LAGO_DISABLE_PDF_GENERATION
+              value: {{ not .Values.global.pdf.enabled | quote }}
+            {{- with .Values.front.extraEnv }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          image: getlago/front:v{{ .Values.version }}
+          name: {{ .Release.Name }}-front
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          {{- with .Values.front.resources }}
+          resources:
+            {{- toYaml . | nindent 12}}
+          {{- end }}
+      restartPolicy: Always
