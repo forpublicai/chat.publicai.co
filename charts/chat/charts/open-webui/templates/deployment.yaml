@@ -93,13 +93,13 @@ spec:
         - name: REDIS_CLUSTER
           value: "{{ .Values.app.redis.cluster }}"
         - name: DATABASE_POOL_SIZE
-          value: "{{ .Values.app.database.poolSize | default 30 }}"
+          value: "{{ dig "database" "poolSize" 30 .Values.app }}"
         - name: DATABASE_POOL_MAX_OVERFLOW
-          value: "{{ .Values.app.database.maxOverflow | default 20 }}"
+          value: "{{ dig "database" "maxOverflow" 20 .Values.app }}"
         - name: DATABASE_POOL_TIMEOUT
-          value: "{{ .Values.app.database.poolTimeout | default 30 }}"
+          value: "{{ dig "database" "poolTimeout" 30 .Values.app }}"
         - name: DATABASE_POOL_RECYCLE
-          value: "{{ .Values.app.database.poolRecycle | default 300 }}"
+          value: "{{ dig "database" "poolRecycle" 300 .Values.app }}"
 
         # Vector DB
         - name: VECTOR_DB
