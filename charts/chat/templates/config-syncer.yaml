@@ -52,6 +52,12 @@ spec:
               optional: true
         - name: LITELLM_ENDPOINT
           value: {{ if and (hasKey (index .Values "open-webui") "openai") (index .Values "open-webui").openai.baseUrl }}{{ (index .Values "open-webui").openai.baseUrl | quote }}{{ else }}{{ printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform") | quote }}{{ end }}
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ (index .Values "open-webui").secrets.name }}
+              key: LITELLM_API_KEY
+              optional: true
         - name: DEFAULT_MODEL
           value: {{ if and (hasKey (index .Values "open-webui") "app") (hasKey (index .Values "open-webui").app "defaultModels") (index .Values "open-webui").app.defaultModels }}{{ (index .Values "open-webui").app.defaultModels | quote }}{{ else }}"swiss-ai/apertus-v1.5-70b"{{ end }}
         - name: MODELS_CONFIG_FILE
