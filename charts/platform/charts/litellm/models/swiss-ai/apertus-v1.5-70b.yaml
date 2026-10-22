@@ -18,6 +18,7 @@ models:
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
+    access_groups: ["api", "chat"]
 #- model_name: swiss-ai/apertus-v1.5-70b
 #  litellm_params:
 #    model: openai/alias-apertus-70b

@@ -260,14 +260,46 @@ spec:
         {{- toYaml .Values.app.extraEnv | nindent 8 }}
         {{- end }}
 
-        # Embedding Engine & Task Models
-        # TODO: Translate to helm chart format
-        # TODO: Setup the embedding engine 
-        # - RAG_EMBEDDING_ENGINE=openai
-        # - RAG_EMBEDDING_MODEL=text-embedding-3-small
-        # TODO: Setup task models 
-        # - TASK_MODEL
-        # - TASK_MODEL_EXTERNAL 
+        # OpenAI Connections (LiteLLM Proxy)
+        {{- if .Values.openai.enabled }}
+        - name: OPENAI_API_BASE_URLS
+          value: {{ .Values.openai.baseUrl | default (printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform")) | quote }}
+        {{- if .Values.openai.apiKey }}
+        - name: OPENAI_API_KEYS
+          value: {{ .Values.openai.apiKey | quote }}
+        {{- else }}
+        - name: OPENAI_API_KEYS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.openai.secretRef.name | default .Values.secrets.name }}
+              key: {{ .Values.openai.secretRef.key | default "LITELLM_API_KEY" }}
+              optional: true
+        {{- end }}
+        - name: OPENAI_API_CONFIGS
+          value: {{ toJson .Values.openai.apiConfigs | quote }}
+        {{- end }}
+
+        # Embedding Engine & Reranking Models
+        {{- if .Values.app.rag }}
+        - name: RAG_EMBEDDING_ENGINE
+          value: {{ .Values.app.rag.embeddingEngine | default "openai" | quote }}
+        - name: RAG_EMBEDDING_MODEL
+          value: {{ .Values.app.rag.embeddingModel | default "Cohere/Cohere-embed-multilingual-v3.0" | quote }}
+        - name: RAG_OPENAI_API_BASE_URL
+          value: {{ .Values.app.rag.openaiApiBaseUrl | default (.Values.openai.baseUrl | default (printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform"))) | quote }}
+        - name: RAG_RERANKING_ENGINE
+          value: {{ .Values.app.rag.rerankingEngine | default "external" | quote }}
+        - name: RAG_RERANKING_MODEL
+          value: {{ .Values.app.rag.rerankingModel | default "Cohere/rerank-v3.5" | quote }}
+        - name: RAG_EXTERNAL_RERANKER_URL
+          value: {{ .Values.app.rag.externalRerankerUrl | default (.Values.openai.baseUrl | default (printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform"))) | quote }}
+        {{- end }}
+
+        # Task Models
+        - name: TASK_MODEL
+          value: {{ .Values.app.taskModel | default "swiss-ai/apertus-v1.5-70b" | quote }}
+        - name: TASK_MODEL_EXTERNAL
+          value: {{ .Values.app.taskModelExternal | default "swiss-ai/apertus-v1.5-70b" | quote }}
         
         resources:
           requests:
