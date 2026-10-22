@@ -29,10 +29,34 @@ def make_request(url, method="GET", payload=None, api_key=None):
         print(f"[ERROR] HTTP {e.code} for {method} {url}: {err_body}", file=sys.stderr)
         raise
 
+def fetch_all_paginated(url, item_key, api_key, per_page=100):
+    """
+    Fetches all items from a paginated Lago endpoint across all pages.
+    """
+    items = []
+    page = 1
+    while True:
+        separator = "&" if "?" in url else "?"
+        paged_url = f"{url}{separator}page={page}&per_page={per_page}"
+        resp = make_request(paged_url, api_key=api_key)
+        batch = resp.get(item_key, [])
+        items.extend(batch)
+        
+        meta = resp.get("meta", {})
+        next_page = meta.get("next_page")
+        if next_page:
+            page = next_page
+        elif len(batch) == per_page:
+            page += 1
+        else:
+            break
+            
+    return items
+
 def sync_billable_metrics(lago_base_url, api_key, metric_defs):
     print("=== Syncing Billable Metrics ===")
-    existing_metrics_resp = make_request(f"{lago_base_url}/api/v1/billable_metrics", api_key=api_key)
-    existing_by_code = {m["code"]: m for m in existing_metrics_resp.get("billable_metrics", [])}
+    existing_metrics = fetch_all_paginated(f"{lago_base_url}/api/v1/billable_metrics", "billable_metrics", api_key=api_key)
+    existing_by_code = {m["code"]: m for m in existing_metrics}
     
     synced_metrics = {}
     for m in metric_defs:
@@ -62,8 +86,8 @@ def sync_billable_metrics(lago_base_url, api_key, metric_defs):
 
 def sync_plans(lago_base_url, api_key, plan_defs, synced_metrics):
     print("\n=== Syncing Plans & Charges ===")
-    existing_plans_resp = make_request(f"{lago_base_url}/api/v1/plans", api_key=api_key)
-    existing_by_code = {p["code"]: p for p in existing_plans_resp.get("plans", [])}
+    existing_plans = fetch_all_paginated(f"{lago_base_url}/api/v1/plans", "plans", api_key=api_key)
+    existing_by_code = {p["code"]: p for p in existing_plans}
     
     for p in plan_defs:
         code = p["code"]

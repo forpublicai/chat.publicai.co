@@ -16,7 +16,7 @@ data:
 {{ .Files.Get "lago-catalog.yaml" | indent 4 }}
 {{- end }}
   sync.py: |
-{{ .Files.Get "../../scripts/sync-lago-catalog.py" | default (.Files.Get "scripts/sync-lago-catalog.py") | indent 4 }}
+{{ .Files.Get "scripts/sync-lago-catalog.py" | indent 4 }}
 ---
 apiVersion: batch/v1
 kind: Job
