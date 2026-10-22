@@ -6,7 +6,7 @@ Each model has a file, and where there are multiple provider endpoints, they all
 When adding a model please use at least two fallbacks, ideally from unrelated suppliers.
 
 # Edit code
-To add a new model to LiteLLM, there are three main parts to configure: defining the model YAML, configuring the secret & environment variable, and adding billing name mapping in the Lago callback.
+To add a new model to LiteLLM, there are two main parts to configure: defining the model YAML, configuring the secret & environment variable, and ensuring the model is in the Lago billing catalog. Lago callback mapping in `custom_lago_callback.py` is fully automatic!
 
 ### 1. Define the Model YAML
 Create a new YAML file (or update an existing one) under [`charts/platform/charts/litellm/models/`](/charts/platform/charts/litellm/models) organized by provider (for example: [`charts/platform/charts/litellm/models/<provider>/<model-name>.yaml`](/charts/platform/charts/litellm/models)).
@@ -67,17 +67,11 @@ If the model requires an API key secret referenced via `os.environ/MY_PROVIDER_A
      ```
 4. *(Optional)* If the model is tested in the health-check job, also add the key to [`health-check-secrets.yaml`](/charts/platform/templates/health-check-secrets.yaml#L15-L39).
 
+### 3. Ensure Lago Billing Catalog Entry
+Verify that the `model_name` (e.g. `provider/my-new-model`) is listed under `billable_metrics[public_ai_models].filters[model].values` in [`charts/platform/lago-catalog.yaml`](/charts/platform/lago-catalog.yaml) and configured with package pricing under plan charges.
 
-### 3. Update Lago Billing Mapping
-Update [`custom_lago_callback.py`](/charts/platform/charts/litellm/custom_lago_callback.py) so Lago tracks token usage with the correct billing code.
-
-In [`_normalize_model_name`](/charts/platform/charts/litellm/custom_lago_callback.py#L85-L165), add mappings for both the LiteLLM internal model string and any aliases to the user-facing/billing model name:
-
-```python
-# In model_mapping dictionary:
-"openai/provider/my-new-model": "provider/my-new-model",
-"provider/my-new-model": "provider/my-new-model",
-```
+> [!TIP]
+> You do **not** need to manually edit `custom_lago_callback.py`! The callback automatically loads the `model_name` mapping from `/app/config.yaml` and extracts canonical model group metadata on every request.
 
 ### Summary Checklist
 
@@ -86,7 +80,7 @@ In [`_normalize_model_name`](/charts/platform/charts/litellm/custom_lago_callbac
 | **1. Model Config** | [`models/<provider>/<model>.yaml`](/charts/platform/charts/litellm/models) | Defines model params, pricing, fallbacks, and target envs |
 | **2. Secret Mapping** | [`secrets.yaml`](/charts/platform/charts/litellm/templates/secrets.yaml) | Pulls API key from AWS Secrets Manager via ExternalSecret |
 | **3. Container Env** | [`deployment.yaml`](/charts/platform/charts/litellm/templates/deployment.yaml) | Exposes `MY_PROVIDER_API_KEY` to the LiteLLM container |
-| **4. Billing Normalization** | [`custom_lago_callback.py`](/charts/platform/charts/litellm/custom_lago_callback.py) | Maps model name to Lago billing event code |
+| **4. Billing Catalog** | [`lago-catalog.yaml`](/charts/platform/lago-catalog.yaml) | Defines Lago billing metric filter values and plan pricing |
 
 # Pre deploy check
 Run this code test to make sure the model code is valid and will work with LiteLLM

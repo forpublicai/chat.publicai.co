@@ -121,6 +121,7 @@ class ModelCodeChecker:
         self.external_secret_template_data: Dict[str, List[str]] = {}  # k8s_secret_key -> [REF_VARS]
         self.deployment_env_vars: Dict[str, str] = {}  # ENV_NAME -> secretKeyRef.key
         self.lago_model_mapping: Dict[str, str] = {}
+        self.has_dynamic_lago_mapping: bool = False
 
         # Lago catalog state
         self.lago_catalog_data: Dict[str, Any] = {}
@@ -287,18 +288,26 @@ class ModelCodeChecker:
                         self.deployment_env_vars[env_name] = ""
 
     def _parse_lago_callback(self):
-        """Extracts model_mapping dict from custom_lago_callback.py using AST."""
+        """Extracts model_mapping dict or dynamic mapping configuration from custom_lago_callback.py."""
         if not os.path.isfile(self.lago_callback_path):
             return
 
         try:
             with open(self.lago_callback_path, "r") as f:
-                tree = ast.parse(f.read())
+                content = f.read()
+                tree = ast.parse(content)
 
+            # Check if dynamic config-driven mapping or canonical extraction is implemented
+            self.has_dynamic_lago_mapping = (
+                "_load_model_mapping_from_config" in content
+                or "_extract_canonical_model_name" in content
+            )
+
+            # Parse any static aliases / overrides
             for node in ast.walk(tree):
                 if isinstance(node, ast.Assign):
                     for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == "model_mapping":
+                        if isinstance(target, ast.Name) and target.id in ("model_mapping", "static_aliases"):
                             if isinstance(node.value, ast.Dict):
                                 for k, v in zip(node.value.keys, node.value.values):
                                     if isinstance(k, ast.Constant) and isinstance(v, ast.Constant):
@@ -876,21 +885,32 @@ class ModelCodeChecker:
     def get_normalized_lago_model_name(self, model_entry: Dict[str, Any]) -> Tuple[str, bool]:
         """
         Determines the normalized model name that will be sent to Lago by custom_lago_callback.py.
+        With dynamic mapping and canonical model extraction, this automatically resolves to model_name.
         Returns (normalized_name, is_explicitly_mapped).
         """
         param_model = model_entry.get("param_model", "")
         model_name = model_entry.get("model_name", "")
 
+        # Check explicit legacy static override first
         if param_model in self.lago_model_mapping:
             return self.lago_model_mapping[param_model], True
         if model_name in self.lago_model_mapping:
             return self.lago_model_mapping[model_name], True
+
+        # Automatic mapping from config / canonical router extraction
+        if self.has_dynamic_lago_mapping and model_name:
+            return model_name, True
 
         # Fallback: if not mapped in custom_lago_callback.py, LiteLLM passes through the model string
         return model_name, False
 
     def _validate_lago_normalization(self):
         """Validates that custom_lago_callback.py handles all active models."""
+        if self.has_dynamic_lago_mapping:
+            # Dynamic config-based mapping and canonical model extraction is enabled.
+            # All models defined in models/**/*.yaml are automatically mapped.
+            return
+
         if not self.lago_model_mapping:
             return
 

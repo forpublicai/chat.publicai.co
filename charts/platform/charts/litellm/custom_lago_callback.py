@@ -10,7 +10,8 @@ Based on https://github.com/BerriAI/litellm/blob/main/litellm/integrations/lago.
 import json
 import os
 from litellm._uuid import uuid
-from typing import Optional
+from typing import Optional, Dict
+import yaml
 import httpx
 import litellm
 from litellm._logging import verbose_logger
@@ -41,7 +42,43 @@ class LagoCustomCallback(CustomLogger):
             llm_provider=httpxSpecialProvider.LoggingCallback
         )
         self.sync_http_handler = HTTPHandler()
+        self.dynamic_model_mapping: dict = self._load_model_mapping_from_config()
         print("✅ LagoCustomCallback initialized successfully")
+
+    def _load_model_mapping_from_config(self) -> dict:
+        """
+        Dynamically loads model name mappings from LiteLLM config (/app/config.yaml or local fallback).
+        Automatically maps backend deployment models (litellm_params.model) to public billing IDs (model_name).
+        """
+        mapping = {}
+        candidate_paths = [
+            os.getenv("LITELLM_CONFIG_PATH"),
+            "/app/config.yaml",
+            "config.yaml",
+            os.path.join(os.path.dirname(__file__), "config.yaml"),
+        ]
+
+        for path in candidate_paths:
+            if path and os.path.isfile(path):
+                try:
+                    import yaml
+                    with open(path, "r") as f:
+                        data = yaml.safe_load(f) or {}
+                    model_list = data.get("model_list", [])
+                    for item in model_list:
+                        if not isinstance(item, dict):
+                            continue
+                        model_name = item.get("model_name")
+                        litellm_model = (item.get("litellm_params") or {}).get("model")
+                        if litellm_model and model_name:
+                            mapping[str(litellm_model)] = str(model_name)
+                        if model_name:
+                            mapping[str(model_name)] = str(model_name)
+                    print(f"✅ Loaded {len(mapping)} model mappings from {path}")
+                    return mapping
+                except Exception as e:
+                    verbose_logger.error(f"Error loading model mapping from {path}: {e}")
+        return mapping
 
     def validate_environment(self):
         """
@@ -82,102 +119,79 @@ class LagoCustomCallback(CustomLogger):
         verbose_logger.debug("No subscription ID found in headers or metadata")
         return None
 
+    def _extract_canonical_model_name(self, kwargs: dict) -> str:
+        """
+        Extract the canonical user-facing model name from the LiteLLM request context.
+        Priority:
+        1. model_info.billing_model (explicitly stamped by Helm)
+        2. Router model_group / standard_logging_object (logical proxy model)
+        3. Client requested model in proxy_server_request body
+        4. Underlying deployment model in kwargs['model']
+        """
+        litellm_params = kwargs.get("litellm_params", {}) or {}
+
+        # 1. Check model_info for explicit billing_model
+        model_info = litellm_params.get("model_info", {}) or kwargs.get("model_info", {}) or {}
+        if isinstance(model_info, dict) and model_info.get("billing_model"):
+            return str(model_info["billing_model"])
+
+        # 2. Check LiteLLM router model_group (logical user-facing group)
+        model_group = (
+            kwargs.get("model_group")
+            or (kwargs.get("standard_logging_object") or {}).get("model_group")
+            or litellm_params.get("metadata", {}).get("model_group")
+        )
+        if model_group:
+            return str(model_group)
+
+        # 3. Check proxy_server_request body (original client payload)
+        proxy_request = litellm_params.get("proxy_server_request") or {}
+        body = proxy_request.get("body") or {}
+        if isinstance(body, dict) and body.get("model"):
+            return str(body["model"])
+
+        # 4. Fallback to physical execution model
+        return kwargs.get("model", "unknown")
+
     def _normalize_model_name(self, model: str) -> str:
         """
         Normalize model names to match Lago billing codes.
-        Maps internal LiteLLM model names to user-facing model names.
+        1. Check dynamic mapping loaded from config.yaml
+        2. Check static router / alias exceptions
+        3. Algorithmic cleanup (strip provider prefix / deployment tags)
+        4. Pass through
         """
-        # Model name mapping: litellm model -> lago billing name
-        model_mapping = {
-            # Bedrock models
-            "bedrock/eu.meta.llama3-2-3b-instruct-v1:0": "meta-llama/Llama-3.2-3B-Instruct",
-            "bedrock/cohere.embed-multilingual-v3": "Cohere/Cohere-embed-multilingual-v3.0",
-            "bedrock/cohere.rerank-v3-5:0": "Cohere/rerank-v3.5",
-            "bedrock/arn:aws:bedrock:eu-central-1::foundation-model/cohere.rerank-v3-5:0": "Cohere/rerank-v3.5",
+        # If mapping is empty (e.g. config was not available at boot), attempt reload once
+        if not getattr(self, "dynamic_model_mapping", None):
+            self.dynamic_model_mapping = self._load_model_mapping_from_config()
 
-            # Apertus models (various endpoints with version suffixes)
-            "Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
-            "swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
-            "openai/swiss-ai/Apertus-8B-Instruct-2509:featherless-ai": "swiss-ai/apertus-8b-instruct",
-            "openai/swiss-ai/Apertus-8B-Instruct-2509": "swiss-ai/apertus-8b-instruct",
-            "swiss-ai/apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
-            "apertus-8b-instruct": "swiss-ai/apertus-8b-instruct",
-            "Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
-            "swiss-ai/Apertus-70B-Instruct-2509": "swiss-ai/apertus-70b-instruct",
-            "apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
-            "swiss-ai/Apertus-70B-2509": "swiss-ai/apertus-70b-instruct",
-            "swiss-ai/Apertus-8B-2509": "swiss-ai/apertus-8b-instruct",
-            "openai/swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
-            "swiss-ai/apertus-70b-instruct": "swiss-ai/apertus-70b-instruct",
-            "openai/swiss-ai/Apertus-v1.5-8B": "swiss-ai/apertus-v1.5-8b",
-            "swiss-ai/apertus-v1.5-8b": "swiss-ai/apertus-v1.5-8b",
-            "openai/swiss-ai/Apertus-v1.5-8B-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
-            "swiss-ai/apertus-v1.5-8b-thinking": "swiss-ai/apertus-v1.5-8b-thinking",
-            "openai/swiss-ai/Apertus-v1.5-70B": "swiss-ai/apertus-v1.5-70b",
-            "swiss-ai/apertus-v1.5-70b": "swiss-ai/apertus-v1.5-70b",
-            "openai/alias-apertus": "swiss-ai/apertus-v1.5-8b",
-            "openai/alias-apertus-70b": "swiss-ai/apertus-v1.5-70b",
-            "openai/swiss-ai/Apertus-v1.5-70B-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
-            "swiss-ai/apertus-v1.5-70b-thinking": "swiss-ai/apertus-v1.5-70b-thinking",
+        # 1. Direct dynamic mapping from config.yaml (litellm_params.model -> model_name)
+        if self.dynamic_model_mapping and model in self.dynamic_model_mapping:
+            return self.dynamic_model_mapping[model]
 
-            # Olmo models
-            "Olmo-3-7B-Instruct": "allenai/Olmo-3-7B-Instruct",
-            "allenai/Olmo-3-7B-Instruct": "allenai/Olmo-3-7B-Instruct",
-            "Olmo-3-7B-Think": "allenai/Olmo-3-7B-Think",
-            "Olmo-3-32B-Think": "allenai/Olmo-3-32B-Think",
-            "Olmo-3-32B-Instruct": "allenai/Olmo-3.1-32B-Instruct",
-            "Olmo-3.1-32B-Instruct": "allenai/Olmo-3.1-32B-Instruct",
-            "Olmo-3.1-32B-Think": "allenai/Olmo-3.1-32B-Think",
-
-
-            # SeaLion models
-            "aisingapore/Gemma-SEA-LION-v4-27B-IT": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
-            "aisingapore/Qwen-SEA-LION-v4-32B-IT": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
-
-            # Spanish models
-            "/root/.cache/huggingface/ALIA-40b-instruct_Q8_0/ALIA-40b-instruct_bos_Q8_0.gguf": "BSC-LT/ALIA-40b-instruct_Q8_0",
-            "BSC-LT/salamandra-7b-instruct-tools-16k": "BSC-LT/salamandra-7b-instruct-tools-16k",
-            "BSC-LT/salamandra-7b-instruct": "BSC-LT/salamandra-7b-instruct",
-            "BSC-LT/ALIA-40b-instruct": "BSC-LT/ALIA-40b-instruct",
-
-            # Mistral
-            "mistral-small-3-1": "mistralai/mistral-small-3-1",
-
-            # BIELIK.ai
-            "speakleash/Bielik-11B-v3.0-Instruct": "speakleash/Bielik-11B-v3.0-Instruct",
-
-            # EuroLLM
-            # "EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
-            "utter-project/EuroLLM-22B-Instruct-2512": "utter-project/EuroLLM-22B-Instruct-2512",
-
-            # New models
-            "openai/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
-            "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
-            "openai/moonshotai/Kimi-K2.7-Code": "moonshotai/Kimi-K2.7-Code",
-            "moonshotai/Kimi-K2.7-Code": "moonshotai/Kimi-K2.7-Code",
-            "openai/zai-org/GLM-5.2": "zai-org/GLM-5.2",
-            "zai-org/GLM-5.2": "zai-org/GLM-5.2",
-            "openai/google/gemma-4-31B-it": "google/gemma-4-31B-it",
-            "google/gemma-4-31B-it": "google/gemma-4-31B-it",
-
-            # Cohere models
-            "openai/CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
-            "CohereLabs/command-a-plus-05-2026-w4a4:cohere": "cohere/command-a-plus-05-2026-w4a4",
-            "CohereLabs/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
-            "cohere/command-a-plus-05-2026-w4a4": "cohere/command-a-plus-05-2026-w4a4",
-
-            # Routers
+        # 2. Static router and legacy aliases
+        static_aliases = {
             "smart-router": "smart-router",
             "auto_router/complexity_router": "smart-router",
         }
+        if model in static_aliases:
+            return static_aliases[model]
 
-        # Try direct mapping first
-        if model in model_mapping:
-            return model_mapping[model]
+        # 3. Algorithmic normalization
+        clean = model
+        # Strip provider prefixes like 'openai/'
+        if clean.startswith("openai/"):
+            clean = clean[len("openai/") :]
+        # Strip trailing deployment or provider tags like ':featherless-ai', ':cohere', ':40b'
+        if ":" in clean and not clean.startswith("arn:"):
+            clean = clean.split(":")[0]
 
-        # If it's already in the correct format (org/model), return as-is with debug notice
-        verbose_logger.debug(f"ℹ️ Model '{model}' not explicitly mapped in model_mapping, passing through")
-        return model
+        if self.dynamic_model_mapping and clean in self.dynamic_model_mapping:
+            return self.dynamic_model_mapping[clean]
+
+        # If it's already in the format (org/model), return as-is
+        verbose_logger.debug(f"ℹ️ Model '{model}' normalized to '{clean}'")
+        return clean
 
     def _create_event(self, subscription_id: str, model: str, tokens: int, event_type: str) -> dict:
         """Create a single Lago event"""
@@ -209,8 +223,8 @@ class LagoCustomCallback(CustomLogger):
                 verbose_logger.debug("⚠️ No subscription ID found, skipping Lago events")
                 return
 
-            # Extract model and usage
-            model = kwargs.get("model", "unknown")
+            # Extract canonical model and usage
+            model = self._extract_canonical_model_name(kwargs)
             usage = {}
             if (
                 isinstance(response_obj, litellm.ModelResponse)
@@ -280,8 +294,8 @@ class LagoCustomCallback(CustomLogger):
                 verbose_logger.debug("⚠️ No subscription ID found, skipping Lago events")
                 return
 
-            # Extract model and usage
-            model = kwargs.get("model", "unknown")
+            # Extract canonical model and usage
+            model = self._extract_canonical_model_name(kwargs)
             usage = {}
             if (
                 isinstance(response_obj, litellm.ModelResponse)
