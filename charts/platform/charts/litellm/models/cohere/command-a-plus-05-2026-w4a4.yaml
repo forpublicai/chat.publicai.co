@@ -10,5 +10,7 @@ models:
     extra_headers:
       X-HF-Bill-To: current-ai-official
   model_info:
-      access_groups: ["api", "chat"]
+    input_cost_per_token: 0.0000030
+    output_cost_per_token: 0.0000150
+    access_groups: ["api", "chat"]
     
