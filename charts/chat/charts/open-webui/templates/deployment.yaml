@@ -92,6 +92,14 @@ spec:
               key: REDIS_URL
         - name: REDIS_CLUSTER
           value: "{{ .Values.app.redis.cluster }}"
+        - name: DATABASE_POOL_SIZE
+          value: "{{ dig "database" "poolSize" 30 .Values.app }}"
+        - name: DATABASE_POOL_MAX_OVERFLOW
+          value: "{{ dig "database" "maxOverflow" 20 .Values.app }}"
+        - name: DATABASE_POOL_TIMEOUT
+          value: "{{ dig "database" "poolTimeout" 30 .Values.app }}"
+        - name: DATABASE_POOL_RECYCLE
+          value: "{{ dig "database" "poolRecycle" 300 .Values.app }}"
 
         # Vector DB
         - name: VECTOR_DB

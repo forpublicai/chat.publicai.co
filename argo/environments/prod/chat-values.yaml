@@ -58,6 +58,10 @@ open-webui:
             namespaces:
               - platform
             topologyKey: kubernetes.io/hostname
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
   serviceAccount:
     roleArn: "arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role"
   secrets:
