@@ -29,7 +29,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: config-syncer
-        image: "{{ if and (hasKey (index .Values \"open-webui\") \"app\") (hasKey (index .Values \"open-webui\").app \"image\") (index .Values \"open-webui\").app.image.repository }}{{ (index .Values \"open-webui\").app.image.repository }}:{{ (index .Values \"open-webui\").app.image.tag }}{{ else }}ghcr.io/open-webui/open-webui:v0.12.0{{ end }}"
+        image: {{ if and (hasKey (index .Values "open-webui") "app") (hasKey (index .Values "open-webui").app "image") (index .Values "open-webui").app.image.repository }}{{ printf "%s:%s" (index .Values "open-webui").app.image.repository (index .Values "open-webui").app.image.tag | quote }}{{ else }}"ghcr.io/open-webui/open-webui:v0.12.0"{{ end }}
         imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
