@@ -1,0 +1,72 @@
+{{- if (index .Values "open-webui").enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-syncer
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+data:
+  models.yaml: |
+{{ .Files.Get "models.yaml" | indent 4 }}
+  sync.py: |
+{{ .Files.Get "scripts/sync-openwebui-config.py" | indent 4 }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-config-syncer
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "20"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: config-syncer
+        image: "{{ if and (hasKey (index .Values \"open-webui\") \"app\") (hasKey (index .Values \"open-webui\").app \"image\") (index .Values \"open-webui\").app.image.repository }}{{ (index .Values \"open-webui\").app.image.repository }}:{{ (index .Values \"open-webui\").app.image.tag }}{{ else }}ghcr.io/open-webui/open-webui:v0.12.0{{ end }}"
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting OpenWebUI declarative config and models sync..."
+          python3 /config/sync.py
+          echo "OpenWebUI config and models sync finished successfully."
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ (index .Values "open-webui").secrets.name }}
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ (index .Values "open-webui").secrets.name }}
+              key: REDIS_URL
+              optional: true
+        - name: LITELLM_ENDPOINT
+          value: {{ if and (hasKey (index .Values "open-webui") "openai") (index .Values "open-webui").openai.baseUrl }}{{ (index .Values "open-webui").openai.baseUrl | quote }}{{ else }}{{ printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform") | quote }}{{ end }}
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ (index .Values "open-webui").secrets.name }}
+              key: LITELLM_API_KEY
+              optional: true
+        - name: DEFAULT_MODEL
+          value: {{ if and (hasKey (index .Values "open-webui") "app") (hasKey (index .Values "open-webui").app "defaultModels") (index .Values "open-webui").app.defaultModels }}{{ (index .Values "open-webui").app.defaultModels | quote }}{{ else }}"swiss-ai/apertus-v1.5-70b"{{ end }}
+        - name: MODELS_CONFIG_FILE
+          value: "/config/models.yaml"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-config-syncer
+{{- end }}

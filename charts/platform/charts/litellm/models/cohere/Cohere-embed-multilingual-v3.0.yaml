@@ -8,3 +8,4 @@ models:
     aws_region_name: eu-central-1
   model_info:
     input_cost_per_token: 0.0000001
+    access_groups: ["chat-private"]

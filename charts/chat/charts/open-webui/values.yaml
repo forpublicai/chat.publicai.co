@@ -70,7 +70,36 @@ app:
     keyPrefix: "{open-webui}"
   
   # Models configuration
-  defaultModels: "swiss-ai/apertus-70b-instruct"
+  defaultModels: "swiss-ai/apertus-v1.5-70b"
+  taskModel: "swiss-ai/apertus-v1.5-70b"
+  taskModelExternal: "swiss-ai/apertus-v1.5-70b"
+
+  # RAG configuration
+  rag:
+    embeddingEngine: "openai"
+    embeddingModel: "Cohere/Cohere-embed-multilingual-v3.0"
+    openaiApiBaseUrl: ""
+    rerankingEngine: "external"
+    rerankingModel: "Cohere/rerank-v3.5"
+    externalRerankerUrl: ""
+
+# OpenAI Connections (LiteLLM Proxy)
+openai:
+  enabled: true
+  # baseUrl defaults to: http://litellm-service.{{ .Values.global.platformNamespace | default "platform" }}.svc.cluster.local:4000/v1
+  baseUrl: ""
+  apiKey: ""
+  secretRef:
+    name: "" # Defaults to .Values.secrets.name
+    key: "LITELLM_API_KEY"
+  apiConfigs:
+    "0":
+      enable: true
+      tags: []
+      prefix_id: ""
+      model_ids: []
+      connection_type: "local"
+      auth_type: "bearer"
   
   # Authentication configuration
   auth:

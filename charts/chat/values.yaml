@@ -2,6 +2,7 @@
 global:
   # Shared namespace for all services
   namespace: chat
+  platformNamespace: platform
   
   # AWS configuration
   aws:

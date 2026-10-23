@@ -106,6 +106,7 @@ class ModelCodeChecker:
         self.deployment_yaml_path = os.path.join(self.litellm_chart_dir, "templates/deployment.yaml")
         self.configmap_yaml_path = os.path.join(self.litellm_chart_dir, "templates/configmap.yaml")
         self.lago_callback_path = os.path.join(self.litellm_chart_dir, "custom_lago_callback.py")
+        self.lago_catalog_path = os.path.join(self.repo_root, "charts/platform/lago-catalog.yaml")
 
         self.issues: List[ValidationIssue] = []
 
@@ -120,6 +121,14 @@ class ModelCodeChecker:
         self.external_secret_template_data: Dict[str, List[str]] = {}  # k8s_secret_key -> [REF_VARS]
         self.deployment_env_vars: Dict[str, str] = {}  # ENV_NAME -> secretKeyRef.key
         self.lago_model_mapping: Dict[str, str] = {}
+        self.has_dynamic_lago_mapping: bool = False
+
+        # Lago catalog state
+        self.lago_catalog_data: Dict[str, Any] = {}
+        self.lago_metric_models: Set[str] = set()
+        self.lago_plan_pricing: Dict[Tuple[str, str], Dict[str, Any]] = {}  # (model, type) -> pricing dict
+        self.lago_default_pricing: Dict[str, Any] = {}
+        self.verified_pricing_count: int = 0
 
     def _detect_repo_root(self, candidate: Optional[str]) -> str:
         if candidate and os.path.isdir(candidate):
@@ -158,10 +167,11 @@ class ModelCodeChecker:
         if not self._check_required_files():
             return False
 
-        # Step 2: Parse secrets.yaml, deployment.yaml, and custom_lago_callback.py
+        # Step 2: Parse secrets.yaml, deployment.yaml, custom_lago_callback.py, and lago-catalog.yaml
         self._parse_secrets_yaml()
         self._parse_deployment_yaml()
         self._parse_lago_callback()
+        self._parse_lago_catalog()
 
         # Step 3: Parse and validate all model YAML files
         self._parse_and_validate_models(target_env)
@@ -172,8 +182,9 @@ class ModelCodeChecker:
         # Step 5: Validate Fallbacks & Circular dependency checks
         self._validate_fallbacks()
 
-        # Step 6: Validate Lago billing normalization
+        # Step 6: Validate Lago billing normalization & catalog pricing reconciliation
         self._validate_lago_normalization()
+        self._validate_lago_catalog_and_pricing()
 
         # Step 7: Check for orphaned secrets or mappings
         self._check_orphaned_configs()
@@ -192,6 +203,7 @@ class ModelCodeChecker:
             ("Deployment Template", self.deployment_yaml_path, False),
             ("Lago Callback", self.lago_callback_path, False),
             ("ConfigMap Template", self.configmap_yaml_path, False),
+            ("Lago Catalog", self.lago_catalog_path, False),
         ]
 
         all_ok = True
@@ -276,18 +288,26 @@ class ModelCodeChecker:
                         self.deployment_env_vars[env_name] = ""
 
     def _parse_lago_callback(self):
-        """Extracts model_mapping dict from custom_lago_callback.py using AST."""
+        """Extracts model_mapping dict or dynamic mapping configuration from custom_lago_callback.py."""
         if not os.path.isfile(self.lago_callback_path):
             return
 
         try:
             with open(self.lago_callback_path, "r") as f:
-                tree = ast.parse(f.read())
+                content = f.read()
+                tree = ast.parse(content)
 
+            # Check if dynamic config-driven mapping or canonical extraction is implemented
+            self.has_dynamic_lago_mapping = (
+                "_load_model_mapping_from_config" in content
+                or "_extract_canonical_model_name" in content
+            )
+
+            # Parse any static aliases / overrides
             for node in ast.walk(tree):
                 if isinstance(node, ast.Assign):
                     for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == "model_mapping":
+                        if isinstance(target, ast.Name) and target.id in ("model_mapping", "static_aliases"):
                             if isinstance(node.value, ast.Dict):
                                 for k, v in zip(node.value.keys, node.value.values):
                                     if isinstance(k, ast.Constant) and isinstance(v, ast.Constant):
@@ -299,6 +319,69 @@ class ModelCodeChecker:
                 f"Failed to parse custom_lago_callback.py: {e}",
                 self.lago_callback_path,
             )
+
+    def _parse_lago_catalog(self):
+        """Extracts billable metrics, plans, charges, and pricing filters from charts/platform/lago-catalog.yaml."""
+        if not os.path.isfile(self.lago_catalog_path):
+            self.add_issue(
+                "ERROR",
+                "File Structure",
+                f"Lago catalog file not found: {os.path.relpath(self.lago_catalog_path, self.repo_root)}",
+            )
+            return
+
+        try:
+            with open(self.lago_catalog_path, "r") as f:
+                self.lago_catalog_data = yaml.safe_load(f) or {}
+        except Exception as e:
+            self.add_issue(
+                "ERROR",
+                "YAML Syntax",
+                f"Failed to parse lago-catalog.yaml: {e}",
+                self.lago_catalog_path,
+            )
+            return
+
+        # 1. Parse billable metrics (model filter values)
+        for bm in self.lago_catalog_data.get("billable_metrics", []):
+            code = bm.get("code")
+            if code == "public_ai_models":
+                for flt in bm.get("filters", []):
+                    if flt.get("key") == "model":
+                        for val in flt.get("values", []):
+                            self.lago_metric_models.add(str(val))
+
+        # 2. Parse plans and charge pricing filters
+        for plan in self.lago_catalog_data.get("plans", []):
+            for charge in plan.get("charges", []):
+                if charge.get("billable_metric_code") == "public_ai_models":
+                    # Store default package rate
+                    def_props = charge.get("properties", {})
+                    def_amt = float(def_props.get("amount", 0))
+                    def_ps = int(def_props.get("package_size", 1000))
+                    self.lago_default_pricing = {
+                        "amount": def_amt,
+                        "package_size": def_ps,
+                        "cost_per_token": def_amt / def_ps if def_ps else 0,
+                        "cost_per_million": (def_amt / def_ps * 1_000_000) if def_ps else 0,
+                    }
+
+                    # Store per-model, per-type pricing filters
+                    for flt in charge.get("filters", []):
+                        model = flt.get("model")
+                        token_type = flt.get("type")
+                        if not model or not token_type:
+                            continue
+                        amt = float(flt.get("amount", 0))
+                        ps = int(flt.get("package_size", 1000))
+                        cost_per_tok = amt / ps if ps else 0
+                        cost_per_mil = cost_per_tok * 1_000_000
+                        self.lago_plan_pricing[(str(model), str(token_type))] = {
+                            "amount": amt,
+                            "package_size": ps,
+                            "cost_per_token": cost_per_tok,
+                            "cost_per_million": cost_per_mil,
+                        }
 
     def _parse_and_validate_models(self, target_env: Optional[str] = None):
         """Scans and validates all model YAML files under charts/platform/charts/litellm/models/."""
@@ -663,6 +746,7 @@ class ModelCodeChecker:
                 "api_key_env": env_var_name,
                 "environments": environments,
                 "fallbacks": entry.get("fallbacks") or self.model_files_data.get(file_path, {}).get("fallbacks", []),
+                "model_info": model_info,
             }
         )
 
@@ -798,8 +882,35 @@ class ModelCodeChecker:
                         visited.add(nxt)
                         stack.append(nxt)
 
+    def get_normalized_lago_model_name(self, model_entry: Dict[str, Any]) -> Tuple[str, bool]:
+        """
+        Determines the normalized model name that will be sent to Lago by custom_lago_callback.py.
+        With dynamic mapping and canonical model extraction, this automatically resolves to model_name.
+        Returns (normalized_name, is_explicitly_mapped).
+        """
+        param_model = model_entry.get("param_model", "")
+        model_name = model_entry.get("model_name", "")
+
+        # Check explicit legacy static override first
+        if param_model in self.lago_model_mapping:
+            return self.lago_model_mapping[param_model], True
+        if model_name in self.lago_model_mapping:
+            return self.lago_model_mapping[model_name], True
+
+        # Automatic mapping from config / canonical router extraction
+        if self.has_dynamic_lago_mapping and model_name:
+            return model_name, True
+
+        # Fallback: if not mapped in custom_lago_callback.py, LiteLLM passes through the model string
+        return model_name, False
+
     def _validate_lago_normalization(self):
         """Validates that custom_lago_callback.py handles all active models."""
+        if self.has_dynamic_lago_mapping:
+            # Dynamic config-based mapping and canonical model extraction is enabled.
+            # All models defined in models/**/*.yaml are automatically mapped.
+            return
+
         if not self.lago_model_mapping:
             return
 
@@ -838,6 +949,125 @@ class ModelCodeChecker:
                         f"Model mapping for '{param_model}' maps to '{target}', but model_name is '{model_name}'",
                         self.lago_callback_path,
                     )
+
+    def _validate_lago_catalog_and_pricing(self):
+        """
+        Cross-validates LiteLLM models and pricing against charts/platform/lago-catalog.yaml:
+        1. Ensures LiteLLM models are recognized by Lago billable metric filters.
+        2. Ensures Lago plan charges have pricing configured for both input and output.
+        3. Compares LiteLLM model_info cost (per token / per million) against Lago catalog pricing (package rate per 1k tokens).
+        4. Identifies extraneous or orphaned Lago catalog model definitions.
+        """
+        if not self.lago_catalog_data:
+            return
+
+        active_lago_models_seen: Set[str] = set()
+
+        for model in self.active_models:
+            model_name = model["model_name"]
+            param_model = model.get("param_model", "")
+            file_path = model.get("file_path")
+            model_info = model.get("model_info") or {}
+
+            norm_name, is_mapped = self.get_normalized_lago_model_name(model)
+            active_lago_models_seen.add(norm_name)
+
+            # 1. Check Lago Billable Metric filter list
+            if norm_name not in self.lago_metric_models:
+                close = difflib.get_close_matches(norm_name, self.lago_metric_models, n=1)
+                hint = f" Did you mean '{close[0]}'?" if close else ""
+                self.add_issue(
+                    "ERROR",
+                    "Lago Catalog Metric",
+                    f"Model '{norm_name}' (LiteLLM: '{model_name}') is missing from Lago billable metric 'public_ai_models' filter values in lago-catalog.yaml.{hint}",
+                    self.lago_catalog_path,
+                    f"Add '{norm_name}' to billable_metrics[public_ai_models].filters[model].values in lago-catalog.yaml",
+                )
+
+            # 2. Check Lago Plan Charge pricing filter
+            is_embedding = "embed" in model_name.lower() or "rerank" in model_name.lower()
+            expected_types = ["input"] if is_embedding else ["input", "output"]
+
+            for t in expected_types:
+                if (norm_name, t) not in self.lago_plan_pricing:
+                    def_str = f"${self.lago_default_pricing.get('amount')}/{self.lago_default_pricing.get('package_size')} tok" if self.lago_default_pricing else "default package rate"
+                    self.add_issue(
+                        "WARNING",
+                        "Lago Plan Pricing",
+                        f"Model '{norm_name}' (LiteLLM: '{model_name}') is missing '{t}' token pricing in Lago catalog plan charges. It will fall back to {def_str}.",
+                        self.lago_catalog_path,
+                        f"Add filter for model '{norm_name}' with type '{t}' under plan charges in lago-catalog.yaml",
+                    )
+
+            # 3. Check Pricing Match (LiteLLM vs Lago)
+            # Input pricing
+            litellm_in_cost = model_info.get("input_cost_per_token")
+            lago_in = self.lago_plan_pricing.get((norm_name, "input"))
+
+            if litellm_in_cost is not None and lago_in:
+                litellm_val = float(litellm_in_cost)
+                lago_val = lago_in["cost_per_token"]
+                diff = abs(litellm_val - lago_val)
+                rel_diff = diff / max(litellm_val, lago_val) if max(litellm_val, lago_val) > 0 else 0
+                if diff > 1e-9 and rel_diff > 0.001:
+                    litellm_per_mil = litellm_val * 1_000_000
+                    lago_per_mil = lago_in["cost_per_million"]
+                    self.add_issue(
+                        "ERROR",
+                        "Pricing Mismatch",
+                        f"Input pricing mismatch for '{model_name}': LiteLLM model_info defines ${litellm_per_mil:.4f}/1M (${litellm_val:.8f}/tok), but Lago defines ${lago_per_mil:.4f}/1M (${lago_in['amount']} per {lago_in['package_size']} tok).",
+                        file_path,
+                        f"Update {file_path} input_cost_per_token to {lago_val:.8f} (or update lago-catalog.yaml to match)",
+                    )
+                else:
+                    self.verified_pricing_count += 1
+            elif litellm_in_cost is None and lago_in:
+                self.add_issue(
+                    "INFO",
+                    "Missing LiteLLM Pricing",
+                    f"Model '{model_name}' has Lago input pricing (${lago_in['cost_per_million']:.4f}/1M), but 'input_cost_per_token' is not defined in LiteLLM model_info",
+                    file_path,
+                )
+
+            # Output pricing
+            litellm_out_cost = model_info.get("output_cost_per_token")
+            lago_out = self.lago_plan_pricing.get((norm_name, "output"))
+
+            if litellm_out_cost is not None and lago_out:
+                litellm_val = float(litellm_out_cost)
+                lago_val = lago_out["cost_per_token"]
+                diff = abs(litellm_val - lago_val)
+                rel_diff = diff / max(litellm_val, lago_val) if max(litellm_val, lago_val) > 0 else 0
+                if diff > 1e-9 and rel_diff > 0.001:
+                    litellm_per_mil = litellm_val * 1_000_000
+                    lago_per_mil = lago_out["cost_per_million"]
+                    self.add_issue(
+                        "ERROR",
+                        "Pricing Mismatch",
+                        f"Output pricing mismatch for '{model_name}': LiteLLM model_info defines ${litellm_per_mil:.4f}/1M (${litellm_val:.8f}/tok), but Lago defines ${lago_per_mil:.4f}/1M (${lago_out['amount']} per {lago_out['package_size']} tok).",
+                        file_path,
+                        f"Update {file_path} output_cost_per_token to {lago_val:.8f} (or update lago-catalog.yaml to match)",
+                    )
+                else:
+                    self.verified_pricing_count += 1
+            elif litellm_out_cost is None and lago_out and not is_embedding:
+                self.add_issue(
+                    "INFO",
+                    "Missing LiteLLM Pricing",
+                    f"Model '{model_name}' has Lago output pricing (${lago_out['cost_per_million']:.4f}/1M), but 'output_cost_per_token' is not defined in LiteLLM model_info",
+                    file_path,
+                )
+
+        # 4. Check for models defined in Lago catalog that are not active in LiteLLM
+        priced_lago_models = set(m for m, _ in self.lago_plan_pricing.keys())
+        inactive_in_litellm = priced_lago_models - active_lago_models_seen
+        for inactive_model in sorted(inactive_in_litellm):
+            self.add_issue(
+                "INFO",
+                "Inactive Lago Model",
+                f"Model '{inactive_model}' has pricing defined in Lago catalog, but is not currently active in LiteLLM models",
+                self.lago_catalog_path,
+            )
 
     def _check_orphaned_configs(self):
         """Identifies unused secrets to keep the codebase clean."""
@@ -901,6 +1131,12 @@ class ModelCodeChecker:
 
         lines.append(f"Repository Root: {Colors.OKCYAN}{self.repo_root}{Colors.ENDC}")
         lines.append(f"Active Models:   {Colors.BOLD}{total_active_models}{Colors.ENDC} across {total_files} active files")
+        if self.lago_metric_models:
+            lines.append(
+                f"Lago Catalog:    {Colors.BOLD}{len(self.lago_metric_models)}{Colors.ENDC} metric models, "
+                f"{Colors.BOLD}{len(set(m for m, _ in self.lago_plan_pricing.keys()))}{Colors.ENDC} priced models "
+                f"({Colors.OKGREEN}{self.verified_pricing_count} price points matched{Colors.ENDC})"
+            )
         lines.append(
             f"Results:         "
             f"{Colors.FAIL}{len(errors)} Errors{Colors.ENDC}, "
@@ -954,6 +1190,9 @@ class ModelCodeChecker:
             "summary": {
                 "total_active_models": len(self.active_models),
                 "total_model_files": len(self.model_files_data),
+                "total_lago_metric_models": len(self.lago_metric_models),
+                "total_lago_priced_models": len(set(m for m, _ in self.lago_plan_pricing.keys())),
+                "verified_pricing_count": self.verified_pricing_count,
                 "errors_count": len(errors),
                 "warnings_count": len(warnings),
                 "info_count": len(infos),

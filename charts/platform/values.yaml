@@ -248,3 +248,10 @@ modellist:
   secrets:
     name: model-list-secrets
     manualSecretsName: ""
+
+# Lago Billing Catalog syncer (GitOps catalog management via Helm)
+billingCatalog:
+  enabled: true
+  apiUrl: "http://platform-api-svc:3000"
+  customCatalogYaml: ""
+

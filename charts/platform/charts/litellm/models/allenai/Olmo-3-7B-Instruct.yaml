@@ -15,5 +15,4 @@ environments:
 #   model_info:
 #     input_cost_per_token: 0.00000010
 #     output_cost_per_token: 0.00000020
-# fallbacks:
-# - swiss-ai/apertus-v1.5-8b
+#     access_groups: ["api", "chat"]
