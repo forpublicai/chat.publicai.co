@@ -193,6 +193,10 @@ data:
         {{- if .model_info.output_cost_per_token }}
         output_cost_per_token: {{ .model_info.output_cost_per_token }}
         {{- end }}
+        {{- if .model_info.access_groups }}
+        access_groups:
+          {{- toYaml .model_info.access_groups | nindent 10 }}
+        {{- end }}
         {{- end }}
     {{- end }}
     {{- end }}
