@@ -34,7 +34,6 @@ billable_metrics:
           - swiss-ai/apertus-v1.5-8b
           - swiss-ai/apertus-v1.5-8b-thinking
           - utter-project/EuroLLM-22B-Instruct-2512
-          - fake/test-model
       - key: type
         values:
           - input
