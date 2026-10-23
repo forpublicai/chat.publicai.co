@@ -40,6 +40,8 @@ data:
         "cooldown_deployment",
         "new_model_added",
         "outage_alerts",
+        "llm_exceptions",
+        "model_deployment_fallbacks",
       ]
 
 

@@ -6,7 +6,8 @@ global:
 litellm:
   app:
     image:
-      tag: v1.98.0
+      repository: ghcr.io/forpublicai/litellm-v2
+      tag: "pai-v1.104.2-b22"
     replicas: 2
   autoscaling:
     minReplicas: 2
