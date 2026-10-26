@@ -717,25 +717,52 @@ class ModelCodeChecker:
                 file_path,
             )
 
-        # Validate model_info if present
+        # Validate model_info and access_groups
         model_info = entry.get("model_info")
-        if model_info is not None:
-            if not isinstance(model_info, dict):
+        if model_info is None or not isinstance(model_info, dict):
+            self.add_issue(
+                "ERROR",
+                "Schema",
+                f"Model '{model_name}' is missing required dictionary 'model_info'",
+                file_path,
+                suggestion="Add 'model_info:' block with 'access_groups' (e.g. access_groups: [\"api\"])",
+            )
+        else:
+            for cost_key in ["input_cost_per_token", "output_cost_per_token"]:
+                if cost_key in model_info and not isinstance(model_info[cost_key], (int, float)):
+                    self.add_issue(
+                        "ERROR",
+                        "Pricing",
+                        f"Model '{model_name}' model_info '{cost_key}' must be a number",
+                        file_path,
+                    )
+
+            # Validate access_groups
+            access_groups = model_info.get("access_groups")
+            if not access_groups:
                 self.add_issue(
                     "ERROR",
-                    "Schema",
-                    f"Model '{model_name}' 'model_info' must be a dictionary",
+                    "Access Groups",
+                    f"Model '{model_name}' is missing required 'access_groups' in model_info",
                     file_path,
+                    suggestion='Add access_groups under model_info, e.g.: access_groups: ["api", "chat"]',
                 )
-            else:
-                for cost_key in ["input_cost_per_token", "output_cost_per_token"]:
-                    if cost_key in model_info and not isinstance(model_info[cost_key], (int, float)):
-                        self.add_issue(
-                            "ERROR",
-                            "Pricing",
-                            f"Model '{model_name}' model_info '{cost_key}' must be a number",
-                            file_path,
-                        )
+            elif not isinstance(access_groups, list):
+                self.add_issue(
+                    "ERROR",
+                    "Access Groups",
+                    f"Model '{model_name}' 'access_groups' must be a list of strings",
+                    file_path,
+                    suggestion='Format access_groups as a YAML list, e.g.: access_groups: ["api", "chat"]',
+                )
+            elif not all(isinstance(g, str) and g.strip() for g in access_groups):
+                self.add_issue(
+                    "ERROR",
+                    "Access Groups",
+                    f"Model '{model_name}' 'access_groups' items must be non-empty strings",
+                    file_path,
+                    suggestion='Ensure each entry in access_groups is a non-empty string, e.g.: access_groups: ["api", "chat"]',
+                )
 
         # Save active model record
         self.active_models.append(
@@ -1204,6 +1231,7 @@ class ModelCodeChecker:
                     "param_model": m["param_model"],
                     "environments": m["environments"],
                     "api_key_env": m["api_key_env"],
+                    "access_groups": (m.get("model_info") or {}).get("access_groups", []),
                     "file_path": os.path.relpath(m["file_path"], self.repo_root),
                 }
                 for m in self.active_models
