@@ -4,6 +4,7 @@ global:
 
 open-webui:
   app:
+    replicas: 1
     image:
       repository: ghcr.io/open-webui/open-webui
       tag: v0.12.0
@@ -22,6 +23,8 @@ open-webui:
       limits:
         memory: "5Gi"
         cpu: "1000m"
+  autoscaling:
+    enabled: false
   serviceAccount:
     roleArn: "arn:aws:iam::818561370924:role/OpenWebUI-IRSA-Role"
   secrets:
