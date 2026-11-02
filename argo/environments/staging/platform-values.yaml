@@ -39,11 +39,13 @@ lago:
   api:
     extraEnv:
       LAGO_DISABLE_PDF_GENERATION: "true"
+      LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
     livenessProbe:
       initialDelaySeconds: 90
   worker:
     extraEnv:
       LAGO_DISABLE_PDF_GENERATION: "true"
+      LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -60,6 +62,14 @@ lago:
   billingWorker:
     extraEnv:
       LAGO_DISABLE_PDF_GENERATION: "true"
+      LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -105,6 +115,8 @@ lago:
                 - chat
               topologyKey: kubernetes.io/hostname
   paymentWorker:
+    extraEnv:
+      LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
