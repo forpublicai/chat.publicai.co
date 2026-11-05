@@ -4,7 +4,9 @@ metadata:
   name: {{ .Values.app.name }}
   namespace: {{ .Release.Namespace }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.app.replicas }}
+  {{- end }}
   strategy:
     type: {{ .Values.app.strategy.type | default "RollingUpdate" }}
     {{- if eq (.Values.app.strategy.type | default "RollingUpdate") "RollingUpdate" }}

@@ -15,7 +15,7 @@ open-webui:
   # Application overrides
   app:
     webuiUrl: ""
-    replicas: 1
+    replicas: 2
     
     # Storage configuration
     storage:

@@ -62,7 +62,7 @@ lago:
 
     # Disable PDF generation for now
     pdf:
-      enabled: true
+      enabled: false
 
     # Disable ingress (we're using our own)
     ingress:
@@ -111,10 +111,10 @@ lago:
     replicaCount: 1
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "200m"
-      limits:
         memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
         cpu: "1000m"
 
   clock:
