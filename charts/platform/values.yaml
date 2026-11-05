@@ -62,7 +62,7 @@ lago:
 
     # Disable PDF generation for now
     pdf:
-      enabled: true
+      enabled: false
 
     # Disable ingress (we're using our own)
     ingress:

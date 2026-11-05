@@ -28,6 +28,8 @@ lago:
   frontUrl: "https://lago.ai-staging.chat"
   global:
     existingSecret: lago-db-secrets
+    pdf:
+      enabled: false
     s3:
       enabled: true
       bucket: "staging-aichat-bucket"
@@ -38,13 +40,11 @@ lago:
       fromEmail: "support@ai-staging.chat"
   api:
     extraEnv:
-      LAGO_DISABLE_PDF_GENERATION: "true"
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
     livenessProbe:
       initialDelaySeconds: 90
   worker:
     extraEnv:
-      LAGO_DISABLE_PDF_GENERATION: "true"
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
     livenessProbe:
       initialDelaySeconds: 90
@@ -61,7 +61,6 @@ lago:
               topologyKey: kubernetes.io/hostname
   billingWorker:
     extraEnv:
-      LAGO_DISABLE_PDF_GENERATION: "true"
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
       MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000"
     rails:
@@ -137,8 +136,6 @@ lago:
     replicas: 0
   pdfWorker:
     enabled: false
-    extraEnv:
-      LAGO_DISABLE_PDF_GENERATION: "true"
     livenessProbe:
       initialDelaySeconds: 90
   webhookWorker:
