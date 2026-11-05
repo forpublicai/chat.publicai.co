@@ -63,6 +63,9 @@ lago:
     extraEnv:
       LAGO_DISABLE_PDF_GENERATION: "true"
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
+      MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000"
+    rails:
+      sidekiqConcurrency: 5
     resources:
       requests:
         memory: "1Gi"
