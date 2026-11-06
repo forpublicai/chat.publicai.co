@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import json
+import uuid
 import yaml
 import psycopg2
 from psycopg2.extras import Json
@@ -24,7 +25,8 @@ def wait_for_database_and_tables(db_url, timeout=180):
                 cur.execute("""
                     SELECT 
                         to_regclass('public.config') IS NOT NULL AND 
-                        to_regclass('public.model') IS NOT NULL
+                        to_regclass('public.model') IS NOT NULL AND
+                        to_regclass('public.access_grant') IS NOT NULL
                 """)
                 row = cur.fetchone()
                 if row and row[0]:
@@ -116,6 +118,9 @@ def sync_config():
             mid = m["id"]
             name = m["name"]
             base_id = m.get("base_model_id")
+            visibility = "private" if m.get("private") is True else str(m.get("visibility", "public")).lower()
+            if visibility not in ("public", "private"):
+                raise ValueError(f"Invalid visibility '{visibility}' for model '{mid}'. Expected 'public' or 'private'.")
             meta = m.get("meta", {})
             params = m.get("params", {})
             active_model_ids.append(mid)
@@ -131,7 +136,23 @@ def sync_config():
                     is_active = true,
                     updated_at = EXCLUDED.updated_at
             """, (mid, admin_user_id, base_id, name, json.dumps(meta), json.dumps(params), now, now))
-            print(f"  ✓ Upserted model: {mid} ({name})")
+
+            if visibility == "private":
+                cur.execute("""
+                    DELETE FROM access_grant
+                    WHERE resource_type = 'model'
+                      AND resource_id = %s
+                      AND principal_type = 'user'
+                      AND principal_id = '*'
+                """, (mid,))
+            else:
+                cur.execute("""
+                    INSERT INTO access_grant (id, resource_type, resource_id, principal_type, principal_id, permission, created_at)
+                    VALUES (%s, 'model', %s, 'user', '*', 'read', %s)
+                    ON CONFLICT (resource_type, resource_id, principal_type, principal_id, permission) DO NOTHING
+                """, (str(uuid.uuid4()), mid, now))
+
+            print(f"  ✓ Upserted model: {mid} ({name}) [visibility={visibility}]")
 
         # Ensure private RAG models (chat-private) are in DB as is_active = false so they never appear in user dropdowns
         private_rag_models = [
@@ -147,6 +168,13 @@ def sync_config():
                     meta = EXCLUDED.meta,
                     updated_at = EXCLUDED.updated_at
             """, (p_id, admin_user_id, p_name, json.dumps({"hidden": True, "capabilities": None}), now, now))
+            cur.execute("""
+                DELETE FROM access_grant
+                WHERE resource_type = 'model'
+                  AND resource_id = %s
+                  AND principal_type = 'user'
+                  AND principal_id = '*'
+            """, (p_id,))
 
         # Deactivate any legacy/undeclared models so users only see the declared chat models
         if active_model_ids:
