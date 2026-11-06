@@ -172,7 +172,7 @@ def sync_config():
             print("Connecting to Redis to clear cached model listings...")
             r = redis.Redis.from_url(redis_url)
             pattern = "*models*"
-            keys = r.keys(pattern)
+            keys = list(r.scan_iter(match=pattern))
             if keys:
                 r.delete(*keys)
                 print(f"Cleared {len(keys)} model cache keys in Redis.")
