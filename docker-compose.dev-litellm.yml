@@ -1,0 +1,44 @@
+services:
+  litellm-dev:
+    build:
+      # LITELLM_SRC lets you point this at a different clone/fork — see
+      # .env.example. Defaults to a sibling checkout next to this repo.
+      context: ${LITELLM_SRC:-../litellm}
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        WORKDIR /app
+        RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
+        COPY . .
+        RUN pip install --no-cache-dir -e ".[proxy]"
+        EXPOSE 4000
+        CMD ["litellm", "--port", "4000", "--config", "/app/config.yaml", "--reload", "--detailed_debug"]
+    container_name: publicai-litellm-dev
+    working_dir: /app
+    ports:
+      - "4001:4000"
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379
+      LITELLM_LOG: DEBUG
+    depends_on:
+      render_config:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    volumes:
+      # Whole repo, mounted over the build's own copy. Code edits apply on the next reload
+      # without rebuilding the image. Only dependency changes (pyproject.toml)
+      # need a rebuild.
+      - ${LITELLM_SRC:-../litellm}:/app
+      - ./litellm-config.rendered.yaml:/app/config.yaml:ro
+      # Real custom code from Public AI's own chart.
+      - ./charts/platform/charts/litellm/custom_auth.py:/app/custom_auth.py:ro
+      - ./charts/platform/charts/litellm/custom_lago_callback.py:/app/custom_lago_callback.py:ro
+    restart: unless-stopped
+
+  openwebui:
+    environment:
+      OPENAI_API_BASE_URL: http://litellm-dev:4000/v1
+    depends_on:
+      - litellm-dev
