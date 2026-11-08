@@ -27,7 +27,22 @@ billable_metrics:
           - allenai/Olmo-3.1-32B-Instruct
           - allenai/Olmo-3.1-32B-Think
           - dicta-il/DictaLM-3.0-24B-Thinking
+          - mistralai/ministral-14b-2512
+          - mistralai/ministral-3b-2512
+          - mistralai/ministral-8b-2512
+          - mistralai/mistral-large-2512
+          - mistralai/mistral-large-2610
+          - mistralai/mistral-large-3-fallback
+          - mistralai/mistral-large-4-fallback
+          - mistralai/mistral-medium-3-5
+          - mistralai/mistral-small-2603
           - mistralai/mistral-small-3-1
+          - moonshotai/Kimi-K3
+          - Qwen/Qwen3-235B-A22B-Thinking-2507
+          - Qwen/Qwen3.5-122B-A10B
+          - Qwen/Qwen3.5-35B-A3B
+          - Qwen/Qwen3.5-9B
+          - Qwen/Qwen3.8-27B
           - speakleash/Bielik-11B-v3.0-Instruct
           - swiss-ai/apertus-70b-instruct
           - swiss-ai/apertus-8b-instruct
@@ -36,6 +51,8 @@ billable_metrics:
           - swiss-ai/apertus-v1.5-8b
           - swiss-ai/apertus-v1.5-8b-thinking
           - utter-project/EuroLLM-22B-Instruct-2512
+          - zai-org/GLM-5.3
+          - zai-org/GLM-5.3-Flash
       - key: type
         values:
           - input
@@ -320,5 +337,209 @@ plans:
           - model: cohere/command-a-plus-05-2026-w4a4
             type: output
             amount: "0.01500"
+            package_size: 1000
+            free_units: 0
+
+          # Qwen3 235B A22B Thinking 2507
+          - model: Qwen/Qwen3-235B-A22B-Thinking-2507
+            type: input
+            amount: "0.00030"
+            package_size: 1000
+            free_units: 0
+          - model: Qwen/Qwen3-235B-A22B-Thinking-2507
+            type: output
+            amount: "0.00300"
+            package_size: 1000
+            free_units: 0
+
+          # Qwen3.5 122B A10B
+          - model: Qwen/Qwen3.5-122B-A10B
+            type: input
+            amount: "0.00040"
+            package_size: 1000
+            free_units: 0
+          - model: Qwen/Qwen3.5-122B-A10B
+            type: output
+            amount: "0.00320"
+            package_size: 1000
+            free_units: 0
+
+          # Qwen3.5 35B A3B
+          - model: Qwen/Qwen3.5-35B-A3B
+            type: input
+            amount: "0.00025"
+            package_size: 1000
+            free_units: 0
+          - model: Qwen/Qwen3.5-35B-A3B
+            type: output
+            amount: "0.00200"
+            package_size: 1000
+            free_units: 0
+
+          # Qwen3.5 9B
+          - model: Qwen/Qwen3.5-9B
+            type: input
+            amount: "0.00017"
+            package_size: 1000
+            free_units: 0
+          - model: Qwen/Qwen3.5-9B
+            type: output
+            amount: "0.00025"
+            package_size: 1000
+            free_units: 0
+
+          # Qwen3.8 27B
+          - model: Qwen/Qwen3.8-27B
+            type: input
+            amount: "0.00047"
+            package_size: 1000
+            free_units: 0
+          - model: Qwen/Qwen3.8-27B
+            type: output
+            amount: "0.00319"
+            package_size: 1000
+            free_units: 0
+
+          # Kimi K3
+          - model: moonshotai/Kimi-K3
+            type: input
+            amount: "0.00300"
+            package_size: 1000
+            free_units: 0
+          - model: moonshotai/Kimi-K3
+            type: output
+            amount: "0.01500"
+            package_size: 1000
+            free_units: 0
+
+          # GLM 5.3
+          - model: zai-org/GLM-5.3
+            type: input
+            amount: "0.00140"
+            package_size: 1000
+            free_units: 0
+          - model: zai-org/GLM-5.3
+            type: output
+            amount: "0.00440"
+            package_size: 1000
+            free_units: 0
+
+          # GLM 5.3 Flash
+          - model: zai-org/GLM-5.3-Flash
+            type: input
+            amount: "0.00015"
+            package_size: 1000
+            free_units: 0
+          - model: zai-org/GLM-5.3-Flash
+            type: output
+            amount: "0.00050"
+            package_size: 1000
+            free_units: 0
+
+          # Ministral 3B 2512
+          - model: mistralai/ministral-3b-2512
+            type: input
+            amount: "0.00010"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/ministral-3b-2512
+            type: output
+            amount: "0.00010"
+            package_size: 1000
+            free_units: 0
+
+          # Ministral 8B 2512
+          - model: mistralai/ministral-8b-2512
+            type: input
+            amount: "0.00015"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/ministral-8b-2512
+            type: output
+            amount: "0.00015"
+            package_size: 1000
+            free_units: 0
+
+          # Ministral 14B 2512
+          - model: mistralai/ministral-14b-2512
+            type: input
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/ministral-14b-2512
+            type: output
+            amount: "0.00020"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Small 2603
+          - model: mistralai/mistral-small-2603
+            type: input
+            amount: "0.00015"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-small-2603
+            type: output
+            amount: "0.00060"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Medium 3.5
+          - model: mistralai/mistral-medium-3-5
+            type: input
+            amount: "0.00150"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-medium-3-5
+            type: output
+            amount: "0.00750"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Large 2512
+          - model: mistralai/mistral-large-2512
+            type: input
+            amount: "0.00050"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-large-2512
+            type: output
+            amount: "0.00150"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Large 3 Fallback
+          - model: mistralai/mistral-large-3-fallback
+            type: input
+            amount: "0.00050"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-large-3-fallback
+            type: output
+            amount: "0.00150"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Large 2610
+          - model: mistralai/mistral-large-2610
+            type: input
+            amount: "0.00070"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-large-2610
+            type: output
+            amount: "0.00210"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Large 4 Fallback
+          - model: mistralai/mistral-large-4-fallback
+            type: input
+            amount: "0.00070"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-large-4-fallback
+            type: output
+            amount: "0.00210"
             package_size: 1000
             free_units: 0

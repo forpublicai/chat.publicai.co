@@ -1,0 +1,40 @@
+environments:
+  - staging
+  - prod
+models:
+- model_name: Qwen/Qwen3.8-27B
+  litellm_params:
+    model: huggingface/Qwen/Qwen3.8-27B:novita
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    drop_params: true 
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000047
+    output_cost_per_token: 0.00000319
+    access_groups: ["alpha-private"]
+- model_name: Qwen/Qwen3.8-27B
+  litellm_params:
+    model: huggingface/Qwen/Qwen3.8-27B:deepinfra
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    drop_params: true 
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000047
+    output_cost_per_token: 0.00000319
+    access_groups: ["alpha-private"]
+- model_name: Qwen/Qwen3.8-27B
+  litellm_params:
+    model: huggingface/Qwen/Qwen3.8-27B:ovhcloud
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    drop_params: true 
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000047
+    output_cost_per_token: 0.00000319
+    access_groups: ["alpha-private"]

@@ -1,0 +1,48 @@
+environments:
+  - staging
+  - prod
+models:
+- model_name: zai-org/GLM-5.3
+  litellm_params:
+    model: huggingface/zai-org/GLM-5.3:novita
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000140
+    output_cost_per_token: 0.00000440
+    access_groups: ["alpha-public","alpha-private"]
+#- model_name: zai-org/GLM-5.3
+#  litellm_params:
+#    model: huggingface/zai-org/GLM-5.3:together
+#    api_base: https://router.huggingface.co/v1
+#    api_key: os.environ/HF_TOKEN
+#    extra_headers:
+#      X-HF-Bill-To: "current-ai-official"
+#  model_info:
+#    input_cost_per_token: 0.00000140
+#    output_cost_per_token: 0.00000440
+#    access_groups: ["alpha-public","alpha-private"]
+#- model_name: zai-org/GLM-5.3
+#  litellm_params:
+#    model: huggingface/zai-org/GLM-5.3:zai-org
+#    api_base: https://router.huggingface.co/v1
+#    api_key: os.environ/HF_TOKEN
+#    extra_headers:
+#      X-HF-Bill-To: "current-ai-official"
+#  model_info:
+#    input_cost_per_token: 0.00000140
+#    output_cost_per_token: 0.00000440
+#    access_groups: ["alpha-public","alpha-private"]
+- model_name: zai-org/GLM-5.3
+  litellm_params:
+    model: huggingface/zai-org/GLM-5.3:deepinfra
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000140
+    output_cost_per_token: 0.00000440
+    access_groups: ["alpha-public","alpha-private"]

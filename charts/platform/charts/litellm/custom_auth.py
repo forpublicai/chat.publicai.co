@@ -169,3 +169,120 @@ async def user_api_key_auth(
         print(f"❌ Custom auth error: {str(e)}")
         # On any error, fall back to normal auth
         return api_key
+
+
+def _install_passthrough_access_group_checks() -> None:
+    """
+    Hook LiteLLM's RouteChecks so auth=true pass-through endpoints:
+    1. Are always enforced for non-admin virtual keys even when custom_auth is enabled in auto mode.
+    2. Support `model_info.access_groups` / `access_groups` in pass-through endpoint YAML configs
+       (matching `models/**/*.yaml`) in addition to `metadata.allowed_passthrough_routes`.
+    """
+    try:
+        from litellm.proxy._types import LitellmUserRoles
+        from litellm.proxy.auth.route_checks import RouteChecks
+    except Exception as e:
+        print(f"⚠️ Could not import RouteChecks for passthrough access groups: {e}")
+        return
+
+    if getattr(RouteChecks, "_publicai_passthrough_hooked", False):
+        return
+
+    _orig_check_passthrough = RouteChecks.check_passthrough_route_access
+    _orig_should_call_route = RouteChecks.should_call_route
+
+    def _get_endpoint_access_groups(route: str) -> list:
+        try:
+            from litellm.proxy.proxy_server import general_settings
+        except Exception:
+            return []
+
+        endpoints = general_settings.get("pass_through_endpoints") or []
+        for ep in endpoints:
+            if not isinstance(ep, dict):
+                continue
+            ep_path = ep.get("path")
+            if not isinstance(ep_path, str):
+                continue
+            normalized_ep = ep_path.rstrip("/") or "/"
+            normalized_route = route.rstrip("/") or "/"
+            matched = (
+                normalized_route == normalized_ep
+                or RouteChecks._route_matches_allowed_route(
+                    route=route, allowed_route=normalized_ep
+                )
+            )
+            if matched:
+                groups = ep.get("access_groups")
+                if not groups and isinstance(ep.get("model_info"), dict):
+                    groups = ep["model_info"].get("access_groups")
+                if isinstance(groups, list):
+                    return [str(g) for g in groups]
+        return []
+
+    @staticmethod
+    def _patched_check_passthrough_route_access(
+        route: str, user_api_key_dict: UserAPIKeyAuth
+    ) -> bool:
+        # 1. Native LiteLLM check (metadata.allowed_passthrough_routes on key or team)
+        if _orig_check_passthrough(route=route, user_api_key_dict=user_api_key_dict):
+            return True
+
+        # 2. Check access_groups / model_info.access_groups configured on the pass-through endpoint
+        endpoint_groups = _get_endpoint_access_groups(route=route)
+        if not endpoint_groups:
+            return False
+
+        key_models = list(getattr(user_api_key_dict, "models", None) or [])
+        team_models = list(getattr(user_api_key_dict, "team_models", None) or [])
+        has_team = getattr(user_api_key_dict, "team_id", None) is not None
+
+        if "all-team-models" in key_models or (not key_models and has_team):
+            effective_models = team_models
+        else:
+            effective_models = key_models
+
+        if "all-proxy-models" in effective_models or "*" in effective_models:
+            key_allowed = True
+        else:
+            key_allowed = bool(set(endpoint_groups) & set(effective_models))
+
+        if not key_allowed:
+            return False
+
+        if has_team and team_models and effective_models is key_models:
+            if "all-proxy-models" not in team_models and "*" not in team_models:
+                if not (set(endpoint_groups) & set(team_models)):
+                    return False
+
+        return True
+
+    @staticmethod
+    def _patched_should_call_route(
+        route: str,
+        valid_token: UserAPIKeyAuth,
+        request: Optional[Request] = None,
+    ):
+        result = _orig_should_call_route(
+            route=route, valid_token=valid_token, request=request
+        )
+        if getattr(valid_token, "user_role", None) != LitellmUserRoles.PROXY_ADMIN:
+            method = RouteChecks.get_request_method(request=request)
+            if RouteChecks.is_auth_enforced_pass_through_route(
+                route=route, method=method
+            ):
+                RouteChecks._require_auth_pass_through_access(
+                    route=route,
+                    valid_token=valid_token,
+                    jwt_team_allowed_routes=RouteChecks._jwt_team_allowed_routes(
+                        valid_token=valid_token
+                    ),
+                )
+        return result
+
+    RouteChecks.check_passthrough_route_access = _patched_check_passthrough_route_access
+    RouteChecks.should_call_route = _patched_should_call_route
+    RouteChecks._publicai_passthrough_hooked = True
+
+
+_install_passthrough_access_group_checks()

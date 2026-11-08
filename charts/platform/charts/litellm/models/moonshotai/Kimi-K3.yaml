@@ -1,0 +1,37 @@
+environments:
+  - staging
+  - prod
+models:
+#- model_name: moonshotai/Kimi-K3
+#  litellm_params:
+#    model: huggingface/moonshotai/Kimi-K3:together
+#    api_base: https://router.huggingface.co/v1
+#    api_key: os.environ/HF_TOKEN
+#    extra_headers:
+#      X-HF-Bill-To: "current-ai-official"
+#  model_info:
+#    input_cost_per_token: 0.00000300
+#    output_cost_per_token: 0.00001500
+#    access_groups: ["alpha-private"]
+- model_name: moonshotai/Kimi-K3
+  litellm_params:
+    model: huggingface/moonshotai/Kimi-K3:deepinfra
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000300
+    output_cost_per_token: 0.00001500
+    access_groups: ["alpha-private"]
+- model_name: moonshotai/Kimi-K3
+  litellm_params:
+    model: huggingface/moonshotai/Kimi-K3:baseten
+    api_base: https://router.huggingface.co/v1
+    api_key: os.environ/HF_TOKEN
+    extra_headers:
+      X-HF-Bill-To: "current-ai-official"
+  model_info:
+    input_cost_per_token: 0.00000300
+    output_cost_per_token: 0.00001500
+    access_groups: ["alpha-private"]
