@@ -1,0 +1,11 @@
+environments:
+  - staging
+  - prod
+models:
+- model_name: mistralai/ministral-14b-2512
+  litellm_params:
+    model: openai/ministral-14b-latest
+  model_info:
+    input_cost_per_token: 0.00000020
+    output_cost_per_token: 0.00000020
+    access_groups: ["alpha-public", "alpha-private"]

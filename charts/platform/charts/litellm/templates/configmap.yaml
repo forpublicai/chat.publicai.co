@@ -43,6 +43,29 @@ data:
         "llm_exceptions",
         "model_deployment_fallbacks",
       ]
+      {{- $allPassthrough := list }}
+      {{- range $path, $_ := .Files.Glob "passthrough/**/*.yaml" }}
+        {{- $data := $.Files.Get $path | fromYaml }}
+        {{- $env := "" }}
+        {{- if and $.Values.global (hasKey $.Values.global "environment") }}
+          {{- $env = $.Values.global.environment }}
+        {{- end }}
+        {{- $shouldRender := true }}
+        {{- if and $data $data.environments }}
+          {{- if not (has $env $data.environments) }}
+            {{- $shouldRender = false }}
+          {{- end }}
+        {{- end }}
+        {{- if and $shouldRender $data $data.pass_through_endpoints }}
+          {{- range $data.pass_through_endpoints }}
+            {{- $allPassthrough = append $allPassthrough . }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if $allPassthrough }}
+      pass_through_endpoints:
+        {{- toYaml $allPassthrough | nindent 8 }}
+      {{- end }}
 
 
     {{- $allFallbacks := list }}
