@@ -19,12 +19,15 @@ spec:
     metadata:
       labels:
         app: {{ .Values.app.name }}
-      {{- if .Values.prometheus.enabled }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/custom-auth: {{ include (print $.Template.BasePath "/custom-auth-configmap.yaml") . | sha256sum }}
+        checksum/custom-lago-callback: {{ include (print $.Template.BasePath "/custom-lago-callback-configmap.yaml") . | sha256sum }}
+        {{- if .Values.prometheus.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "4000"
         prometheus.io/path: "/metrics"
-      {{- end }}
+        {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.app.terminationGracePeriodSeconds | default 30 }}
       {{- if .Values.serviceAccount.enabled }}
