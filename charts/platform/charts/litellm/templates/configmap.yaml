@@ -69,6 +69,7 @@ data:
 
 
     {{- $allFallbacks := list }}
+    {{- $allAliases := dict }}
     {{- range $path, $_ := .Files.Glob "models/**/*.yaml" }}
       {{- $data := $.Files.Get $path | fromYaml }}
       {{- $env := "" }}
@@ -81,9 +82,34 @@ data:
           {{- $shouldRender = false }}
         {{- end }}
       {{- end }}
-      {{- if and $shouldRender $data $data.fallbacks }}
-        {{- $modelName := (index $data.models 0).model_name }}
-        {{- $allFallbacks = append $allFallbacks (dict $modelName $data.fallbacks) }}
+      {{- if and $shouldRender $data }}
+        {{- $modelName := "" }}
+        {{- if and $data.models (gt (len $data.models) 0) }}
+          {{- $modelName = (index $data.models 0).model_name }}
+        {{- end }}
+        {{- if and $data.fallbacks $modelName }}
+          {{- $allFallbacks = append $allFallbacks (dict $modelName $data.fallbacks) }}
+        {{- end }}
+        {{- if and $data.aliases $modelName }}
+          {{- range $alias := $data.aliases }}
+            {{- $_ := set $allAliases $alias $modelName }}
+          {{- end }}
+        {{- end }}
+        {{- if $data.model_group_alias }}
+          {{- range $alias, $target := $data.model_group_alias }}
+            {{- $_ := set $allAliases $alias $target }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.router (hasKey .Values.router "modelGroupAlias") }}
+      {{- range $alias, $target := .Values.router.modelGroupAlias }}
+        {{- $_ := set $allAliases $alias $target }}
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.router (hasKey .Values.router "model_group_alias") }}
+      {{- range $alias, $target := .Values.router.model_group_alias }}
+        {{- $_ := set $allAliases $alias $target }}
       {{- end }}
     {{- end }}
 
@@ -97,6 +123,12 @@ data:
         - {{ $modelName }}:
             {{- toYaml $targets | nindent 12 }}
           {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if $allAliases }}
+      model_group_alias:
+        {{- range $alias, $target := $allAliases }}
+        {{ $alias | quote }}: {{ $target | quote }}
         {{- end }}
       {{- end }}
 

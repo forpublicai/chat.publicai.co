@@ -74,6 +74,12 @@ class LagoCustomCallback(CustomLogger):
                             mapping[str(litellm_model)] = str(model_name)
                         if model_name:
                             mapping[str(model_name)] = str(model_name)
+                    router_settings = data.get("router_settings") or {}
+                    model_group_alias = router_settings.get("model_group_alias") or {}
+                    if isinstance(model_group_alias, dict):
+                        for alias_name, target_model in model_group_alias.items():
+                            if alias_name and target_model:
+                                mapping[str(alias_name)] = str(target_model)
                     print(f"✅ Loaded {len(mapping)} model mappings from {path}")
                     return mapping
                 except Exception as e:
