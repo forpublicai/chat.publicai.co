@@ -10,7 +10,7 @@ models:
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
-    access_groups: ["api", "chat"]
+    access_groups: ["api", "chat","alpha-public", "alpha-private"]
 - model_name: swiss-ai/apertus-v1.5-70b
   litellm_params:
     model: openai/swiss-ai/Apertus-v1.5-70B
@@ -19,7 +19,7 @@ models:
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
-    access_groups: ["api", "chat"]
+    access_groups: ["api", "chat","alpha-public", "alpha-private"]
 - model_name: swiss-ai/apertus-v1.5-70b
   litellm_params:
     model: openai/inference-apertus-v15-70b
@@ -28,4 +28,4 @@ models:
   model_info:
     input_cost_per_token: 0.00000082
     output_cost_per_token: 0.00000292
-    access_groups: ["api", "chat"]
+    access_groups: ["api", "chat","alpha-public", "alpha-private"]
