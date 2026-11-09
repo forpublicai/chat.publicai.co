@@ -84,16 +84,21 @@ def parse_active_endpoints(models_dir, verbose=True):
                         if not model_name:
                             continue
                         litellm_params = m.get('litellm_params', {})
-                        # Only test endpoints that have api_base
-                        if 'api_base' in litellm_params:
-                            api_base = litellm_params['api_base']
+                        litellm_model = litellm_params.get('model', '')
+                        api_base = litellm_params.get('api_base')
+                        if not api_base and isinstance(litellm_model, str) and litellm_model.startswith('mistral/'):
+                            api_base = 'https://api.mistral.ai/v1'
+                        # Only test endpoints that have api_base (explicit or inferred from provider)
+                        if api_base:
+                            effective_params = dict(litellm_params)
+                            effective_params['api_base'] = api_base
                             supplier_name = extract_supplier_name(api_base)
                             target_name = f"{model_name}:{supplier_name}"
                             models.append({
                                 'model_name': model_name,
                                 'supplier_name': supplier_name,
                                 'target_name': target_name,
-                                'litellm_params': litellm_params
+                                'litellm_params': effective_params
                             })
                 except Exception as e:
                     if verbose:
@@ -125,12 +130,14 @@ def measure_ttft(model_name, litellm_model, api_base, api_key_str, ssl_verify=Tr
     """Call the LLM endpoint and measure Time to First Token (TTFT) with a 30s timeout."""
     api_key = resolve_api_key(api_key_str)
     
-    # Strip provider prefixes if present (openai/, huggingface/)
+    # Strip provider prefixes if present (openai/, huggingface/, mistral/)
     backend_model = litellm_model
     if backend_model.startswith("openai/"):
         backend_model = backend_model[len("openai/"):]
     if backend_model.startswith("huggingface/"):
         backend_model = backend_model[len("huggingface/"):]
+    if backend_model.startswith("mistral/"):
+        backend_model = backend_model[len("mistral/"):]
         
     url = api_base.rstrip('/') + '/chat/completions'
     
