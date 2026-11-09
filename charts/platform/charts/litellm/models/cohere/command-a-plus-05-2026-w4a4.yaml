@@ -13,5 +13,5 @@ models:
   model_info:
     input_cost_per_token: 0.0000030
     output_cost_per_token: 0.0000150
-    access_groups: ["api", "chat"]
+    access_groups: ["alpha-private"]
     

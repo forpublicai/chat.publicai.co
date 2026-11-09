@@ -15,4 +15,4 @@ environments:
 #   model_info:
 #     input_cost_per_token: 0.00000010
 #     output_cost_per_token: 0.00000020
-#     access_groups: ["api", "chat"]
+#     access_groups: ["api", "chat","alpha-public", "alpha-private"]
