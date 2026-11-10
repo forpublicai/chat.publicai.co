@@ -65,7 +65,7 @@ triggeredHealthChecks:
 holmes:
   enabled: true
   registry: ghcr.io
-  image: forpublicai/holmes:pai-0.46.0-b2
+  image: forpublicai/holmes:pai-0.46.0-b3
   imagePullPolicy: IfNotPresent
   replicas: 1
   resources:
@@ -78,7 +78,7 @@ holmes:
   operator:
     enabled: true
     registry: ghcr.io
-    image: forpublicai/holmes-operator:pai-0.46.0-b2
+    image: forpublicai/holmes-operator:pai-0.46.0-b3
     imagePullPolicy: IfNotPresent
     holmesApiTimeout: 300
     maxHistoryItems: 10
