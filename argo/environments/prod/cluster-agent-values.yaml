@@ -15,7 +15,7 @@ secrets:
   postgresHostProperty: "POSTGRES_HOST"
 
 database:
-  enabled: true
+  enabled: false
   port: 5432
   user: "holmes_readonly"
   openwebuiDbName: "openwebui"
@@ -23,39 +23,25 @@ database:
   sslmode: "require"
 
 scheduledHealthChecks:
-  enabled: false
+  enabled: true
   destinations:
     - type: slack
       config:
         channel: "#cluster-alerts"
   items:
-    - name: periodic-cluster-resource-audit
+    - name: periodic-cluster-health-audit
       namespace: cluster-agent
-      schedule: "0 * * * *"
-      timeout: 180
+      schedule: "0 */3 * * *"
+      timeout: 240
       mode: alert
       query: |
-        Perform an extensive cluster and node health audit:
-        1. Nodes: Thoroughly check all cluster nodes. Are any nodes NotReady, experiencing MemoryPressure, DiskPressure, PIDPressure, or NetworkUnavailable conditions? Are there high node CPU/memory allocations or unevicted failed pods?
-        2. Pods: Check all namespaces for pods in CrashLoopBackOff, ImagePullBackOff, Pending, Error, or terminating/stuck states. Verify recent container restart counts and check for OOMKilled events.
-        3. Workloads & Infrastructure: Verify Deployment and DaemonSet replicas (desired vs available), check for failing CronJobs or stuck Jobs. Check for PersistentVolumeClaims in Pending/Lost states.
-        4. Events: Check Kubernetes warning events across all namespaces in the last 1 hour.
-        Do NOT query Loki logs for this check. If any issues are found, provide a detailed root cause diagnosis and recommended remediation steps.
-
-    - name: periodic-loki-log-anomaly-scan
-      namespace: cluster-agent
-      schedule: "0 * * * *"
-      timeout: 180
-      mode: alert
-      query: |
-        Scan the last 1 hour of logs across everything Loki tracks:
-        1. Search Loki for elevated error rates, warning spikes, tracebacks, unhandled exceptions, and critical log messages across all services.
-        2. Pay special attention to core application workloads (chat, openwebui, litellm, lago, ingress-alb) and platform components.
-        3. Correlate any errors found with recent container restarts or HTTP 5xx responses.
-        If any errors or anomalies are found, investigate the underlying cause, identify the affected service/pod, and provide a clear root cause summary with recommended action steps.
+        Perform a comprehensive cluster health and log audit across all namespaces:
+        1. Run a fast cluster health scan using the kubernetes fast tool to inspect nodes, workloads, and pods.
+        2. Run a fast log analysis using the kubernetes logs fast tool to detect error patterns, warning spikes, and crash loops.
+        Correlate any degraded workloads or pod restarts with log errors, diagnose root causes, and provide an executive summary with recommended remediation steps.
 
 triggeredHealthChecks:
-  enabled: false
+  enabled: true
   autoDiscoverNamespaces: true
   namePrefix: "verify-rollouts"
 
@@ -78,6 +64,9 @@ triggeredHealthChecks:
 
 holmes:
   enabled: true
+  registry: ghcr.io
+  image: forpublicai/holmes:pai-0.46.0-b2
+  imagePullPolicy: IfNotPresent
   replicas: 1
   resources:
     requests:
@@ -88,6 +77,9 @@ holmes:
 
   operator:
     enabled: true
+    registry: ghcr.io
+    image: forpublicai/holmes-operator:pai-0.46.0-b2
+    imagePullPolicy: IfNotPresent
     holmesApiTimeout: 300
     maxHistoryItems: 10
     resources:
@@ -155,38 +147,36 @@ holmes:
           key: POSTGRES_LITELLM_URL
           optional: true
 
-  # Toolsets configuration
+  disableAllByDefault: true
+
+  # Toolsets configuration - only kubernetes/fast and kubernetes/logs_fast are active
   toolsets:
+    kubernetes/fast:
+      enabled: true
+
+    kubernetes/logs_fast:
+      enabled: true
+
+    kubernetes/core:
+      enabled: false
+
+    bash:
+      enabled: false
+
+    kubernetes/live-metrics:
+      enabled: false
+
+    kubernetes/logs:
+      enabled: false
+
     prometheus/metrics:
       enabled: false
 
-        # Optional:
-        #additional_headers:
-        #    Authorization: "Basic <base_64_encoded_string>"
-
     argocd/core:
-      enabled: true
+      enabled: false
 
     grafana/loki:
-      enabled: true
-      config:
-        api_url: "http://grafana.monitoring.svc.cluster.local"
-        api_key: "{{ env.GRAFANA_API_KEY }}"
-        grafana_datasource_uid: "loki"
-
-    postgres_openwebui:
-      type: database
-      config:
-        connection_url: "{{ env.POSTGRES_OPENWEBUI_URL }}"
-      llm_instructions: "PostgreSQL database for OpenWebUI"
-
-    postgres_litellm:
-      type: database
-      config:
-        connection_url: "{{ env.POSTGRES_LITELLM_URL }}"
-      llm_instructions: "PostgreSQL database for LiteLLM"
-
-
+      enabled: false
 
   modelList:
     gpt-4o-mini:
@@ -197,10 +187,4 @@ holmes:
   # AWS MCP Addon
   mcpAddons:
     aws:
-      enabled: true
-      serviceAccount:
-        create: true
-        annotations:
-          eks.amazonaws.com/role-arn: "arn:aws:iam::901779868336:role/HolmesMCPRole"
-      config:
-        region: "eu-central-2"
+      enabled: false
