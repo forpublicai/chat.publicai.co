@@ -81,7 +81,7 @@ lago:
       sidekiqConcurrency: 5
     resources:
       requests:
-        memory: "1Gi"
+        memory: "3Gi"
         cpu: "500m"
       limits:
         memory: "4Gi"
