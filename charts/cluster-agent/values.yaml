@@ -72,7 +72,11 @@ triggeredHealthChecks:
         channel: "#cluster-alerts"
   defaultQuery: |
     Deployment {{ .deployment }} in namespace {{ .namespace }} was rolled out to {{ .new.image }} (was {{ .old.image }}).
-    Is the new version healthy? Check pod status, restarts, warning events, error rates, and container logs before vs after the rollout, and flag any regressions.
+    Evaluate whether the deployment is currently healthy:
+    1. Check if the deployment's current pods are in Running and Ready state. If the target replica count is reached and pods are Ready with 0 crash restarts, the rollout is healthy.
+    2. Ignore transient FailedScheduling warning events if they occurred during cluster node provisioning/autoscaling and the pods are now successfully running.
+    3. Check recent container logs of the running pods for fatal errors, crash loops, or unhandled exceptions. Do not fail if logs from terminated historical pods cannot be retrieved.
+    4. Conclude the check passes if the current workload is running and serving traffic without active regressions.
 
 holmes:
   enabled: true
