@@ -35,6 +35,7 @@ billable_metrics:
           - mistralai/mistral-large-3-fallback
           - mistralai/mistral-large-4-fallback
           - mistralai/mistral-medium-3-5
+          - mistralai/mistral-medium-3-5-fallback
           - mistralai/mistral-small-2603
           - mistralai/mistral-small-3-1
           - moonshotai/Kimi-K3
@@ -491,6 +492,18 @@ plans:
             package_size: 1000
             free_units: 0
           - model: mistralai/mistral-medium-3-5
+            type: output
+            amount: "0.00750"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Medium 3.5 Fallback
+          - model: mistralai/mistral-medium-3-5-fallback
+            type: input
+            amount: "0.00150"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-medium-3-5-fallback
             type: output
             amount: "0.00750"
             package_size: 1000
