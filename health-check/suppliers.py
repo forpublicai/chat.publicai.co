@@ -87,7 +87,10 @@ def parse_active_endpoints(models_dir, verbose=True):
                         litellm_model = litellm_params.get('model', '')
                         api_base = litellm_params.get('api_base')
                         if not api_base and isinstance(litellm_model, str) and litellm_model.startswith('mistral/'):
-                            api_base = 'https://api.mistral.ai/v1'
+                            mistral_base = os.environ.get('MISTRAL_API_BASE', 'https://api.eu.mistral.ai')
+                            if not mistral_base.endswith('/v1'):
+                                mistral_base = mistral_base.rstrip('/') + '/v1'
+                            api_base = mistral_base
                         # Only test endpoints that have api_base (explicit or inferred from provider)
                         if api_base:
                             effective_params = dict(litellm_params)

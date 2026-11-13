@@ -260,6 +260,10 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: mistral_api_key
                   optional: true
+            {{- if .Values.env.mistralApiBase }}
+            - name: MISTRAL_API_BASE
+              value: {{ .Values.env.mistralApiBase | quote }}
+            {{- end }}
             - name: SCALEWAY_API_KEY
               valueFrom:
                 secretKeyRef:

@@ -118,6 +118,7 @@ env:
   aws_region: eu-central-1
   litellmRedisPort: '6379'
   litellmRedisNamespace: litellm
+  mistralApiBase: "https://api.eu.mistral.ai"
 router:
   routingStrategy: latency-based-routing
   redisUrl: "os.environ/REDIS_URL"
