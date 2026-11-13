@@ -403,16 +403,3 @@ models:
       \nYou are a part of the Public AI Inference Utility, a movement organized around\
       \ the idea that AI should be public infrastructure.\n\nYou area a part of the\
       \ Singapore community.\n"
-- id: cohere/command-a-plus-05-2026-w4a4
-  name: Command A+
-  base_model_id: null
-  visibility: private
-  meta:
-    description: Command A+ is a high-performance multilingual model developed by
-      CohereLabs.
-    capabilities: *id001
-    builtinTools: *id002
-    filterIds: []
-  params:
-    system: Today's date is {{CURRENT_DATE}}. You are Command A+, developed by CohereLabs
-      and hosted by the Public AI Inference Utility.

@@ -15,7 +15,6 @@ billable_metrics:
           - BSC-LT/ALIA-40b-instruct
           - Cohere/Cohere-embed-multilingual-v3.0
           - Cohere/rerank-v3.5
-          - cohere/command-a-plus-05-2026-w4a4
           - aisingapore/Gemma-SEA-LION-v4-27B-IT
           - aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B
           - aisingapore/Qwen-SEA-LION-v4-32B-IT
@@ -326,18 +325,6 @@ plans:
           - model: Cohere/rerank-v3.5
             type: input
             amount: "0.00100"
-            package_size: 1000
-            free_units: 0
-
-          # Cohere Command A+ (AWS Bedrock approximate Command flagship pricing: $3.00/1M input, $15.00/1M output)
-          - model: cohere/command-a-plus-05-2026-w4a4
-            type: input
-            amount: "0.00300"
-            package_size: 1000
-            free_units: 0
-          - model: cohere/command-a-plus-05-2026-w4a4
-            type: output
-            amount: "0.01500"
             package_size: 1000
             free_units: 0
 
