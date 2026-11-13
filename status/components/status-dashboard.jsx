@@ -260,11 +260,9 @@ export function StatusDashboard({ initialData }) {
         {/* Status Category Tabs */}
         <Tabs defaultValue="publicai-router" className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <TabsList className="grid w-full sm:w-auto grid-cols-2 md:grid-cols-4 h-auto p-1 gap-1">
+            <TabsList className="grid w-full sm:w-auto grid-cols-1 sm:grid-cols-3 h-auto p-1 gap-1">
               <TabsTrigger value="publicai-router" className="py-2 text-xs sm:text-sm font-medium">
-                Public AI API              </TabsTrigger>
-              <TabsTrigger value="current-ai-router" className="py-2 text-xs sm:text-sm font-medium">
-                Current AI Router
+                Public AI API
               </TabsTrigger>
               <TabsTrigger value="supply-model" className="py-2 text-xs sm:text-sm font-medium">
                 Suppliers by Model
@@ -279,13 +277,6 @@ export function StatusDashboard({ initialData }) {
             {renderUptimeList(
               data.publicai_router,
               "No publicai_router_model_test_success metrics found in Prometheus."
-            )}
-          </TabsContent>
-
-          <TabsContent value="current-ai-router">
-            {renderUptimeList(
-              data.currentai_router,
-              "No currentai_router_model_test_success metrics found in Prometheus."
             )}
           </TabsContent>
 
