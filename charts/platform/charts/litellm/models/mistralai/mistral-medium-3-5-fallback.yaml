@@ -16,6 +16,10 @@ models:
     model: openai/mistralai/mistral-medium-3-5
     api_base: https://openrouter.ai/api/v1
     api_key: os.environ/OPENROUTER_API_KEY
+    extra_body:
+      provider:
+        only: ["mistral/eu"]
+        allow_fallbacks: false
   model_info:
     input_cost_per_token: 0.00000150
     output_cost_per_token: 0.00000750
