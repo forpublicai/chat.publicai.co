@@ -168,15 +168,14 @@ data:
       {{- else }}
       require_auth_for_metrics_endpoint: false
       {{- end }}
-      {{- if or .Values.lago.enabled .Values.prometheus.enabled }}
       callbacks:
+        - "custom_error_messages.error_message_callback"
         {{- if .Values.lago.enabled }}
         - "custom_lago_callback.lago_callback"
         {{- end }}
         {{- if .Values.prometheus.enabled }}
         - "prometheus"
         {{- end }}
-      {{- end }}
       extra_spend_tag_headers:
         - "x-openwebui-user-id"
         - "x-openwebui-user-email"
