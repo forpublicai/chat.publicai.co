@@ -23,6 +23,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/custom-auth: {{ include (print $.Template.BasePath "/custom-auth-configmap.yaml") . | sha256sum }}
         checksum/custom-lago-callback: {{ include (print $.Template.BasePath "/custom-lago-callback-configmap.yaml") . | sha256sum }}
+        checksum/custom-error-messages: {{ include (print $.Template.BasePath "/custom-error-messages-configmap.yaml") . | sha256sum }}
         {{- if .Values.prometheus.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "4000"
@@ -286,6 +287,10 @@ spec:
               mountPath: /app/custom_lago_callback.py
               subPath: custom_lago_callback.py
               readOnly: true
+            - name: custom-error-messages-volume
+              mountPath: /app/custom_error_messages.py
+              subPath: custom_error_messages.py
+              readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
           {{- if and .Values.app.preStop .Values.app.preStop.enabled }}
@@ -336,3 +341,6 @@ spec:
         - name: custom-lago-callback-volume
           configMap:
             name: {{ .Values.app.name }}-custom-lago-callback
+        - name: custom-error-messages-volume
+          configMap:
+            name: {{ .Values.app.name }}-custom-error-messages
