@@ -31,7 +31,7 @@ scheduledHealthChecks:
   items:
     - name: periodic-cluster-health-audit
       namespace: cluster-agent
-      schedule: "0 */3 * * *"
+      schedule: "*/15 * * * *"
       timeout: 240
       mode: alert
       query: |
