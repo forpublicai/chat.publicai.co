@@ -13,6 +13,7 @@ ingresses:
       alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.certificateArn }}"
       alb.ingress.kubernetes.io/group.name: public-group
+      alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=86400
     targetService:
       name: openwebui-service
       port: 8080
