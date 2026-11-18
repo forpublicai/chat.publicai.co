@@ -95,7 +95,7 @@ app:
     enableOauthGroupManagement: "false"
     openidProviderUrl: ""
     oauthScopes: "openid email profile"
-    oauthUsernameClaim: "cognito:username"
+    oauthUsernameClaim: "name"
     oauthEmailClaim: "email"
     oauthPictureClaim: "picture"
     enableForwardUserInfoHeaders: "true"

@@ -197,7 +197,7 @@ spec:
         - name: OAUTH_SCOPES
           value: "{{ .Values.app.auth.oauthScopes | default "openid email profile" }}"
         - name: OAUTH_USERNAME_CLAIM
-          value: "{{ .Values.app.auth.oauthUsernameClaim | default "cognito:username" }}"
+          value: "{{ .Values.app.auth.oauthUsernameClaim | default "name" }}"
         - name: OAUTH_EMAIL_CLAIM
           value: "{{ .Values.app.auth.oauthEmailClaim | default "email" }}"
         - name: OAUTH_PICTURE_CLAIM
