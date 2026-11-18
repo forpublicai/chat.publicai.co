@@ -170,6 +170,7 @@ data:
       {{- end }}
       callbacks:
         - "custom_error_messages.error_message_callback"
+        - "spain_reasoning.spain_reasoning_callback"
         {{- if .Values.lago.enabled }}
         - "custom_lago_callback.lago_callback"
         {{- end }}

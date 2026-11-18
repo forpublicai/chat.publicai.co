@@ -23,6 +23,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/custom-auth: {{ include (print $.Template.BasePath "/custom-auth-configmap.yaml") . | sha256sum }}
         checksum/custom-lago-callback: {{ include (print $.Template.BasePath "/custom-lago-callback-configmap.yaml") . | sha256sum }}
+        checksum/spain-reasoning: {{ include (print $.Template.BasePath "/spain-reasoning-configmap.yaml") . | sha256sum }}
         checksum/custom-error-messages: {{ include (print $.Template.BasePath "/custom-error-messages-configmap.yaml") . | sha256sum }}
         {{- if .Values.prometheus.enabled }}
         prometheus.io/scrape: "true"
@@ -291,6 +292,10 @@ spec:
               mountPath: /app/custom_error_messages.py
               subPath: custom_error_messages.py
               readOnly: true
+            - name: spain-reasoning-volume
+              mountPath: /app/spain_reasoning.py
+              subPath: spain_reasoning.py
+              readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
           {{- if and .Values.app.preStop .Values.app.preStop.enabled }}
@@ -344,3 +349,6 @@ spec:
         - name: custom-error-messages-volume
           configMap:
             name: {{ .Values.app.name }}-custom-error-messages
+        - name: spain-reasoning-volume
+          configMap:
+            name: {{ .Values.app.name }}-spain-reasoning

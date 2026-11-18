@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-spain-reasoning
+  namespace: {{ .Values.global.namespace | default "web-services" }}
+data:
+  spain_reasoning.py: |
+{{ .Files.Get "spain_reasoning.py" | indent 4 }}
