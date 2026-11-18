@@ -4,6 +4,8 @@ metadata:
   name: {{ .Values.app.name }}-config
   namespace: {{ .Values.global.namespace | default "web-services" }}
 data:
+  spain_reasoning.py: |
+{{ .Files.Get "spain_reasoning.py" | indent 4 }}
   config.yaml: |
     general_settings:
       database_url: "os.environ/DATABASE_URL"
