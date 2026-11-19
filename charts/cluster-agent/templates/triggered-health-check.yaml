@@ -57,6 +57,12 @@ spec:
     {{- $root.Values.triggeredHealthChecks.defaultQuery | nindent 4 }}
   timeout: {{ $root.Values.triggeredHealthChecks.defaultTimeout | default 120 }}
   mode: {{ $root.Values.triggeredHealthChecks.defaultMode | default "monitor" }}
+  {{- if hasKey $root.Values.triggeredHealthChecks "disableAllByDefault" }}
+  disableAllByDefault: {{ $root.Values.triggeredHealthChecks.disableAllByDefault }}
+  {{- end }}
+  {{- if $root.Values.triggeredHealthChecks.toolsets }}
+  toolsets: {{- toYaml $root.Values.triggeredHealthChecks.toolsets | nindent 4 }}
+  {{- end }}
   {{- if and (eq ($root.Values.triggeredHealthChecks.defaultMode | default "monitor") "alert") $root.Values.triggeredHealthChecks.destinations }}
   destinations: {{- toYaml $root.Values.triggeredHealthChecks.destinations | nindent 4 }}
   {{- end }}

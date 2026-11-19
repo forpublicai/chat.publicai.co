@@ -4,8 +4,7 @@ environments:
 models:
 - model_name: mistralai/mistral-small-2603
   litellm_params:
-    model: openai/mistral-small-2603
-    api_base: https://api.mistral.ai/v1
+    model: mistral/mistral-small-2603
     api_key: os.environ/MISTRAL_API_KEY
   model_info:
     input_cost_per_token: 0.00000015

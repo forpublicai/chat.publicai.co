@@ -18,6 +18,16 @@ spec:
     {{- $item.query | nindent 4 }}
   timeout: {{ $item.timeout | default 180 }}
   mode: {{ $item.mode | default "alert" }}
+  {{- if hasKey $item "disableAllByDefault" }}
+  disableAllByDefault: {{ $item.disableAllByDefault }}
+  {{- else if hasKey $root.Values.scheduledHealthChecks "disableAllByDefault" }}
+  disableAllByDefault: {{ $root.Values.scheduledHealthChecks.disableAllByDefault }}
+  {{- end }}
+  {{- if $item.toolsets }}
+  toolsets: {{- toYaml $item.toolsets | nindent 4 }}
+  {{- else if $root.Values.scheduledHealthChecks.toolsets }}
+  toolsets: {{- toYaml $root.Values.scheduledHealthChecks.toolsets | nindent 4 }}
+  {{- end }}
   {{- if $item.destinations }}
   destinations: {{- toYaml $item.destinations | nindent 4 }}
   {{- else if and (eq ($item.mode | default "alert") "alert") $root.Values.scheduledHealthChecks.destinations }}

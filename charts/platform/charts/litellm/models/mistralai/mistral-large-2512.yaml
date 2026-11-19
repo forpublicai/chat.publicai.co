@@ -4,8 +4,7 @@ environments:
 models:
 - model_name: mistralai/mistral-large-2512
   litellm_params:
-    model: openai/mistral-large-2512
-    api_base: https://api.mistral.ai/v1
+    model: mistral/mistral-large-2512
     api_key: os.environ/MISTRAL_API_KEY
   model_info:
     input_cost_per_token: 0.00000050
@@ -16,6 +15,10 @@ models:
     model: openai/mistralai/mistral-large-2512
     api_base: https://openrouter.ai/api/v1
     api_key: os.environ/OPENROUTER_API_KEY
+    extra_body:
+      provider:
+        only: ["mistral/eu"]
+        allow_fallbacks: false
   model_info:
     input_cost_per_token: 0.00000050
     output_cost_per_token: 0.00000150

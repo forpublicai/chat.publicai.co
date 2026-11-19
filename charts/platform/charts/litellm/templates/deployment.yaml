@@ -19,12 +19,16 @@ spec:
     metadata:
       labels:
         app: {{ .Values.app.name }}
-      {{- if .Values.prometheus.enabled }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/custom-auth: {{ include (print $.Template.BasePath "/custom-auth-configmap.yaml") . | sha256sum }}
+        checksum/custom-lago-callback: {{ include (print $.Template.BasePath "/custom-lago-callback-configmap.yaml") . | sha256sum }}
+        checksum/custom-error-messages: {{ include (print $.Template.BasePath "/custom-error-messages-configmap.yaml") . | sha256sum }}
+        {{- if .Values.prometheus.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "4000"
         prometheus.io/path: "/metrics"
-      {{- end }}
+        {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.app.terminationGracePeriodSeconds | default 30 }}
       {{- if .Values.serviceAccount.enabled }}
@@ -257,6 +261,10 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: mistral_api_key
                   optional: true
+            {{- if .Values.env.mistralApiBase }}
+            - name: MISTRAL_API_BASE
+              value: {{ .Values.env.mistralApiBase | quote }}
+            {{- end }}
             - name: SCALEWAY_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -278,6 +286,10 @@ spec:
             - name: custom-lago-callback-volume
               mountPath: /app/custom_lago_callback.py
               subPath: custom_lago_callback.py
+              readOnly: true
+            - name: custom-error-messages-volume
+              mountPath: /app/custom_error_messages.py
+              subPath: custom_error_messages.py
               readOnly: true
           ports:
             - containerPort: {{ .Values.app.port }}
@@ -329,3 +341,6 @@ spec:
         - name: custom-lago-callback-volume
           configMap:
             name: {{ .Values.app.name }}-custom-lago-callback
+        - name: custom-error-messages-volume
+          configMap:
+            name: {{ .Values.app.name }}-custom-error-messages

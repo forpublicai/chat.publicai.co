@@ -15,7 +15,6 @@ billable_metrics:
           - BSC-LT/ALIA-40b-instruct
           - Cohere/Cohere-embed-multilingual-v3.0
           - Cohere/rerank-v3.5
-          - cohere/command-a-plus-05-2026-w4a4
           - aisingapore/Gemma-SEA-LION-v4-27B-IT
           - aisingapore/Nemotron-SEA-LION-v4.8-120B-A12B
           - aisingapore/Qwen-SEA-LION-v4-32B-IT
@@ -35,6 +34,7 @@ billable_metrics:
           - mistralai/mistral-large-3-fallback
           - mistralai/mistral-large-4-fallback
           - mistralai/mistral-medium-3-5
+          - mistralai/mistral-medium-3-5-fallback
           - mistralai/mistral-small-2603
           - mistralai/mistral-small-3-1
           - moonshotai/Kimi-K3
@@ -328,18 +328,6 @@ plans:
             package_size: 1000
             free_units: 0
 
-          # Cohere Command A+ (AWS Bedrock approximate Command flagship pricing: $3.00/1M input, $15.00/1M output)
-          - model: cohere/command-a-plus-05-2026-w4a4
-            type: input
-            amount: "0.00300"
-            package_size: 1000
-            free_units: 0
-          - model: cohere/command-a-plus-05-2026-w4a4
-            type: output
-            amount: "0.01500"
-            package_size: 1000
-            free_units: 0
-
           # Qwen3 235B A22B Thinking 2507
           - model: Qwen/Qwen3-235B-A22B-Thinking-2507
             type: input
@@ -491,6 +479,18 @@ plans:
             package_size: 1000
             free_units: 0
           - model: mistralai/mistral-medium-3-5
+            type: output
+            amount: "0.00750"
+            package_size: 1000
+            free_units: 0
+
+          # Mistral Medium 3.5 Fallback
+          - model: mistralai/mistral-medium-3-5-fallback
+            type: input
+            amount: "0.00150"
+            package_size: 1000
+            free_units: 0
+          - model: mistralai/mistral-medium-3-5-fallback
             type: output
             amount: "0.00750"
             package_size: 1000
