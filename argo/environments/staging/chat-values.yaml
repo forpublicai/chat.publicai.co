@@ -12,6 +12,7 @@ open-webui:
     auth:
       signoutRedirectUrl: "https://chat.ai-staging.chat/auth"
       oauthUsernameClaim: "name"
+      oauthUpdateNameOnLogin: "true"
     storage:
       s3:
         bucketName: "staging-aichat-bucket"

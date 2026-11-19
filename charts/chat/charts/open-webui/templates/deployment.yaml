@@ -152,6 +152,8 @@ spec:
           value: "{{ .Values.app.auth.enableOauthPersistentConfig }}"
         - name: OAUTH_UPDATE_PICTURE_ON_LOGIN
           value: "{{ .Values.app.auth.oauthUpdatePictureOnLogin }}"
+        - name: OAUTH_UPDATE_NAME_ON_LOGIN
+          value: "{{ .Values.app.auth.oauthUpdateNameOnLogin | default "false" }}"
         - name: OAUTH_MERGE_ACCOUNTS_BY_EMAIL
           value: "{{ .Values.app.auth.oauthMergeAccountsByEmail }}"
         - name: ENABLE_OAUTH_ROLE_MANAGEMENT

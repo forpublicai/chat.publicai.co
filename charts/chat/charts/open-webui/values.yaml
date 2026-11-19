@@ -90,6 +90,7 @@ app:
     enableOauthSignup: "true"
     enableOauthPersistentConfig: "false"
     oauthUpdatePictureOnLogin: "true"
+    oauthUpdateNameOnLogin: "true"
     oauthMergeAccountsByEmail: "true"
     enableOauthRoleManagement: "false"
     enableOauthGroupManagement: "false"
