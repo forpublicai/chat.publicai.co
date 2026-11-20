@@ -1,0 +1,23 @@
+name: LiteLLM glue tests
+
+on:
+  pull_request:
+    paths:
+      - "charts/platform/charts/litellm/custom_auth.py"
+      - "charts/platform/charts/litellm/custom_lago_callback.py"
+      - "tests/litellm_glue/**"
+      - "conftest.py"
+      - ".github/workflows/test-litellm-glue.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install -r tests/litellm_glue/requirements-test.txt
+      - name: Run billing/auth glue tests
+        run: pytest tests/litellm_glue -v
