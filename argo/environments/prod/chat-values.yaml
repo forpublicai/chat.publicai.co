@@ -63,7 +63,7 @@ open-webui:
     minReplicas: 2
     maxReplicas: 5
   serviceAccount:
-    roleArn: "arn:aws:iam::901779868336:role/OpenWebUI-IRSA-Role"
+    roleArn: "arn:aws:iam::901779868336:role/prod-OpenWebUI-IRSA-Role"
   secrets:
     name: chat-secrets
     manualSecretsName: "prod/publicai/open-webui/manual-secrets"
