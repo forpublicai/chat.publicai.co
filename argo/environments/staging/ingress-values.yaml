@@ -18,7 +18,7 @@ ingresses:
       name: openwebui-service
       port: 8080
 
-  - enabled: true
+  - enabled: false
     name: model-list-public-ingress
     namespace: platform
     ingressClassName: alb
