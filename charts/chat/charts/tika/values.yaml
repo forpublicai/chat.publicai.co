@@ -8,7 +8,7 @@ tika:
   replicas: 1
   image:
     repository: apache/tika
-    tag: latest-full
+    tag: "4.2.0-full"
   port: 9998
   
   service:
