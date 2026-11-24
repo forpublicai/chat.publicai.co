@@ -47,6 +47,8 @@ def sync_config():
     litellm_endpoint = os.environ.get("LITELLM_ENDPOINT", "http://litellm-service.platform.svc.cluster.local:4000/v1")
     litellm_api_key = os.environ.get("LITELLM_API_KEY")
     default_model = os.environ.get("DEFAULT_MODEL", "swiss-ai/apertus-v1.5-70b")
+    tika_server_version = str(os.environ.get("TIKA_SERVER_VERSION", "4"))
+    reranker_url = os.environ.get("RAG_EXTERNAL_RERANKER_URL") or f"{litellm_endpoint.rstrip('/')}/rerank"
     config_file = os.environ.get("MODELS_CONFIG_FILE", "/config/models.yaml")
 
     conn = wait_for_database_and_tables(db_url)
@@ -69,11 +71,12 @@ def sync_config():
             }
         },
         "rag.openai.api_base_url": litellm_endpoint,
-        "rag.external_reranker_url": litellm_endpoint,
+        "rag.external_reranker_url": reranker_url,
         "rag.embedding_engine": "openai",
         "rag.embedding_model": "Cohere/Cohere-embed-multilingual-v3.0",
         "rag.reranking_engine": "external",
         "rag.reranking_model": "Cohere/rerank-v3.5",
+        "rag.tika_server_version": tika_server_version,
         "ui.default_models": default_model,
         "ui.default_pinned_models": default_model,
         "task.model.default": default_model,
