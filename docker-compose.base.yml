@@ -1,0 +1,117 @@
+volumes:
+  openwebui-data:
+  postgres-data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: publicai-postgres
+    environment:
+      POSTGRES_DB: openwebui
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d openwebui"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Renders Public AI's real LiteLLM chart into litellm-config.rendered.yaml before
+  # litellm starts. To pick up a chart edit, force-recreate render_config + litellm.
+  render_config:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        RUN apt-get update && apt-get install -y curl ca-certificates && \
+            DESIRED_VERSION=v3.16.3 bash -c "$(curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3)" && \
+            rm -rf /var/lib/apt/lists/*
+        RUN pip install --no-cache-dir pyyaml
+    working_dir: /repo
+    volumes:
+      - .:/repo
+    command: ["python3", "scripts/render_litellm_config.py"]
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    container_name: publicai-redis
+    restart: unless-stopped
+
+  litellm:
+    image: ghcr.io/berriai/litellm-database:v1.98.0
+    container_name: publicai-litellm
+    command: ["--port", "4000", "--config", "/app/config.yaml"]
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      render_config:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    volumes:
+      - ./litellm-config.rendered.yaml:/app/config.yaml:ro
+      # Real custom code from Public AI's own chart — not agnostic LiteLLM.
+      # Edit either file and restart this service to pick up changes.
+      - ./charts/platform/charts/litellm/custom_auth.py:/app/custom_auth.py:ro
+      - ./charts/platform/charts/litellm/custom_lago_callback.py:/app/custom_lago_callback.py:ro
+    working_dir: /app
+    restart: unless-stopped
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.11.3
+    container_name: publicai-openwebui
+    ports:
+      - "3000:8080"
+    environment:
+      OPENAI_API_BASE_URL: http://litellm:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      ENABLE_OLLAMA_API: "false"
+      ENABLE_FORWARD_USER_INFO_HEADERS: "true"
+      WEBUI_SECRET_KEY: local-dev-secret
+      ENABLE_VERSION_UPDATE_CHECK: "false"
+      # Keeps env vars authoritative instead of letting OpenWebUI persist them to
+      # its database after first run, where later env var changes stop applying.
+      ENABLE_PERSISTENT_CONFIG: "false"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
+    volumes:
+      - openwebui-data:/app/backend/data
+    depends_on:
+      litellm:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Seeds a ready-to-use admin account + sample users/chats so a fresh stack
+  # doesn't need the signup wizard. Idempotent by email; re-run anytime with
+  # `docker compose -f docker-compose.base.yml run --rm seed_db --reset`.
+  seed_db:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        RUN pip install --no-cache-dir psycopg2-binary bcrypt
+    working_dir: /repo
+    volumes:
+      - ./scripts/seed_db.py:/repo/scripts/seed_db.py:ro
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
+    entrypoint: ["python3", "scripts/seed_db.py"]
+    depends_on:
+      openwebui:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: "no"
