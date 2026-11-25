@@ -60,6 +60,8 @@ spec:
               optional: true
         - name: DEFAULT_MODEL
           value: {{ if and (hasKey (index .Values "open-webui") "app") (hasKey (index .Values "open-webui").app "defaultModels") (index .Values "open-webui").app.defaultModels }}{{ (index .Values "open-webui").app.defaultModels | quote }}{{ else }}"swiss-ai/apertus-v1.5-70b"{{ end }}
+        - name: TIKA_SERVER_VERSION
+          value: {{ if and (hasKey (index .Values "open-webui") "app") (hasKey (index .Values "open-webui").app "contentExtraction") (index .Values "open-webui").app.contentExtraction.tikaServerVersion }}{{ (index .Values "open-webui").app.contentExtraction.tikaServerVersion | quote }}{{ else }}"4"{{ end }}
         - name: MODELS_CONFIG_FILE
           value: "/config/models.yaml"
         volumeMounts:

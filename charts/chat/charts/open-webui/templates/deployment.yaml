@@ -248,6 +248,8 @@ spec:
           value: "{{ .Values.app.contentExtraction.engine }}"
         - name: TIKA_SERVER_URL
           value: "{{ .Values.app.contentExtraction.tikaServerUrl }}"
+        - name: TIKA_SERVER_VERSION
+          value: "{{ .Values.app.contentExtraction.tikaServerVersion | default "4" }}"
 
         # Telemetry
         {{- if .Values.app.otel }}
@@ -310,7 +312,7 @@ spec:
         - name: RAG_RERANKING_MODEL
           value: {{ .Values.app.rag.rerankingModel | default "Cohere/rerank-v3.5" | quote }}
         - name: RAG_EXTERNAL_RERANKER_URL
-          value: {{ .Values.app.rag.externalRerankerUrl | default (.Values.openai.baseUrl | default (printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform"))) | quote }}
+          value: {{ .Values.app.rag.externalRerankerUrl | default (printf "%s/rerank" ((.Values.openai.baseUrl | default (printf "http://litellm-service.%s.svc.cluster.local:4000/v1" (.Values.global.platformNamespace | default "platform"))) | trimSuffix "/")) | quote }}
         {{- end }}
 
         # Task Models

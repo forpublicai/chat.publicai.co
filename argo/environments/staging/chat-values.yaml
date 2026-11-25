@@ -28,7 +28,7 @@ open-webui:
   autoscaling:
     enabled: false
   serviceAccount:
-    roleArn: "arn:aws:iam::818561370924:role/OpenWebUI-IRSA-Role"
+    roleArn: "arn:aws:iam::818561370924:role/staging-OpenWebUI-IRSA-Role"
   secrets:
     name: chat-secrets
     manualSecretsName: "staging/aichat/open-webui/manual-secrets"

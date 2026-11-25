@@ -243,8 +243,7 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.prometheus.arn,
           aws_secretsmanager_secret.rds_password.arn,
           aws_secretsmanager_secret.argocd_notifications.arn,
-          "arn:aws:secretsmanager:${local.region}:${data.aws_caller_identity.current.account_id}:secret:${local.env}/${local.org}/*",
-          "arn:aws:secretsmanager:${local.region}:${data.aws_caller_identity.current.account_id}:secret:*cluster-agent*"
+          "arn:aws:secretsmanager:${local.region}:${data.aws_caller_identity.current.account_id}:secret:${local.env}/${local.org}/*"
         ]
       }
     ]

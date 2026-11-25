@@ -241,8 +241,7 @@ resource "aws_iam_policy" "external_secrets_secretsmanager_access" {
           aws_secretsmanager_secret.argocd_notifications.arn,
           data.aws_secretsmanager_secret.agent_service.arn,
           data.aws_secretsmanager_secret.router_aipotluck_org.arn,
-          data.aws_secretsmanager_secret.pangolin.arn,
-          "arn:aws:secretsmanager:${local.region}:${data.aws_caller_identity.current.account_id}:secret:*cluster-agent*"
+          data.aws_secretsmanager_secret.pangolin.arn
         ]
       }
     ]

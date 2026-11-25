@@ -116,6 +116,7 @@ app:
   contentExtraction:
     engine: "tika"
     tikaServerUrl: "http://tika-service:9998"
+    tikaServerVersion: "4"
   
   # Resource configuration - minimal defaults
   resources:
