@@ -8,6 +8,13 @@ litellm:
     image:
       repository: ghcr.io/forpublicai/litellm-v2
       tag: "pai-v1.104.2-b23"
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "300m"
+      limits:
+        memory: "3Gi"
+        cpu: "1000m"
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
