@@ -30,6 +30,17 @@ loki:
   storage_config:
     filesystem:
       directory: /var/loki/chunks
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+memberlist:
+  service:
+    publishNotReadyAddresses: true
 singleBinary:
   replicas: 1
   resources:
@@ -44,11 +55,11 @@ singleBinary:
     storageClass: ebs-sc
     size: 30Gi
 chunksCache:
-  allocatedMemory: 1024
-  allocatedCPU: 200m
+  allocatedMemory: 256
+  allocatedCPU: 50m
 resultsCache:
-  allocatedMemory: 512
-  allocatedCPU: 100m
+  allocatedMemory: 128
+  allocatedCPU: 50m
 gateway:
   enabled: false
 lokiCanary:

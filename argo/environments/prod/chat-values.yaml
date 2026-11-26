@@ -40,11 +40,11 @@ open-webui:
         failureThreshold: 5
     resources:
       requests:
-        memory: "4Gi"
-        cpu: "500m"
+        memory: "3Gi"
+        cpu: "250m"
       limits:
-        memory: "10Gi"
-        cpu: "2000m"
+        memory: "6Gi"
+        cpu: "1500m"
     affinity:
       enabled: true
       hard: false
@@ -69,3 +69,14 @@ open-webui:
     manualSecretsName: "prod/publicai/open-webui/manual-secrets"
     managedSecretsName: "prod/publicai/open-webui/managed-secrets"
     dbPasswordArn: "prod/publicai/database/password"
+
+tika:
+  tika:
+    javaOpts: "-Xms256m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
