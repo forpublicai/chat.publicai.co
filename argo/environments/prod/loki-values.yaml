@@ -47,6 +47,10 @@ resultsCache:
   allocatedCPU: 100m
 gateway:
   enabled: false
+lokiCanary:
+  enabled: false
+test:
+  enabled: false
 write:
   replicas: 0
 read:
