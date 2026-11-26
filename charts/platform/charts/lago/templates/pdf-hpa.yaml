@@ -1,4 +1,4 @@
-{{- if .Values.pdf.autoscaling.enabled }}
+{{- if and .Values.global.pdf.enabled .Values.pdf.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 

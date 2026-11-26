@@ -28,10 +28,23 @@ loki:
       directory: /var/loki/chunks
 singleBinary:
   replicas: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
   persistence:
     enabled: true
     storageClass: ebs-sc
     size: 10Gi
+chunksCache:
+  allocatedMemory: 1024
+  allocatedCPU: 200m
+resultsCache:
+  allocatedMemory: 512
+  allocatedCPU: 100m
 gateway:
   enabled: false
 write:

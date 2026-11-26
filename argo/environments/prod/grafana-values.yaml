@@ -12,6 +12,13 @@ persistence:
 
 deploymentStrategy:
   type: Recreate
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 envValueFrom:
   PROMETHEUS_ADMIN_USER:
     secretKeyRef:

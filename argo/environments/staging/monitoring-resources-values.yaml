@@ -8,6 +8,9 @@ argocdNotifications:
   enabled: true
   secretsName: "staging/aichat/argocd/notifications"
 
+argocdControllerService:
+  enabled: true
+
 healthcheck:
   enabled: true
 

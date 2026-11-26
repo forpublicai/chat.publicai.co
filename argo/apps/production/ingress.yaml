@@ -27,7 +27,7 @@ spec:
         - ../../argo/environments/prod/ingress-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: web-services
+    namespace: platform
   syncPolicy:
     automated:
       prune: true
