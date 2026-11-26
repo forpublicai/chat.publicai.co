@@ -44,10 +44,10 @@ singleBinary:
     storageClass: ebs-sc
     size: 30Gi
 chunksCache:
-  allocatedMemory: 1024
-  allocatedCPU: 200m
-resultsCache:
   allocatedMemory: 512
+  allocatedCPU: 100m
+resultsCache:
+  allocatedMemory: 256
   allocatedCPU: 100m
 gateway:
   enabled: false
