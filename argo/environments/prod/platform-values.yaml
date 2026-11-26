@@ -9,6 +9,16 @@ litellm:
       repository: ghcr.io/forpublicai/litellm-v2
       tag: "pai-v1.104.2-b23"
     replicas: 2
+    livenessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+      timeoutSeconds: 10
+      failureThreshold: 5
+    readinessProbe:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 3
     resources:
       requests:
         memory: "3584Mi"

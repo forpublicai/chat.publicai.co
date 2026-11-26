@@ -1,12 +1,16 @@
-# Staging overrides for standalone Loki community chart
+# Production overrides for standalone Loki community chart
 deploymentMode: SingleBinary
-compactor:
-  retention_enabled: true
-  working_directory: /var/loki/compactor
 loki:
   auth_enabled: false
   commonConfig:
     replication_factor: 1
+  compactor:
+    working_directory: /var/loki/compactor
+    compaction_interval: 10m
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 150
+    delete_request_store: filesystem
   limits_config:
     retention_period: 168h
     volume_enabled: true
@@ -38,7 +42,7 @@ singleBinary:
   persistence:
     enabled: true
     storageClass: ebs-sc
-    size: 10Gi
+    size: 30Gi
 chunksCache:
   allocatedMemory: 1024
   allocatedCPU: 200m
