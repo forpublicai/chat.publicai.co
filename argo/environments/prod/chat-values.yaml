@@ -40,8 +40,8 @@ open-webui:
         failureThreshold: 3
     resources:
       requests:
-        memory: "8Gi"
-        cpu: "1000m"
+        memory: "4Gi"
+        cpu: "500m"
       limits:
         memory: "10Gi"
         cpu: "2000m"
