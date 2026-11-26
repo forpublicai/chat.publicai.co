@@ -45,8 +45,8 @@ singleBinary:
   replicas: 1
   resources:
     requests:
-      cpu: 200m
-      memory: 1Gi
+      cpu: 100m
+      memory: 512Mi
     limits:
       cpu: 1000m
       memory: 2Gi
@@ -55,11 +55,11 @@ singleBinary:
     storageClass: ebs-sc
     size: 30Gi
 chunksCache:
-  allocatedMemory: 512
-  allocatedCPU: 100m
-resultsCache:
   allocatedMemory: 256
-  allocatedCPU: 100m
+  allocatedCPU: 50m
+resultsCache:
+  allocatedMemory: 128
+  allocatedCPU: 50m
 gateway:
   enabled: false
 lokiCanary:
