@@ -48,6 +48,13 @@ lago:
   api:
     extraEnv:
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "100m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
   worker:
