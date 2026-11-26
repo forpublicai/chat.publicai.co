@@ -40,10 +40,10 @@ open-webui:
         failureThreshold: 5
     resources:
       requests:
-        memory: "3Gi"
-        cpu: "250m"
+        memory: "1536Mi"
+        cpu: "150m"
       limits:
-        memory: "6Gi"
+        memory: "4Gi"
         cpu: "1500m"
     affinity:
       enabled: true
