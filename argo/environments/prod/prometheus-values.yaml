@@ -1,4 +1,4 @@
-# Staging overrides for standalone Prometheus community chart
+# Production overrides for standalone Prometheus community chart
 alertmanager:
   enabled: false
 
@@ -17,11 +17,11 @@ server:
   retention: "40d"
   resources:
     requests:
-      cpu: 250m
-      memory: 2Gi
+      cpu: 100m
+      memory: 1536Mi
     limits:
       cpu: 1000m
-      memory: 4Gi
+      memory: 3Gi
   persistentVolume:
     enabled: true
     size: 50Gi

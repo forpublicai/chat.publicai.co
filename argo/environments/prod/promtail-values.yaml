@@ -1,7 +1,16 @@
-# Staging overrides for standalone Promtail community chart
+# Production overrides for standalone Promtail community chart
 config:
   clients:
     - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http-metrics
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
 resources:
   requests:
     cpu: 50m
