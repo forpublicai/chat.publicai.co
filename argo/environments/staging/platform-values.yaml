@@ -8,6 +8,13 @@ litellm:
     image:
       repository: ghcr.io/forpublicai/litellm-v2
       tag: "pai-v1.104.2-b23"
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "300m"
+      limits:
+        memory: "3Gi"
+        cpu: "1000m"
   secrets:
     manualSecretsName: "staging/aichat/litellm/manual-secrets"
     managedSecretsName: "staging/aichat/open-webui/managed-secrets"
@@ -62,9 +69,10 @@ lago:
   billingWorker:
     extraEnv:
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
-      MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000"
+      MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000,background_thread:true,narenas:2"
+      RUBY_GC_HEAP_GROWTH_FACTOR: "1.1"
     rails:
-      sidekiqConcurrency: 5
+      sidekiqConcurrency: 3
     resources:
       requests:
         memory: "1Gi"

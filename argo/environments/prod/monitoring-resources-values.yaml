@@ -8,6 +8,9 @@ argocdNotifications:
   enabled: true
   secretsName: "prod/publicai/argocd/notifications"
 
+argocdControllerService:
+  enabled: true
+
 healthcheck:
   enabled: true
 
