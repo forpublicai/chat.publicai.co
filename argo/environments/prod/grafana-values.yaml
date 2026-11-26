@@ -1,4 +1,4 @@
-# Staging overrides for standalone Grafana community chart
+# Production overrides for standalone Grafana community chart
 admin:
   existingSecret: grafana-admin-credentials
   userKey: admin-user
@@ -14,7 +14,7 @@ deploymentStrategy:
   type: Recreate
 resources:
   requests:
-    cpu: 100m
+    cpu: 50m
     memory: 256Mi
   limits:
     cpu: 500m
