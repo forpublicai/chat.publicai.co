@@ -21,7 +21,7 @@ litellm:
       failureThreshold: 3
     resources:
       requests:
-        memory: "3584Mi"
+        memory: "2Gi"
         cpu: "300m"
       limits:
         memory: "4Gi"
@@ -96,16 +96,18 @@ lago:
       MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000,background_thread:true,narenas:2"
       RUBY_GC_HEAP_GROWTH_FACTOR: "1.1"
     rails:
-      sidekiqConcurrency: 3
+      sidekiqConcurrency: 2
     resources:
       requests:
-        memory: "4Gi"
+        memory: "5Gi"
         cpu: "500m"
       limits:
-        memory: "6Gi"
+        memory: "10Gi"
         cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
+      timeoutSeconds: 5
+      failureThreshold: 5
     affinity:
       podAntiAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -190,6 +192,13 @@ grafana:
 
 healthcheck:
   enabled: true
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
   secrets:
     manualSecretsName: "prod/publicai/litellm/manual-secrets"
     managedSecretsName: "prod/publicai/open-webui/managed-secrets"
