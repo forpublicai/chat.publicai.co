@@ -62,9 +62,10 @@ lago:
   billingWorker:
     extraEnv:
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
-      MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000"
+      MALLOC_CONF: "dirty_decay_ms:1000,muzzy_decay_ms:1000,background_thread:true,narenas:2"
+      RUBY_GC_HEAP_GROWTH_FACTOR: "1.1"
     rails:
-      sidekiqConcurrency: 5
+      sidekiqConcurrency: 3
     resources:
       requests:
         memory: "1Gi"
