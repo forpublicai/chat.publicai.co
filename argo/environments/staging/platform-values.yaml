@@ -53,6 +53,13 @@ lago:
   worker:
     extraEnv:
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -75,8 +82,8 @@ lago:
       sidekiqConcurrency: 3
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "512Mi"
+        cpu: "100m"
       limits:
         memory: "2Gi"
         cpu: "1000m"
@@ -97,6 +104,13 @@ lago:
     extraEnv:
       SIDEKIQ_CLOCK: "true"
   clockWorker:
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -111,6 +125,13 @@ lago:
                 - chat
               topologyKey: kubernetes.io/hostname
   eventsWorker:
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -127,6 +148,13 @@ lago:
   paymentWorker:
     extraEnv:
       LAGO_CHECKOUT_AUTO_PAYMENT_DELAY_SECONDS: "0"
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
@@ -147,6 +175,13 @@ lago:
     livenessProbe:
       initialDelaySeconds: 90
   webhookWorker:
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
     livenessProbe:
       initialDelaySeconds: 90
     affinity:
