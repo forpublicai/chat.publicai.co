@@ -10,8 +10,8 @@ litellm:
       tag: "pai-v1.104.2-b23"
     resources:
       requests:
-        memory: "2Gi"
-        cpu: "300m"
+        memory: "1Gi"
+        cpu: "200m"
       limits:
         memory: "3Gi"
         cpu: "1000m"
